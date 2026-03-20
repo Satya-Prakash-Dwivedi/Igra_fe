@@ -1,0 +1,108 @@
+# =========================
+
+# Dependencies
+
+# =========================
+
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# =========================
+
+# Build / Output
+
+# =========================
+
+dist/
+build/
+.out/
+coverage/
+*.tsbuildinfo
+
+# =========================
+
+# Environment variables
+
+# =========================
+
+.env
+.env.*
+!.env.example
+
+# =========================
+
+# Logs
+
+# =========================
+
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+
+# OS / System files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# =========================
+
+# IDE / Editor
+
+# =========================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# =========================
+
+# Testing
+
+# =========================
+
+coverage/
+jest-cache/
+vitest-cache/
+
+# =========================
+
+# Misc
+
+# =========================
+
+.cache/
+.tmp/
+.temp/
+*.local
+
+# =========================
+
+# Optional: lock files
+
+# Keep package-lock.json if this is an application
+
+# Ignore if this is a library
+
+# =========================
+
+# package-lock.json
+
+# pnpm-lock.yaml
+
+# yarn.lock
