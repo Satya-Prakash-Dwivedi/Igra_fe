@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
 import NewOrderPage from './pages/NewOrderPage';
+import OrderDetail from './pages/OrderDetail';
 import Credits from './pages/Credits';
 import Invoices from './pages/Invoices';
 import Messages from './pages/Messages';
@@ -55,6 +56,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/new" element={<NewOrderPage />} />
+            <Route path="/orders/:id" element={<OrderDetail />} />
             <Route path="/credits" element={<Credits />} />
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/messages" element={<Messages />} />
