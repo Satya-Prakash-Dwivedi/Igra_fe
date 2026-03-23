@@ -1,577 +1,663 @@
-import React, { useReducer, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Plus, 
-  ArrowLeft, 
-  Trash2, 
-  Info, 
-  Video, 
-  Image as ImageIcon, 
-  Play, 
-  StopCircle, 
-  Mic, 
-  FileText, 
-  Search, 
-  LayoutGrid, 
-  UserCircle, 
-  Phone, 
-  Eye, 
-  MessageSquareDot,
-  MonitorPlay,
-  Smartphone,
-  Square,
-  Maximize2,
-  Upload,
-  Clock,
-  Star,
-  Check,
-  X
-} from 'lucide-react';
-import Button, { cn } from '../components/Button';
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import * as orderApi from '../services/orderService'
+import * as creditApi from '../services/creditService'
+import * as uploadApi from '../services/uploadService'
+import {
+  ArrowLeft, ArrowRight, PlaySquare, Image, PlayCircle, StopCircle, Mic,
+  FileText, Search, Layout, PenTool, LayoutGrid, Phone, Eye, MessageSquare,
+  Plus, X, Info, UploadCloud, Link as LinkIcon, Loader2
+} from 'lucide-react'
 
-// --- Types ---
-
-type ServiceInstance = {
-  id: string;
-  serviceKey: string;
-  fields: Record<string, any>;
-};
-
-type WizardState = {
-  step: 1 | 2 | 3 | 4;
-  services: ServiceInstance[];
-  deadline: string;
-  projectTitle: string;
-  additionalNotes: string;
-};
-
-type Action = 
-  | { type: 'SET_STEP'; step: 1 | 2 | 3 | 4 }
-  | { type: 'ADD_SERVICE'; serviceKey: string }
-  | { type: 'REMOVE_SERVICE'; id: string }
-  | { type: 'INCREMENT_SERVICE'; serviceKey: string }
-  | { type: 'UPDATE_SERVICE_FIELD'; id: string; field: string; value: any }
-  | { type: 'SET_DEADLINE'; deadline: string }
-  | { type: 'SET_PROJECT_TITLE'; title: string }
-  | { type: 'SET_NOTES'; notes: string };
-
-// --- Data ---
+// ─── Constants & Types ──────────────────────────────────────────
 
 const SERVICE_CATALOG = [
-  { key: 'video', name: 'Video', icon: <Video size={20} />, price: 100, pricingText: '20 credits per minute of raw footage (min. 100 credits)' },
-  { key: 'thumbnail', name: 'Thumbnail Design', icon: <ImageIcon size={20} />, price: 50, pricingText: '50 credits per thumbnail' },
-  { key: 'customIntro', name: 'Custom Intro', icon: <Play size={20} />, price: 100, pricingText: 'Starting at 100 credits' },
-  { key: 'customOutro', name: 'Custom Outro', icon: <StopCircle size={20} />, price: 100, pricingText: 'Starting at 100 credits' },
-  { key: 'aiVoiceover', name: 'AI Voiceover', icon: <Mic size={20} />, price: 50, pricingText: '10 credits per minute (min. 50 credits)' },
-  { key: 'scriptWriting', name: 'Script Writing', icon: <FileText size={20} />, price: 100, pricingText: '100 credits per 500 words' },
-  { key: 'videoSEO', name: 'Video SEO', icon: <Search size={20} />, price: 100, pricingText: '100 credits per video' },
-  { key: 'channelBanner', name: 'Channel Banner', icon: <LayoutGrid size={20} />, price: 150, pricingText: '150 credits' },
-  { key: 'logoDesign', name: 'Logo Design', icon: <UserCircle size={20} />, price: 100, pricingText: '100 credits' },
-  { key: 'imageRetouching', name: 'Image Retouching', icon: <LayoutGrid size={20} />, price: 100, pricingText: '100 credits' },
-  { key: 'consultationCall', name: 'Consultation Call', icon: <Phone size={20} />, price: 100, pricingText: '100 credits per 15 minutes' },
-  { key: 'footageReview', name: 'Footage Review', icon: <Eye size={20} />, price: 50, pricingText: '10 credits per minute (min. 50 credits)' },
-  { key: 'customRequest', name: 'Custom Request', icon: <MessageSquareDot size={20} />, price: 0, pricingText: 'Let us know what you need' },
-];
+  { kind: 'VIDEO_EDIT', label: 'Video', icon: PlaySquare, desc: '20 credits per minute of raw footage (min. 100 credits)', minCredits: 100 },
+  { kind: 'THUMBNAIL', label: 'Thumbnail Design', icon: Image, desc: '50 credits per thumbnail', minCredits: 50 },
+  { kind: 'INTRO', label: 'Custom Intro', icon: PlayCircle, desc: 'Starting at 100 credits', minCredits: 100 },
+  { kind: 'OUTRO', label: 'Custom Outro', icon: StopCircle, desc: 'Starting at 100 credits', minCredits: 100 },
+  { kind: 'VOICEOVER', label: 'AI Voiceover', icon: Mic, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
+  { kind: 'SCRIPT', label: 'Script Writing', icon: FileText, desc: '100 credits per 500 words', minCredits: 100 },
+  { kind: 'SEO', label: 'Video SEO', icon: Search, desc: '100 credits per video', minCredits: 100 },
+  { kind: 'CHANNEL_BANNER', label: 'Channel Banner', icon: Layout, desc: '150 credits', minCredits: 150 },
+  { kind: 'LOGO_DESIGN', label: 'Logo Design', icon: PenTool, desc: '100 credits', minCredits: 100 },
+  { kind: 'IMAGE_RETOUCHING', label: 'Image Retouching', icon: LayoutGrid, desc: '100 credits', minCredits: 100 },
+  { kind: 'CONSULTATION', label: 'Consultation Call', icon: Phone, desc: '100 credits per 15 minutes', minCredits: 100 },
+  { kind: 'FOOTAGE_REVIEW', label: 'Footage Review', icon: Eye, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
+  { kind: 'CUSTOM', label: 'Custom Request', icon: MessageSquare, desc: 'Let us know what you need', minCredits: 0 },
+]
 
-const THUMBNAIL_STYLES = [
-  { label: 'Mr Beast Exaggerated', color: 'bg-red-500/20' },
-  { label: 'Headshot', color: 'bg-blue-500/20' },
-  { label: 'Quote', color: 'bg-yellow-500/20' },
-  { label: 'The 10/10 Rule', color: 'bg-purple-500/20' },
-  { label: 'Before & After', color: 'bg-green-500/20' },
-];
-
-const initialState: WizardState = {
-  step: 1,
-  services: [],
-  deadline: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString().split('T')[0],
-  projectTitle: '',
-  additionalNotes: '',
-};
-
-function reducer(state: WizardState, action: Action): WizardState {
-  switch (action.type) {
-    case 'SET_STEP': return { ...state, step: action.step };
-    case 'ADD_SERVICE': {
-      const count = state.services.filter(s => s.serviceKey === action.serviceKey).length;
-      return {
-        ...state,
-        services: [...state.services, {
-          id: `${action.serviceKey}-${count}`,
-          serviceKey: action.serviceKey,
-          fields: { pace: 'Normal', tone: [] }
-        }]
-      };
-    }
-    case 'REMOVE_SERVICE': return { ...state, services: state.services.filter(s => s.id !== action.id) };
-    case 'INCREMENT_SERVICE': {
-      const count = state.services.filter(s => s.serviceKey === action.serviceKey).length;
-      return {
-        ...state,
-        services: [...state.services, {
-          id: `${action.serviceKey}-${count}`,
-          serviceKey: action.serviceKey,
-          fields: { pace: 'Normal', tone: [] }
-        }]
-      };
-    }
-    case 'UPDATE_SERVICE_FIELD': return {
-      ...state,
-      services: state.services.map(s => s.id === action.id ? { ...s, fields: { ...s.fields, [action.field]: action.value } } : s)
-    };
-    case 'SET_DEADLINE': return { ...state, deadline: action.deadline };
-    case 'SET_PROJECT_TITLE': return { ...state, projectTitle: action.title };
-    case 'SET_NOTES': return { ...state, additionalNotes: action.notes };
-    default: return state;
-  }
+type DraftItem = {
+  tempId: string
+  kind: string
+  params: any
+  files: File[]
 }
 
-// --- Main Page Component ---
+const STEPS = [
+  { id: 'start', label: 'Start your order' },
+  { id: 'packages', label: 'Select packages' },
+  { id: 'details', label: 'Finalize details' },
+  { id: 'confirm', label: 'Confirm order' },
+]
 
-const NewOrderPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const [hoveredPricing, setHoveredPricing] = useState<string | null>(null);
+// ─── Frontend Pricing Estimator ────────────────────────────────
 
-  const totalCredits = useMemo(() => {
-    return state.services.reduce((acc, s) => {
-      const catalogItem = SERVICE_CATALOG.find(c => c.key === s.serviceKey);
-      return acc + (catalogItem?.price || 0);
-    }, 0);
-  }, [state.services]);
+function estimateCredits(item: DraftItem): number {
+  const params = item.params || {}
+  const cat = SERVICE_CATALOG.find(s => s.kind === item.kind)
+  let base = cat?.minCredits || 0
 
-  const handleBack = () => {
-    if (state.step === 1) navigate('/orders');
-    else dispatch({ type: 'SET_STEP', step: (state.step - 1) as any });
-  };
+  if (item.kind === 'VIDEO_EDIT') {
+    base = Math.max(100, (params.rawFootageLength || 0) * 20)
+    if (params.hasRawFootage === false) base += 100
+    if (params.addBroll === true) base += 100
+  } else if (item.kind === 'VOICEOVER') {
+    base = Math.max(50, (params.scriptLength || 0) * 10)
+  } else if (item.kind === 'SCRIPT') {
+    const words = params.wordCount || 0
+    base = Math.max(100, Math.ceil(words / 500) * 100)
+  } else if (item.kind === 'CONSULTATION') {
+    const mins = params.duration || 15
+    base = Math.max(100, Math.ceil(mins / 15) * 100)
+  } else if (item.kind === 'FOOTAGE_REVIEW') {
+    base = Math.max(50, (params.footageLength || 0) * 10)
+  }
+  return base
+}
 
-  // --- Configuration UI Helpers ---
+// ─── Main Component ──────────────────────────────────────────────
 
-  const UnderlineInput = ({ id, field, placeholder, type = "text" }: any) => (
-    <input 
-      type={type} 
-      placeholder={placeholder}
-      className="w-full bg-transparent border-b border-border py-2 text-text-main focus:outline-none focus:border-primary transition-colors"
-      onChange={(e) => dispatch({ type: 'UPDATE_SERVICE_FIELD', id, field, value: e.target.value })}
-    />
-  );
+export default function NewOrderPage() {
+  const navigate = useNavigate()
+  
+  // View State
+  const [stepIndex, setStepIndex] = useState(0)
+  const currentStep = STEPS[stepIndex]
 
-  const PillSelector = ({ id, field, options, multi = false }: any) => {
-    const instance = state.services.find(s => s.id === id);
-    const currentValue = instance?.fields[field] || (multi ? [] : '');
+  // Order State
+  const [title, setTitle] = useState('')
+  const [orderId, setOrderId] = useState<string | null>(null)
+  const [draftItems, setDraftItems] = useState<DraftItem[]>([])
+  
+  // Wallet / Server State
+  const [balance, setBalance] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+  const [error, setError] = useState<string | null>(null)
+  
+  // After API creation
+  const [confirmedTotal, setConfirmedTotal] = useState(0)
 
-    const toggle = (opt: string) => {
-      let newValue;
-      if (multi) {
-        newValue = currentValue.includes(opt) 
-          ? currentValue.filter((v: string) => v !== opt) 
-          : [...currentValue, opt];
-      } else {
-        newValue = opt;
+  useEffect(() => {
+    creditApi.getWallet().then((w) => setBalance(w.balance))
+  }, [])
+
+  const handleNext = async () => {
+    setError(null)
+    
+    // Step 0 -> 1 (Create Order)
+    if (stepIndex === 0) {
+      if (!title.trim()) {
+        setError('Please enter an order title')
+        return
       }
-      dispatch({ type: 'UPDATE_SERVICE_FIELD', id, field, value: newValue });
-    };
+      if (!orderId) {
+        setLoading(true)
+        try {
+          const order = await orderApi.createOrder(title)
+          setOrderId(order._id)
+          setStepIndex(1)
+        } catch (err: any) {
+          setError(err?.response?.data?.error || err.message)
+        } finally {
+          setLoading(false)
+        }
+      } else {
+        setStepIndex(1)
+      }
+      return
+    }
 
-    return (
-      <div className="flex flex-wrap gap-2">
-        {options.map((opt: string) => (
-          <button
-            key={opt}
-            onClick={() => toggle(opt)}
-            className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-medium border transition-all",
-              (multi ? currentValue.includes(opt) : currentValue === opt)
-                ? "bg-primary/10 border-primary text-primary"
-                : "border-border text-text-muted hover:border-primary"
-            )}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
-    );
-  };
+    // Step 1 -> 2 (Select -> Finalize)
+    if (stepIndex === 1) {
+      if (draftItems.length === 0) {
+        setError('Please select at least one package.')
+        return
+      }
+      setStepIndex(2)
+      return
+    }
 
-  // --- Step Content ---
+    // Step 2 -> 3 (Finalize -> Create Items on Server -> Confirm)
+    if (stepIndex === 2) {
+      if (!orderId) return
+      setLoading(true)
+      try {
+        let cumulativeCredits = 0
+        for (const draft of draftItems) {
+          const assetIds: string[] = []
+          
+          // Upload files if any
+          if (draft.files.length > 0) {
+            setUploading(true)
+            for (const file of draft.files) {
+              const assetId = await uploadApi.uploadFile(file, (pct) => {
+                setUploadProgress(prev => ({ ...prev, [file.name]: pct }))
+              })
+              assetIds.push(assetId)
+            }
+            setUploading(false)
+          }
 
-  const renderStep1 = () => (
-    <div className="animate-in fade-in duration-500 space-y-10">
-      <div className="space-y-2">
-        <h2 className="text-text-main font-bold text-2xl">Let's get started!</h2>
-        <p className="text-text-muted text-sm italic">Choose how you'd like to start your order.</p>
-      </div>
+          const added = await orderApi.addItem(orderId, draft.kind, draft.params, [], assetIds)
+          cumulativeCredits += added.creditsQuoted
+        }
+        setConfirmedTotal(cumulativeCredits)
+        setStepIndex(3)
+      } catch (err: any) {
+        let msg = err?.response?.data?.error || err.message
+        if (typeof msg === 'object') msg = JSON.stringify(msg)
+        setError(`Failed to save items or upload files: ${msg}`)
+      } finally {
+        setLoading(false)
+        setUploading(false)
+      }
+      return
+    }
 
-      <div 
-        className="group border-2 border-primary bg-bg-card rounded-2xl p-10 cursor-pointer hover:bg-bg-dark transition-all shadow-2xl shadow-primary/5 flex flex-col items-center gap-4 text-center"
-        onClick={() => dispatch({ type: 'SET_STEP', step: 2 })}
-      >
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-          <Plus size={32} />
-        </div>
-        <div>
-          <h3 className="text-text-main font-bold text-xl uppercase tracking-tighter">New Order</h3>
-          <p className="text-text-muted text-sm">Start a new order from scratch</p>
-        </div>
-      </div>
+    // Step 3 (Confirm -> Submit)
+    if (stepIndex === 3) {
+      if (!orderId) return
+      setLoading(true)
+      try {
+        await orderApi.submitOrder(orderId)
+        navigate(`/orders/${orderId}`)
+      } catch (err: any) {
+        setError(err?.response?.data?.error || err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
 
-      <div className="space-y-4 pt-10">
-        <h3 className="text-text-main font-semibold text-lg">Or, pick up where you left off</h3>
-        <p className="text-text-muted text-[10px] font-bold uppercase tracking-widest">Draft orders</p>
-        <div className="space-y-3">
-          {["(untitled)", "Video", "Video"].map((title, i) => (
-            <div key={i} className="bg-bg-card border border-border rounded-xl px-6 py-4 flex items-center justify-between hover:border-primary transition-all group cursor-pointer shadow-sm">
-              <div className="flex flex-col">
-                <span className="text-text-main font-bold text-sm">{title}</span>
-                <span className="text-text-muted text-xs">Edited {i === 0 ? '3 days ago' : 'a month ago'} · <span className="uppercase font-bold text-[10px]">Draft</span></span>
-              </div>
-              <Trash2 size={18} className="text-error opacity-40 group-hover:opacity-100 transition-opacity" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  const handleAddPackage = (kind: string) => {
+    const cat = SERVICE_CATALOG.find(c => c.kind === kind)
+    const initialParams: any = {}
+    
+    // Default form values based on design
+    if (kind === 'VIDEO_EDIT') {
+      initialParams.hasRawFootage = true
+      initialParams.outputRatio = '16:9'
+      initialParams.rawFootageLength = 30
+      initialParams.desiredLength = 5
+      initialParams.addBroll = false
+      initialParams.tone = ''
+      initialParams.pace = ''
+    } else if (kind === 'CONSULTATION') {
+      initialParams.duration = 15
+    }
+    
+    setDraftItems([...draftItems, {
+      tempId: Math.random().toString(36).substr(2, 9),
+      kind,
+      params: initialParams,
+      files: []
+    }])
+  }
 
-  const renderStep2 = () => (
-    <div className="animate-in fade-in duration-500 space-y-10 pb-32">
-      <h2 className="text-text-main font-bold text-3xl">What can we do for you?</h2>
+  const handleRemovePackage = (tempId: string) => {
+    setDraftItems(draftItems.filter(i => i.tempId !== tempId))
+  }
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {SERVICE_CATALOG.map(service => {
-          const instances = state.services.filter(s => s.serviceKey === service.key);
-          return (
-            <div key={service.key} className="bg-bg-card border border-border rounded-2xl p-6 flex flex-col gap-4 shadow-sm hover:shadow-xl transition-all">
-              <div className="flex justify-between items-start">
-                <div className="text-primary">{service.icon}</div>
-                <Info size={16} className="text-text-muted hover:text-text-main cursor-pointer" />
-              </div>
-              <div className="space-y-1 min-h-[60px]">
-                <h3 className="text-text-main font-bold text-sm leading-tight">{service.name}</h3>
-                <p className="text-text-muted text-[10px] leading-relaxed line-clamp-2">{service.pricingText}</p>
-              </div>
-              {instances.length === 0 ? (
-                <Button 
-                  variant="outline" 
-                  fullWidth 
-                  className="py-2 border-primary text-primary hover:bg-primary/5 text-[10px] font-bold uppercase tracking-widest"
-                  onClick={() => dispatch({ type: 'ADD_SERVICE', serviceKey: service.key })}
-                >
-                  <Plus size={14} className="mr-1" /> Add {service.name}
-                </Button>
-              ) : (
-                <div className="flex items-center justify-between bg-bg-dark rounded-xl px-3 py-2 border border-border">
-                  <span className="text-text-muted text-[10px] font-bold uppercase tracking-widest">Quantity {instances.length}</span>
-                  <button 
-                    onClick={() => dispatch({ type: 'INCREMENT_SERVICE', serviceKey: service.key })}
-                    className="bg-primary text-white rounded-lg w-8 h-8 flex items-center justify-center font-bold shadow-lg"
-                  >
-                    +
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+  const updateDraftParam = (tempId: string, key: string, value: any) => {
+    setDraftItems(draftItems.map(item => {
+      if (item.tempId === tempId) {
+        return { ...item, params: { ...item.params, [key]: value } }
+      }
+      return item
+    }))
+  }
 
-      {/* Expanded Panels */}
-      <div className="space-y-8 pt-10">
-        {state.services.map((instance, idx) => {
-          const service = SERVICE_CATALOG.find(c => c.key === instance.serviceKey);
-          const typeInstances = state.services.filter(s => s.serviceKey === instance.serviceKey);
-          const pos = typeInstances.findIndex(s => s.id === instance.id) + 1;
-
-          return (
-            <div key={instance.id} className="bg-bg-card border border-primary/30 rounded-2xl p-8 shadow-2xl animate-in zoom-in duration-300">
-              <div className="flex justify-between items-start mb-10">
-                <div className="space-y-1">
-                  <h3 className="text-text-main font-bold text-xl">
-                    {service?.name} {typeInstances.length > 1 ? `(${pos} of ${typeInstances.length})` : ''}
-                  </h3>
-                  <p className="text-text-muted text-sm">{service?.pricingText}</p>
-                </div>
-                <button 
-                  onClick={() => dispatch({ type: 'REMOVE_SERVICE', id: instance.id })}
-                  className="text-text-muted hover:text-error text-xs font-bold uppercase tracking-widest transition-colors"
-                >
-                  ✕ Remove
-                </button>
-              </div>
-
-              {/* Service Specific Fields */}
-              <div className="space-y-10">
-                {instance.serviceKey === 'video' && (
-                  <>
-                    <div className="space-y-4">
-                      <label className="text-text-muted text-[10px] font-bold uppercase tracking-widest">Do you have raw footage?</label>
-                      <div className="flex gap-4">
-                        {['Yes, I have raw footage', 'No, need footage (+100 cr)'].map(opt => (
-                          <button key={opt} className={cn(
-                            "px-6 py-2 rounded-full text-sm font-bold border transition-all",
-                            opt.includes('Yes') ? "bg-success/10 border-success text-success" : "border-border text-text-muted hover:border-error"
-                          )}>{opt}</button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {[
-                        { label: 'Horizontal (16:9)', icon: <MonitorPlay /> },
-                        { label: 'Vertical (9:16)', icon: <Smartphone /> },
-                        { label: 'Square (1:1)', icon: <Square /> },
-                        { label: 'Other', icon: <Maximize2 /> },
-                      ].map(ratio => (
-                        <div key={ratio.label} className="border border-border rounded-2xl p-4 flex flex-col items-center gap-3 cursor-pointer hover:border-primary transition-all">
-                          <div className="text-text-muted">{ratio.icon}</div>
-                          <span className="text-text-main text-[10px] font-bold uppercase text-center">{ratio.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="grid grid-cols-2 gap-8">
-                      <div className="space-y-2">
-                        <label className="text-text-muted text-[10px] font-bold uppercase tracking-widest">Raw footage length (min)</label>
-                        <UnderlineInput id={instance.id} field="rawLength" placeholder="30" type="number" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-text-muted text-[10px] font-bold uppercase tracking-widest">Desired video length (min)</label>
-                        <UnderlineInput id={instance.id} field="finalLength" placeholder="5" type="number" />
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <label className="text-text-muted text-[10px] font-bold uppercase tracking-widest">Tone & Pace</label>
-                      <PillSelector id={instance.id} field="tone" options={['Funny', 'Serious', 'Professional', 'Elegant', 'Casual', 'Informational']} multi />
-                      <PillSelector id={instance.id} field="pace" options={['Slow', 'Normal', 'Fast', 'Super']} />
-                    </div>
-                  </>
-                )}
-
-                {instance.serviceKey === 'thumbnail' && (
-                  <div className="space-y-8">
-                    <label className="text-text-muted text-[10px] font-bold uppercase tracking-widest block">Select a style</label>
-                    <div className="grid grid-cols-5 gap-3">
-                      {THUMBNAIL_STYLES.map(style => (
-                        <div key={style.label} className="flex flex-col gap-2 group cursor-pointer">
-                          <div className={cn("h-24 w-full rounded-xl border border-border transition-all group-hover:border-primary", style.color)}></div>
-                          <span className="text-[9px] text-text-muted font-bold text-center uppercase group-hover:text-text-main">{style.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <UnderlineInput id={instance.id} field="sketch" placeholder="Sketch your idea (optional)" />
-                  </div>
-                )}
-
-                {(instance.serviceKey === 'customIntro' || instance.serviceKey === 'customOutro') && (
-                  <div className="space-y-8">
-                    <div className="space-y-4">
-                      <label className="text-text-muted text-[10px] font-bold uppercase tracking-widest">Duration</label>
-                      <input type="range" min="0" max="30" step="0.5" className="w-full accent-primary" />
-                      <p className="text-center text-text-main font-bold">15 seconds</p>
-                    </div>
-                    <div className="space-y-4">
-                      <label className="text-text-muted text-[10px] font-bold uppercase tracking-widest block">Complexity</label>
-                      {['Simple', 'Moderate', 'Complex'].map(c => (
-                        <div key={c} className="bg-bg-dark border border-border rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:border-primary transition-colors">
-                          <div className="w-4 h-4 rounded-full border border-border" />
-                          <span className="text-text-main font-bold text-sm">{c}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Common Upload Zone for all panels */}
-                <div className="border-2 border-dashed border-border rounded-2xl p-10 flex flex-col items-center justify-center gap-3 hover:border-primary transition-all cursor-pointer group">
-                  <Upload size={32} className="text-text-muted group-hover:text-primary transition-colors" />
-                  <div className="text-center">
-                    <p className="text-text-main text-sm font-bold">Drag & drop your files or browse</p>
-                    <p className="text-primary text-xs mt-1 hover:underline">Or provide a link to your files →</p>
-                  </div>
-                </div>
-
-                <div className="border-t border-border pt-6 flex items-center justify-between">
-                  <span className="text-text-muted text-[10px] font-bold uppercase tracking-widest">Instance Credits</span>
-                  <div className="text-right">
-                    <p className="text-text-main font-bold text-xl">{service?.price} credits</p>
-                    <p className="text-text-muted text-xs">(${service?.price} USD)</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Sticky Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-bg-dark border-t border-border px-8 py-6 flex items-center justify-between z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        <div>
-          <span className="text-text-main font-bold text-2xl tracking-tighter">{totalCredits} credits</span>
-          <span className="text-text-muted text-sm ml-2 font-medium">(${totalCredits} USD)</span>
-        </div>
-        <Button 
-          className="px-14 py-4 rounded-2xl font-bold text-lg shadow-2xl shadow-primary/20"
-          disabled={state.services.length === 0}
-          onClick={() => dispatch({ type: 'SET_STEP', step: 3 })}
-        >
-          Next →
-        </Button>
-      </div>
-    </div>
-  );
-
-  const renderStep3 = () => (
-    <div className="max-w-3xl mx-auto space-y-10 animate-in fade-in duration-500 pb-24">
-      <h2 className="text-text-main font-bold text-3xl">Finalize your order</h2>
-      
-      <div className="bg-bg-card border border-border rounded-3xl p-10 flex flex-col gap-12 shadow-2xl">
-        <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Clock className="text-primary" size={24} />
-            <h3 className="text-text-main font-bold text-xl">Set a deadline</h3>
-          </div>
-          <p className="text-text-muted text-sm">Rush order pricing applies for dates sooner than 72 hours in advance.</p>
-          <input 
-            type="date" 
-            className="w-full bg-transparent border-b border-border py-3 text-text-main text-xl focus:outline-none focus:border-primary" 
-            defaultValue={state.deadline}
-          />
-        </section>
-
-        <section className="space-y-4">
-          <label className="text-text-main font-bold text-xl">Project title</label>
-          <input 
-            type="text" 
-            placeholder="My awesome project"
-            className="w-full bg-transparent border-b border-border py-3 text-text-main text-2xl focus:outline-none focus:border-primary"
-            onChange={(e) => dispatch({ type: 'SET_PROJECT_TITLE', title: e.target.value })}
-          />
-        </section>
-
-        <section className="space-y-4">
-          <label className="text-text-main font-bold text-xl leading-tight">Any additional requirements?</label>
-          <textarea 
-            placeholder="Add a note..."
-            className="w-full bg-transparent border-b border-border py-3 text-text-main text-lg focus:outline-none focus:border-primary resize-none min-h-[120px]"
-          ></textarea>
-        </section>
-
-        <section className="bg-bg-dark border border-border rounded-2xl p-8 space-y-6">
-          <div className="space-y-1">
-            <h4 className="text-text-main font-bold text-xl">Add a channel</h4>
-            <p className="text-text-muted text-sm">Want to use the same tone, pace, and flow in future videos?</p>
-          </div>
-          <Button variant="outline" className="border-primary text-primary hover:bg-primary/5 py-3 px-8 rounded-xl font-bold">
-            Edit Channel Defaults
-          </Button>
-        </section>
-
-        <Button 
-          fullWidth 
-          className="py-5 text-xl font-bold rounded-2xl shadow-xl mt-4"
-          disabled={!state.projectTitle}
-          onClick={() => dispatch({ type: 'SET_STEP', step: 4 })}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-
-  const renderStep4 = () => (
-    <div className="max-w-3xl mx-auto space-y-10 animate-in fade-in zoom-in duration-500 pb-24">
-      <h2 className="text-text-main font-bold text-4xl tracking-tighter">Ready to create your order?</h2>
-
-      <div className="bg-bg-card border border-border rounded-3xl p-10 shadow-2xl">
-        <h3 className="text-text-main font-bold text-2xl mb-10 border-b border-border pb-6">Your project</h3>
-        <div className="space-y-8">
-          {state.services.map((instance, i) => {
-            const service = SERVICE_CATALOG.find(c => c.key === instance.serviceKey);
-            return (
-              <div key={instance.id} className="flex items-center justify-between group">
-                <div className="flex items-center gap-6">
-                  <div className="bg-primary/10 text-primary rounded-2xl w-12 h-12 flex items-center justify-center text-lg font-black shadow-inner">
-                    {i + 1}
-                  </div>
-                  <span className="text-text-main font-bold text-xl">{service?.name}</span>
-                </div>
-                <span className="text-text-main font-black text-xl">{service?.price} cr</span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-16 pt-10 border-t border-border flex items-center justify-between">
-          <span className="text-text-main font-black text-3xl uppercase tracking-tighter">Total credits</span>
-          <div className="text-right">
-            <span className="text-text-muted text-xl mr-4 font-bold">(${totalCredits} USD)</span>
-            <span className="text-primary font-black text-6xl">{totalCredits}</span>
-          </div>
-        </div>
-
-        <div className="flex gap-6 mt-16">
-          <button 
-            className="w-1/3 border-2 border-border text-text-main rounded-2xl py-5 font-black uppercase tracking-widest hover:border-primary transition-all shadow-xl"
-            onClick={() => navigate('/orders')}
-          >
-            Save & return
-          </button>
-          <Button 
-            className="flex-1 py-5 text-2xl font-black rounded-2xl shadow-[0_20px_50px_rgba(225,29,72,0.3)] animate-pulse hover:animate-none"
-            onClick={() => window.location.href = 'https://www.paypal.com/checkoutnow'}
-          >
-            Pay {totalCredits} credits
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-6 mt-12 border-t border-border pt-10">
-          {["🎧 Team Online 24/7", "⚡ Professional & Fast", "✓ Satisfaction Guarantee", "📈 10K+ Projects Complete"].map(b => (
-            <div key={b} className="border border-border rounded-full px-6 py-2.5 text-text-muted text-[10px] font-black tracking-widest uppercase bg-bg-dark shadow-inner">
-              {b}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  const totalEstimatedCredits = draftItems.reduce((sum, item) => sum + estimateCredits(item), 0)
+  const canAfford = balance >= (stepIndex === 3 ? confirmedTotal : totalEstimatedCredits)
 
   return (
-    <div className="flex-1 p-6 md:p-10 bg-bg-dark min-h-screen">
-      {/* Progress Bar Header */}
-      <div className="max-w-5xl mx-auto flex items-center gap-6 mb-16">
-        <button 
-          onClick={handleBack}
-          className="p-3 bg-bg-card border border-border rounded-full text-primary hover:bg-bg-dark transition-all shadow-2xl active:scale-90"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <div className="flex-1 bg-bg-card border border-border rounded-[2rem] px-10 py-6 flex items-center justify-between shadow-2xl relative overflow-hidden">
-          {steps.map((label, i) => (
-            <React.Fragment key={i}>
-              <div className="flex flex-col items-center gap-2 relative z-10">
-                <span className={cn(
-                  "text-[10px] font-black uppercase tracking-widest transition-colors duration-500",
-                  state.step === i + 1 ? "text-text-main border-b-4 border-primary pb-1" : state.step > i + 1 ? "text-primary" : "text-text-muted"
-                )}>
-                  {label}
+    <div className="bg-[#f8f9fa] min-h-screen -m-6 p-6 text-gray-800">
+      <div className="max-w-5xl mx-auto space-y-6">
+        
+        {/* Top Header / Back Button */}
+        <div className="flex items-center gap-2 mb-8">
+          <button onClick={() => {
+            if (stepIndex > 0 && stepIndex < 3) setStepIndex(stepIndex - 1)
+            else navigate('/orders')
+          }} className="p-2 hover:bg-gray-200 rounded-lg text-primary transition">
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-2xl font-bold">New Order</h1>
+        </div>
+
+        {/* Wizard Progress Bar */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex justify-between relative">
+            <div className="absolute left-0 top-1/2 w-full h-0.5 bg-gray-100 -z-10 -translate-y-1/2"></div>
+            {STEPS.map((s, idx) => (
+              <div key={s.id} className="flex-1 text-center relative z-10 transition-all">
+                <div className={`mx-auto w-full h-1 ${stepIndex >= idx ? 'bg-primary' : 'bg-transparent'}`}></div>
+                <div className={`mt-2 text-sm font-medium ${stepIndex >= idx ? 'text-primary' : 'text-gray-400'}`}>
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 flex items-center gap-3">
+            <Info size={20} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* ─── STEP 0: START ──────────────────────────────────────────── */}
+        {stepIndex === 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 space-y-6">
+            <h2 className="text-xl font-bold text-gray-900">What should we call this order?</h2>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Spring Campaign Video, MrBeast Style Edit..."
+              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+              autoFocus
+            />
+          </div>
+        )}
+
+        {/* ─── STEP 1: SELECT PACKAGES ─────────────────────────────────── */}
+        {stepIndex === 1 && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">What can we do for you?</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {SERVICE_CATALOG.map((pkg) => {
+                const Icon = pkg.icon
+                return (
+                  <div key={pkg.kind} className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col hover:shadow-md transition">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
+                        <Icon size={20} />
+                      </div>
+                      <Info size={16} className="text-gray-400 cursor-pointer" />
+                    </div>
+                    
+                    <h3 className="font-bold text-gray-900 text-lg mb-1">{pkg.label}</h3>
+                    <p className="text-sm text-gray-500 mb-6 flex-1">{pkg.desc}</p>
+                    
+                    <button
+                      onClick={() => handleAddPackage(pkg.kind)}
+                      className="w-full py-2.5 rounded-lg border border-primary text-primary hover:bg-primary/5 font-medium flex items-center justify-center gap-2 transition"
+                    >
+                      <Plus size={16} /> Add {pkg.label}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ─── STEP 2: FINALIZE DETAILS ────────────────────────────────── */}
+        {stepIndex === 2 && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Configure your packages</h2>
+            
+            {draftItems.map((item, idx) => {
+              const cat = SERVICE_CATALOG.find(c => c.kind === item.kind)!
+              return (
+                <div key={item.tempId} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  
+                  {/* Card Header */}
+                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{cat.label}</h3>
+                      <p className="text-sm text-gray-500">{cat.desc}</p>
+                    </div>
+                    <button 
+                      onClick={() => handleRemovePackage(item.tempId)}
+                      className="text-gray-400 hover:text-red-500 flex items-center gap-1 text-sm font-medium transition"
+                    >
+                      <X size={16} /> Remove
+                    </button>
+                  </div>
+
+                  {/* Card Body - Dynamically Rendered Form */}
+                  <div className="p-6 space-y-8">
+                    
+                    {/* VIDEO EDIT SPECIFIC FORM */}
+                    {item.kind === 'VIDEO_EDIT' && (
+                      <>
+                        {/* Raw Footage Toggle */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-1">
+                            Do you have raw footage? <Info size={14} className="text-gray-400"/>
+                          </label>
+                          <div className="flex gap-3">
+                            <button
+                              onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', true)}
+                              className={`px-4 py-2 rounded-full text-sm font-medium border transition ${item.params.hasRawFootage ? 'bg-primary/10 border-primary text-primary' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                            >
+                              Yes, I have raw footage
+                            </button>
+                            <button
+                              onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', false)}
+                              className={`px-4 py-2 rounded-full text-sm font-medium border transition ${item.params.hasRawFootage === false ? 'bg-primary/10 border-primary text-primary' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                            >
+                              No, need footage (+100 credits)
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Output Ratio */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-1">
+                            Desired output ratio <Info size={14} className="text-gray-400"/>
+                          </label>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[
+                              { id: '16:9', label: 'Horizontal (16:9)', icon: PlaySquare },
+                              { id: '9:16', label: 'Vertical (9:16)', icon: Layout },
+                              { id: '1:1', label: 'Square (1:1)', icon: LayoutGrid },
+                              { id: 'Other', label: 'Other', icon: Plus },
+                            ].map(ratio => (
+                              <button
+                                key={ratio.id}
+                                onClick={() => updateDraftParam(item.tempId, 'outputRatio', ratio.id)}
+                                className={`p-4 rounded-xl border text-left transition ${item.params.outputRatio === ratio.id ? 'border-primary ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+                              >
+                                <ratio.icon size={24} className={item.params.outputRatio === ratio.id ? 'text-primary' : 'text-primary'} />
+                                <div className={`mt-3 font-medium ${item.params.outputRatio === ratio.id ? 'text-primary' : 'text-gray-900'}`}>{ratio.label}</div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Lengths */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-900 mb-2">Raw footage length (minutes)</label>
+                            <input
+                              type="number" min={1}
+                              value={item.params.rawFootageLength || ''}
+                              onChange={e => updateDraftParam(item.tempId, 'rawFootageLength', Number(e.target.value))}
+                              className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-900 mb-2">Desired final video length (minutes)</label>
+                            <input
+                              type="number" min={1}
+                              value={item.params.desiredLength || ''}
+                              onChange={e => updateDraftParam(item.tempId, 'desiredLength', Number(e.target.value))}
+                              className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent"
+                            />
+                          </div>
+                        </div>
+
+                        {/* B-Roll */}
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={item.params.addBroll || false}
+                            onChange={e => updateDraftParam(item.tempId, 'addBroll', e.target.checked)}
+                            className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span className="text-gray-700 font-medium">Add additional B-roll footage (+100 credits)</span>
+                        </label>
+
+                        {/* Tone & Pace */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-3">Tone & pace</label>
+                          <div className="flex flex-wrap gap-3">
+                            {['Funny', 'Serious', 'Professional', 'Elegant', 'Casual', 'Informational'].map(t => (
+                              <button key={t} onClick={() => updateDraftParam(item.tempId, 'tone', t)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border transition ${item.params.tone === t ? 'bg-blue-50 border-blue-200 text-primary' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}>
+                                {t}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="flex flex-wrap gap-3 mt-3">
+                            {['Slow', 'Normal', 'Fast', 'Super'].map(p => (
+                              <button key={p} onClick={() => updateDraftParam(item.tempId, 'pace', p)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border transition ${item.params.pace === p ? 'bg-blue-50 border-blue-200 text-primary' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}>
+                                {p}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* THUMBNAIL DESIGN SPECIFIC FORM */}
+                    {item.kind === 'THUMBNAIL' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-3">Thumbnail Style</label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {['MrBeast Exaggerated', 'Headshot', 'Quote', 'Statement / Fact', 'Before & After', 'Versus / Comparison', 'Process Shot', 'No Text', 'Other'].map(style => (
+                            <button key={style} onClick={() => updateDraftParam(item.tempId, 'style', style)}
+                              className={`p-1 rounded-xl border text-center transition overflow-hidden group ${item.params.style === style ? 'border-primary ring-2 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}>
+                              <div className="h-28 bg-gray-100 mb-2 flex flex-col items-center justify-center text-gray-400 rounded-lg group-hover:bg-gray-200 transition">
+                                <Image size={32} />
+                                <span className="text-xs mt-2">Placeholder</span>
+                              </div>
+                              <div className="py-2 px-1 text-sm font-medium text-gray-900 truncate">{style}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SCRIPT WRITING */}
+                    {item.kind === 'SCRIPT' && (
+                      <div className="grid grid-cols-1 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">Word Count</label>
+                          <input type="number" min={50} value={item.params.wordCount || ''} onChange={e => updateDraftParam(item.tempId, 'wordCount', Number(e.target.value))} className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* VOICEOVER & FOOTAGE_REVIEW */}
+                    {(item.kind === 'VOICEOVER' || item.kind === 'FOOTAGE_REVIEW') && (
+                      <div className="grid grid-cols-1 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">Length (minutes)</label>
+                          <input type="number" min={1} value={item.params.scriptLength || item.params.footageLength || ''} onChange={e => updateDraftParam(item.tempId, item.kind === 'VOICEOVER' ? 'scriptLength' : 'footageLength', Number(e.target.value))} className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CONSULTATION */}
+                    {item.kind === 'CONSULTATION' && (
+                      <div className="grid grid-cols-1 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">Duration (minutes)</label>
+                          <select value={item.params.duration || 15} onChange={e => updateDraftParam(item.tempId, 'duration', Number(e.target.value))} className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent">
+                            <option value={15}>15 Minutes</option>
+                            <option value={30}>30 Minutes</option>
+                            <option value={45}>45 Minutes</option>
+                            <option value={60}>60 Minutes</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ALWAYS SHOW UPLOAD ASSETS SECTION */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Upload assets & additional notes</label>
+                      <label className="border border-dashed border-gray-300 rounded-xl p-10 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition cursor-pointer mb-2 relative">
+                        <input 
+                          type="file" 
+                          multiple 
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          onChange={(e) => {
+                            const selectedFiles = e.target.files;
+                            if (selectedFiles && selectedFiles.length > 0) {
+                              const newFiles = Array.from(selectedFiles)
+                              setDraftItems(draftItems.map(di => 
+                                di.tempId === item.tempId 
+                                  ? { ...di, files: [...di.files, ...newFiles] }
+                                  : di
+                              ))
+                            }
+                          }}
+                        />
+                        <UploadCloud size={32} className="text-gray-400 mb-3" />
+                        <span className="text-gray-600">Drag & drop your files or <span className="text-primary font-medium">browse</span></span>
+                      </label>
+                      
+                      {/* Show Selected Files List */}
+                      {item.files && item.files.length > 0 && (
+                        <div className="space-y-2 mb-4">
+                          {item.files.map((file: File, i: number) => (
+                            <div key={i} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <FileText size={16} className="text-gray-400 shrink-0" />
+                                <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                                <span className="text-xs text-gray-400 shrink-0">({(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                              </div>
+                              <button 
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  setDraftItems(draftItems.map(di => 
+                                    di.tempId === item.tempId 
+                                      ? { ...di, files: di.files.filter((_, idx) => idx !== i) }
+                                      : di
+                                  ))
+                                }} 
+                                className="text-red-500 hover:text-red-700 p-1 bg-white rounded shadow-sm border border-red-100"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {!item.params.showLinkInput ? (
+                        <button onClick={() => updateDraftParam(item.tempId, 'showLinkInput', true)} className="text-primary text-sm font-medium flex items-center gap-1 hover:underline">
+                          Or, provide a link to your files <ArrowRight size={14} />
+                        </button>
+                      ) : (
+                        <div className="relative mb-4">
+                          <LinkIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input type="url" placeholder="https://drive.google.com/..." value={item.params.uploadLink || ''} onChange={e => updateDraftParam(item.tempId, 'uploadLink', e.target.value)} className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition" />
+                        </div>
+                      )}
+
+                      <textarea 
+                        rows={3} 
+                        placeholder="Any other notes or instructions for our team..."
+                        value={item.params.notes || ''}
+                        onChange={e => updateDraftParam(item.tempId, 'notes', e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg mt-4 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Card Footer Subtotal */}
+                  <div className="bg-white border-t border-gray-100 flex items-center justify-between p-6">
+                    <span className="text-gray-500 font-medium">Credits</span>
+                    <span className="text-xl font-bold text-gray-900">{estimateCredits(item)} credits</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* ─── STEP 3: CONFIRM ──────────────────────────────────────────── */}
+        {stepIndex === 3 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 space-y-6">
+            <div className="text-center pb-6 border-b border-gray-100">
+              <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <LayoutGrid size={32} />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Your order is ready</h2>
+              <p className="text-gray-500 mt-2">Almost there! Review your total and submit.</p>
+            </div>
+
+            <div className="space-y-4">
+              {draftItems.map(item => (
+                <div key={item.tempId} className="flex justify-between items-center py-2 border-b border-gray-50">
+                  <span className="font-medium text-gray-700">{SERVICE_CATALOG.find(c => c.kind === item.kind)?.label}</span>
+                  <span className="text-gray-900 font-bold">{estimateCredits(item)} credits</span>
+                </div>
+              ))}
+            </div>
+
+            <div className={`p-4 rounded-xl flex items-center gap-3 border ${canAfford ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+              <Info size={24} />
+              <div>
+                <p className="font-bold">{canAfford ? 'Sufficient Balance' : 'Insufficient Balance'}</p>
+                <p className="text-sm opacity-90">
+                  Total required: {confirmedTotal} credits. You currently have {balance} credits.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+        {/* ─── FLOATING BOTTOM BAR ────────────────────────────────────── */}
+        {stepIndex > 0 && (
+          <div className="sticky bottom-6 mt-8 bg-white border border-gray-200 shadow-xl rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4 pl-2">
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500 uppercase tracking-widest font-bold">Total Credits</span>
+                <span className="text-2xl font-bold text-gray-900">
+                  {stepIndex === 3 ? confirmedTotal : totalEstimatedCredits} <span className="text-base font-normal text-gray-500">credits</span>
                 </span>
               </div>
-              {i < steps.length - 1 && (
-                <div className={cn(
-                  "flex-1 h-[2px] mx-6 transition-all duration-1000",
-                  state.step > i + 1 ? "bg-primary shadow-[0_0_15px_primary]" : "bg-border"
-                )}></div>
+            </div>
+            
+            <button
+              onClick={handleNext}
+              disabled={loading || uploading || (stepIndex === 1 && draftItems.length === 0) || (stepIndex === 3 && !canAfford)}
+              className="bg-primary hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:cursor-not-allowed px-8 py-3 rounded-lg font-bold flex items-center gap-2 transition shadow-md"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Uploading...
+                </>
+              ) : loading ? (
+                <span className="animate-pulse">Processing...</span>
+              ) : stepIndex === 3 ? (
+                `Submit Order`
+              ) : (
+                <>Next <ArrowRight size={20} /></>
               )}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
+            </button>
+          </div>
+        )}
 
-      <div className="max-w-5xl mx-auto">
-        {state.step === 1 && renderStep1()}
-        {state.step === 2 && renderStep2()}
-        {state.step === 3 && renderStep3()}
-        {state.step === 4 && renderStep4()}
+        {/* Start order submit button inline */}
+        {stepIndex === 0 && (
+          <div className="flex justify-end">
+            <button
+              onClick={handleNext}
+              disabled={loading || !title.trim()}
+              className="bg-primary hover:bg-blue-700 text-white disabled:bg-gray-300 px-8 py-3 rounded-lg font-bold flex items-center gap-2 transition shadow-md"
+            >
+              {loading ? 'Creating...' : <>Start Order <ArrowRight size={20} /></>}
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
-  );
-};
-
-export default NewOrderPage;
+  )
+}
