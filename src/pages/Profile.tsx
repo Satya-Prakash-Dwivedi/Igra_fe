@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Moon, Youtube, X } from 'lucide-react';
+import { User, Youtube, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/Button';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Bug, Upload } from 'lucide-react';
+import { ArrowLeft, Upload } from 'lucide-react';
 import Button from '../Button';
 
 interface BugReportModalProps {

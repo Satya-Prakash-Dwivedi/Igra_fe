@@ -7,6 +7,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 
 // Auth Pages
 import Login from './pages/Login';
+import Register from './pages/Register';
 
 // Dashboard Pages
 import Dashboard from './pages/Dashboard';
@@ -50,6 +51,7 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           
           {/* Protected Dashboard Routes */}
           <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>

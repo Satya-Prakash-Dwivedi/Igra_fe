@@ -1,5 +1,4 @@
 import api from './api'
-import type { AxiosResponse } from 'axios'
 
 // ─── Types ────────────────────────────────────────────────────
 export interface Order {
