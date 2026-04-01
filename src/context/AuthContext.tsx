@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (credentials: any) => Promise<void>
   register: (userData: any) => Promise<void>
   logout: () => Promise<void>
+  updateUser: (updatedUser: User) => void
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -40,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (credentials: any) => {
     const response = await authService.login(credentials)
     const { user: userData, access_token } = response.data
-    setUser(userData)
+    updateUser(userData)
     setAccessToken(access_token)
     api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
   }
@@ -48,10 +49,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: any) => {
     const response = await authService.register(userData)
     const { user: newUser, access_token } = response.data
-    setUser(newUser)
+    updateUser(newUser)
     setAccessToken(access_token)
     api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
   }
+
+  const updateUser = useCallback((updatedUser: User) => {
+    // Ensure name is populated for legacy/convenience
+    const userWithName = {
+      ...updatedUser,
+      name: updatedUser.name || `${updatedUser.firstName} ${updatedUser.lastName}`.trim() || updatedUser.email
+    }
+    setUser(userWithName)
+  }, [])
 
   // Silent Refresh on Mount
   useEffect(() => {
@@ -67,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Step 3: Fetch profile using the new access token
         const profileResponse = await authService.getProfile()
-        setUser(profileResponse.data.user)
+        updateUser(profileResponse.data.user)
       } catch (err) {
         logger.warn('auth.initial_refresh_failed', {
           error: serializeError(err),
@@ -81,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     initAuth()
-  }, [])
+  }, [updateUser])
 
   // Listen for global logout events from interceptor
   useEffect(() => {
@@ -104,8 +114,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       login,
       register,
       logout,
+      updateUser,
     }),
-    [user, accessToken, isLoading, logout]
+    [user, accessToken, isLoading, logout, updateUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
