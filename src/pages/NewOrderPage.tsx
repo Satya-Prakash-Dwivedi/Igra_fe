@@ -73,7 +73,6 @@ export default function NewOrderPage() {
   
   // View State
   const [stepIndex, setStepIndex] = useState(0)
-  const currentStep = STEPS[stepIndex]
 
   // Order State
   const [title, setTitle] = useState('')
@@ -84,7 +83,7 @@ export default function NewOrderPage() {
   const [balance, setBalance] = useState(0)
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+  const [, setUploadProgress] = useState<Record<string, number>>({})
   const [error, setError] = useState<string | null>(null)
   
   // After API creation
@@ -183,7 +182,7 @@ export default function NewOrderPage() {
   }
 
   const handleAddPackage = (kind: string) => {
-    const cat = SERVICE_CATALOG.find(c => c.kind === kind)
+    SERVICE_CATALOG.find(c => c.kind === kind)
     const initialParams: any = {}
     
     // Default form values based on design
@@ -314,7 +313,7 @@ export default function NewOrderPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Configure your packages</h2>
             
-            {draftItems.map((item, idx) => {
+            {draftItems.map((item) => {
               const cat = SERVICE_CATALOG.find(c => c.kind === item.kind)!
               return (
                 <div key={item.tempId} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

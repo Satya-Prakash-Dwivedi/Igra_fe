@@ -13,7 +13,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Layout,
 } from 'lucide-react'
 import { cn } from '../Button'
 import { useAuth } from '../../hooks/useAuth'
@@ -133,9 +132,7 @@ const Sidebar: React.FC = () => {
         {/* Logo Area */}
         <div className="h-16 flex items-center px-4 border-b border-border relative">
           <div className="flex items-center gap-3">
-            <div className="min-w-[32px] h-8 bg-primary rounded flex items-center justify-center text-text-main">
-              <Layout size={18} />
-            </div>
+            <img src="/favicon.png" alt="Igra" className="w-8 h-8 object-contain" />
             {!isCollapsed && (
               <span className="font-bold text-lg tracking-tighter uppercase whitespace-nowrap">
                 Igra Studios
