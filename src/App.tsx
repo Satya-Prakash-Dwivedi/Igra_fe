@@ -4,6 +4,7 @@ import { useContext } from 'react';
 
 // Layouts
 import DashboardLayout from './layouts/DashboardLayout';
+import AdminLayout from './layouts/AdminLayout';
 
 // Auth Pages
 import Login from './pages/Login';
@@ -21,6 +22,14 @@ import Channels from './pages/Channels';
 import Profile from './pages/Profile';
 import Support from './pages/Support';
 import ReportBug from './pages/ReportBug';
+
+// Admin Pages
+import AdminRoute from './components/admin/AdminRoute';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminOrders from './pages/admin/AdminOrders';
+import AdminOrderDetail from './pages/admin/AdminOrderDetail';
+import AdminTickets from './pages/admin/AdminTickets';
+import AdminBugReports from './pages/admin/AdminBugReports';
 
 // A simple Loading Spinner
 const LoadingSpinner = () => (
@@ -66,6 +75,16 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/support" element={<Support />} />
             <Route path="/report-bug" element={<ReportBug />} />
+          </Route>
+
+          {/* Admin Portal Routes */}
+          <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
+            <Route path="/admin/support/tickets" element={<AdminTickets />} />
+            <Route path="/admin/support/bugs" element={<AdminBugReports />} />
           </Route>
 
           {/* Fallback */}
