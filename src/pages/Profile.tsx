@@ -155,7 +155,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="flex-1 p-6 md:p-8 bg-bg-dark min-h-screen">
-      <div className="max-w-2xl mx-auto bg-bg-card border border-border rounded-xl p-8 shadow-2xl relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="max-w-2xl mx-auto bg-bg-card border border-border rounded-xl p-8 shadow-2xl relative animate-in fade-in slide-in-from-bottom-4 duration-200">
         
         {successMessage && (
           <div className="absolute top-4 right-8 left-8 p-3 bg-success/10 border border-success/20 rounded-lg text-success text-sm text-center animate-in fade-in zoom-in duration-300 z-50">

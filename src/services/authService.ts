@@ -11,6 +11,8 @@ export interface User {
   company?: {
     name: string;
   };
+  credits?: number;
+  organization?: string;
   youtubeChannel?: string;
   notificationPreferences?: {
     email: boolean;
