@@ -6,7 +6,7 @@ import * as uploadApi from '../services/uploadService'
 import {
   ArrowLeft, ArrowRight, PlaySquare, Image, PlayCircle, StopCircle, Mic,
   FileText, Search, Layout, PenTool, LayoutGrid, Phone, Eye, MessageSquare,
-  Plus, X, Info, UploadCloud, Link as LinkIcon, Loader2
+  Plus, X, Info, Link as LinkIcon, Loader2
 } from 'lucide-react'
 
 // ─── Constants & Types ──────────────────────────────────────────
@@ -92,6 +92,10 @@ export default function NewOrderPage() {
   useEffect(() => {
     creditApi.getWallet().then((w) => setBalance(w.balance))
   }, [])
+
+  const getItemCountByKind = (kind: string) => {
+    return draftItems.filter(i => i.kind === kind).length
+  }
 
   const handleNext = async () => {
     setError(null)
@@ -182,7 +186,6 @@ export default function NewOrderPage() {
   }
 
   const handleAddPackage = (kind: string) => {
-    SERVICE_CATALOG.find(c => c.kind === kind)
     const initialParams: any = {}
     
     // Default form values based on design
@@ -223,28 +226,35 @@ export default function NewOrderPage() {
   const canAfford = balance >= (stepIndex === 3 ? confirmedTotal : totalEstimatedCredits)
 
   return (
-    <div className="bg-[#f8f9fa] min-h-screen -m-6 p-6 text-gray-800">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="bg-bg-dark min-h-screen -m-6 p-6 text-white relative overflow-hidden">
+      {/* Premium Background Textures */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none" />
+
+      <div className="max-w-5xl mx-auto space-y-6 relative z-10">
         
         {/* Top Header / Back Button */}
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex items-center gap-2 mb-8 animate-in fade-in slide-in-from-top-4 duration-200">
           <button onClick={() => {
             if (stepIndex > 0 && stepIndex < 3) setStepIndex(stepIndex - 1)
             else navigate('/orders')
-          }} className="p-2 hover:bg-gray-200 rounded-lg text-primary transition">
+          }} className="p-2.5 bg-bg-card/40 border border-white/5 hover:bg-white/5 rounded-xl text-primary transition-all">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-2xl font-bold">New Order</h1>
+          <div className="ml-2">
+            <h1 className="text-2xl font-bold tracking-tight">New Order</h1>
+            <p className="text-sm text-gray-400">Step {stepIndex + 1} of {STEPS.length}</p>
+          </div>
         </div>
 
         {/* Wizard Progress Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex justify-between relative">
-            <div className="absolute left-0 top-1/2 w-full h-0.5 bg-gray-100 -z-10 -translate-y-1/2"></div>
+        <div className="bg-bg-card/40 backdrop-blur-lg rounded-2xl border border-white/5 p-5 shadow-2xl">
+          <div className="flex justify-between items-center relative">
+            <div className="absolute left-8 right-8 top-1 h-[1px] bg-white/5 -z-10"></div>
             {STEPS.map((s, idx) => (
-              <div key={s.id} className="flex-1 text-center relative z-10 transition-all">
-                <div className={`mx-auto w-full h-1 ${stepIndex >= idx ? 'bg-primary' : 'bg-transparent'}`}></div>
-                <div className={`mt-2 text-sm font-medium ${stepIndex >= idx ? 'text-primary' : 'text-gray-400'}`}>
+              <div key={s.id} className="flex-1 text-center relative z-10">
+                <div className={`mx-auto w-12 h-1.5 rounded-full transition-all duration-200 ${stepIndex >= idx ? 'bg-primary shadow-[0_0_12px_rgba(59,130,246,0.5)]' : 'bg-white/10'}`}></div>
+                <div className={`mt-3 text-xs font-semibold uppercase tracking-wider transition-colors duration-200 ${stepIndex >= idx ? 'text-white' : 'text-gray-500'}`}>
                   {s.label}
                 </div>
               </div>
@@ -254,53 +264,83 @@ export default function NewOrderPage() {
 
         {/* Error Banner */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 flex items-center gap-3 animate-in shake duration-200">
             <Info size={20} />
-            <span>{error}</span>
+            <span className="text-sm font-medium">{error}</span>
           </div>
         )}
 
         {/* ─── STEP 0: START ──────────────────────────────────────────── */}
         {stepIndex === 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 space-y-6">
-            <h2 className="text-xl font-bold text-gray-900">What should we call this order?</h2>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Spring Campaign Video, MrBeast Style Edit..."
-              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
-              autoFocus
-            />
+          <div className="bg-bg-card/40 backdrop-blur-lg rounded-2xl border border-white/5 p-10 space-y-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold tracking-tight">What should we call this order?</h2>
+              <p className="text-gray-400">Give your project a name to keep things organized.</p>
+            </div>
+            <div className="relative group">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Spring Campaign Video, MrBeast Style Edit..."
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder:text-gray-500"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={handleNext}
+                disabled={loading || !title.trim()}
+                className="bg-primary hover:bg-blue-600 active:scale-95 text-white disabled:opacity-50 disabled:active:scale-100 px-10 py-4 rounded-xl font-bold flex items-center gap-3 transition-all shadow-lg shadow-primary/20"
+              >
+                {loading ? 'Creating...' : <>Continue <ArrowRight size={20} /></>}
+              </button>
+            </div>
           </div>
         )}
 
         {/* ─── STEP 1: SELECT PACKAGES ─────────────────────────────────── */}
         {stepIndex === 1 && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">What can we do for you?</h2>
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <div className="flex justify-between items-end">
+              <div className="space-y-1">
+                <h2 className="text-3xl font-bold tracking-tight">Choose your services</h2>
+                <p className="text-gray-400">Select one or more packages to add to your order.</p>
+              </div>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {SERVICE_CATALOG.map((pkg) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {SERVICE_CATALOG.map((pkg, i) => {
                 const Icon = pkg.icon
+                const count = getItemCountByKind(pkg.kind)
                 return (
-                  <div key={pkg.kind} className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col hover:shadow-md transition">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-                        <Icon size={20} />
+                  <div 
+                    key={pkg.kind} 
+                    className="premium-card bg-bg-card/40 group relative overflow-hidden flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-200"
+                    style={{ animationDelay: `${i * 50}ms` }}
+                  >
+                    <div className="p-6 flex flex-col flex-1">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-200">
+                          <Icon size={24} />
+                        </div>
+                        {count > 0 && (
+                          <div className="bg-primary/20 text-primary text-xs font-bold px-2 py-1 rounded-full border border-primary/30 animate-pulse">
+                            {count} {count === 1 ? 'Item' : 'Items'}
+                          </div>
+                        )}
                       </div>
-                      <Info size={16} className="text-gray-400 cursor-pointer" />
+                      
+                      <h3 className="font-bold text-lg mb-2">{pkg.label}</h3>
+                      <p className="text-sm text-gray-400 mb-8 line-clamp-2">{pkg.desc}</p>
+                      
+                      <button
+                        onClick={() => handleAddPackage(pkg.kind)}
+                        className="mt-auto w-full py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
+                      >
+                        <Plus size={18} /> {count > 0 ? `Add ${pkg.label} (${count})` : `Add ${pkg.label}`}
+                      </button>
                     </div>
-                    
-                    <h3 className="font-bold text-gray-900 text-lg mb-1">{pkg.label}</h3>
-                    <p className="text-sm text-gray-500 mb-6 flex-1">{pkg.desc}</p>
-                    
-                    <button
-                      onClick={() => handleAddPackage(pkg.kind)}
-                      className="w-full py-2.5 rounded-lg border border-primary text-primary hover:bg-primary/5 font-medium flex items-center justify-center gap-2 transition"
-                    >
-                      <Plus size={16} /> Add {pkg.label}
-                    </button>
                   </div>
                 )
               })}
@@ -310,266 +350,240 @@ export default function NewOrderPage() {
 
         {/* ─── STEP 2: FINALIZE DETAILS ────────────────────────────────── */}
         {stepIndex === 2 && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Configure your packages</h2>
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <h2 className="text-3xl font-bold tracking-tight">Configure details</h2>
             
-            {draftItems.map((item) => {
+            {draftItems.map((item, idx) => {
               const cat = SERVICE_CATALOG.find(c => c.kind === item.kind)!
               return (
-                <div key={item.tempId} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div key={item.tempId} className="bg-bg-card/40 backdrop-blur-lg rounded-2xl border border-white/5 overflow-hidden shadow-2xl animate-in slide-in-from-bottom-6 duration-200" style={{ animationDelay: `${idx * 100}ms` }}>
                   
                   {/* Card Header */}
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">{cat.label}</h3>
-                      <p className="text-sm text-gray-500">{cat.desc}</p>
+                  <div className="px-8 py-5 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <cat.icon size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold">{cat.label}</h3>
+                        <p className="text-xs text-gray-400 font-medium">#{item.tempId.toUpperCase()}</p>
+                      </div>
                     </div>
                     <button 
                       onClick={() => handleRemovePackage(item.tempId)}
-                      className="text-gray-400 hover:text-red-500 flex items-center gap-1 text-sm font-medium transition"
+                      className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
                     >
-                      <X size={16} /> Remove
+                      <X size={20} />
                     </button>
                   </div>
 
-                  {/* Card Body - Dynamically Rendered Form */}
-                  <div className="p-6 space-y-8">
+                  {/* Card Body */}
+                  <div className="p-8 space-y-10">
                     
                     {/* VIDEO EDIT SPECIFIC FORM */}
                     {item.kind === 'VIDEO_EDIT' && (
                       <>
-                        {/* Raw Footage Toggle */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-1">
-                            Do you have raw footage? <Info size={14} className="text-gray-400"/>
-                          </label>
-                          <div className="flex gap-3">
-                            <button
-                              onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', true)}
-                              className={`px-4 py-2 rounded-full text-sm font-medium border transition ${item.params.hasRawFootage ? 'bg-primary/10 border-primary text-primary' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
-                            >
-                              Yes, I have raw footage
-                            </button>
-                            <button
-                              onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', false)}
-                              className={`px-4 py-2 rounded-full text-sm font-medium border transition ${item.params.hasRawFootage === false ? 'bg-primary/10 border-primary text-primary' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
-                            >
-                              No, need footage (+100 credits)
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Output Ratio */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-1">
-                            Desired output ratio <Info size={14} className="text-gray-400"/>
-                          </label>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[
-                              { id: '16:9', label: 'Horizontal (16:9)', icon: PlaySquare },
-                              { id: '9:16', label: 'Vertical (9:16)', icon: Layout },
-                              { id: '1:1', label: 'Square (1:1)', icon: LayoutGrid },
-                              { id: 'Other', label: 'Other', icon: Plus },
-                            ].map(ratio => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                          {/* Raw Footage */}
+                          <div className="space-y-4">
+                            <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Raw Footage</label>
+                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
                               <button
-                                key={ratio.id}
-                                onClick={() => updateDraftParam(item.tempId, 'outputRatio', ratio.id)}
-                                className={`p-4 rounded-xl border text-left transition ${item.params.outputRatio === ratio.id ? 'border-primary ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+                                onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', true)}
+                                className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${item.params.hasRawFootage ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:text-white'}`}
                               >
-                                <ratio.icon size={24} className={item.params.outputRatio === ratio.id ? 'text-primary' : 'text-primary'} />
-                                <div className={`mt-3 font-medium ${item.params.outputRatio === ratio.id ? 'text-primary' : 'text-gray-900'}`}>{ratio.label}</div>
+                                I have it
                               </button>
-                            ))}
+                              <button
+                                onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', false)}
+                                className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${item.params.hasRawFootage === false ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:text-white'}`}
+                              >
+                                Need it (+100)
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Output Ratio */}
+                          <div className="space-y-4">
+                            <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Aspect Ratio</label>
+                            <div className="grid grid-cols-4 gap-2">
+                              {[
+                                { id: '16:9', label: '16:9', icon: PlaySquare },
+                                { id: '9:16', label: '9:16', icon: Layout },
+                                { id: '1:1', label: '1:1', icon: LayoutGrid },
+                                { id: 'Other', label: '??', icon: Plus },
+                              ].map(ratio => (
+                                <button
+                                  key={ratio.id}
+                                  onClick={() => updateDraftParam(item.tempId, 'outputRatio', ratio.id)}
+                                  className={`py-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${item.params.outputRatio === ratio.id ? 'bg-primary/20 border-primary text-white' : 'bg-black/20 border-white/10 text-gray-500 hover:bg-white/5 hover:border-white/20'}`}
+                                >
+                                  <ratio.icon size={18} />
+                                  <span className="text-[10px] font-bold">{ratio.label}</span>
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
 
                         {/* Lengths */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">Raw footage length (minutes)</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Raw Length (mins)</label>
                             <input
                               type="number" min={1}
                               value={item.params.rawFootageLength || ''}
                               onChange={e => updateDraftParam(item.tempId, 'rawFootageLength', Number(e.target.value))}
-                              className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent"
+                              className="w-full bg-transparent border-b border-white/10 py-3 text-xl font-bold focus:border-primary focus:outline-none transition-colors"
                             />
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">Desired final video length (minutes)</label>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Final Length (mins)</label>
                             <input
                               type="number" min={1}
                               value={item.params.desiredLength || ''}
                               onChange={e => updateDraftParam(item.tempId, 'desiredLength', Number(e.target.value))}
-                              className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent"
+                              className="w-full bg-transparent border-b border-white/10 py-3 text-xl font-bold focus:border-primary focus:outline-none transition-colors"
                             />
                           </div>
                         </div>
 
-                        {/* B-Roll */}
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            checked={item.params.addBroll || false}
-                            onChange={e => updateDraftParam(item.tempId, 'addBroll', e.target.checked)}
-                            className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
-                          />
-                          <span className="text-gray-700 font-medium">Add additional B-roll footage (+100 credits)</span>
-                        </label>
+                        {/* Tone & Pace Selection */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                           {/* Visual Tone */}
+                           <div className="space-y-4">
+                              <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Visual Tone</label>
+                              <div className="grid grid-cols-3 gap-2">
+                                {['Funny', 'Serious', 'Professional', 'Elegant', 'Casual', 'Informational'].map(t => (
+                                  <button 
+                                    key={t} 
+                                    onClick={() => updateDraftParam(item.tempId, 'tone', t)}
+                                    className={`px-2 py-3 rounded-xl text-[11px] font-bold border transition-all ${item.params.tone === t ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/5 text-gray-500 hover:border-white/10'}`}
+                                  >
+                                    {t}
+                                  </button>
+                                ))}
+                              </div>
+                           </div>
 
-                        {/* Tone & Pace */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-900 mb-3">Tone & pace</label>
-                          <div className="flex flex-wrap gap-3">
-                            {['Funny', 'Serious', 'Professional', 'Elegant', 'Casual', 'Informational'].map(t => (
-                              <button key={t} onClick={() => updateDraftParam(item.tempId, 'tone', t)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border transition ${item.params.tone === t ? 'bg-blue-50 border-blue-200 text-primary' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}>
-                                {t}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="flex flex-wrap gap-3 mt-3">
-                            {['Slow', 'Normal', 'Fast', 'Super'].map(p => (
-                              <button key={p} onClick={() => updateDraftParam(item.tempId, 'pace', p)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border transition ${item.params.pace === p ? 'bg-blue-50 border-blue-200 text-primary' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}>
-                                {p}
-                              </button>
-                            ))}
-                          </div>
+                           {/* Edit Pace */}
+                           <div className="space-y-4">
+                              <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Edit Pace</label>
+                              <div className="grid grid-cols-4 gap-2">
+                                {[
+                                  { id: 'Slow', label: 'Slow', icon: '🐢' },
+                                  { id: 'Normal', label: 'Medium', icon: '⚡️' },
+                                  { id: 'Fast', label: 'Fast', icon: '🔥' },
+                                  { id: 'Super', label: 'Super', icon: '🚀' },
+                                ].map(p => (
+                                  <button 
+                                    key={p.id} 
+                                    onClick={() => updateDraftParam(item.tempId, 'pace', p.id)}
+                                    className={`py-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${item.params.pace === p.id ? 'bg-primary/20 border-primary text-white' : 'bg-black/20 border-white/10 text-gray-500 hover:bg-white/5 hover:border-white/20'}`}
+                                  >
+                                    <span className="text-lg">{p.icon}</span>
+                                    <span className="text-[10px] font-bold uppercase">{p.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                           </div>
                         </div>
                       </>
                     )}
 
-                    {/* THUMBNAIL DESIGN SPECIFIC FORM */}
+                    {/* THUMBNAIL DESIGN */}
                     {item.kind === 'THUMBNAIL' && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900 mb-3">Thumbnail Style</label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          {['MrBeast Exaggerated', 'Headshot', 'Quote', 'Statement / Fact', 'Before & After', 'Versus / Comparison', 'Process Shot', 'No Text', 'Other'].map(style => (
+                      <div className="space-y-6">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Design Style</label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+                          {['Exaggerated', 'Headshot', 'Quote', 'Statement', 'Before & After', 'Versus', 'Process', 'No Text', 'Other'].map(style => (
                             <button key={style} onClick={() => updateDraftParam(item.tempId, 'style', style)}
-                              className={`p-1 rounded-xl border text-center transition overflow-hidden group ${item.params.style === style ? 'border-primary ring-2 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}>
-                              <div className="h-28 bg-gray-100 mb-2 flex flex-col items-center justify-center text-gray-400 rounded-lg group-hover:bg-gray-200 transition">
-                                <Image size={32} />
-                                <span className="text-xs mt-2">Placeholder</span>
+                              className={`p-1.5 rounded-xl border flex flex-col gap-2 transition-all group ${item.params.style === style ? 'bg-primary/20 border-primary' : 'bg-black/40 border-white/5 hover:border-white/20'}`}>
+                              <div className="aspect-video bg-white/5 rounded-lg flex items-center justify-center text-white/20 group-hover:bg-white/10 transition-colors">
+                                <Image size={24} />
                               </div>
-                              <div className="py-2 px-1 text-sm font-medium text-gray-900 truncate">{style}</div>
+                              <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-wider text-center">{style}</div>
                             </button>
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {/* SCRIPT WRITING */}
-                    {item.kind === 'SCRIPT' && (
-                      <div className="grid grid-cols-1 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-900 mb-2">Word Count</label>
-                          <input type="number" min={50} value={item.params.wordCount || ''} onChange={e => updateDraftParam(item.tempId, 'wordCount', Number(e.target.value))} className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent" />
+                    {/* SHARED UPLOAD SECTION */}
+                    <div className="space-y-6 pt-4 border-t border-white/5">
+                      <div className="space-y-3">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Assets & Resources</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <label className="relative flex flex-col items-center justify-center p-8 bg-black/40 border-2 border-dashed border-white/5 rounded-2xl hover:bg-white/[0.02] hover:border-primary/50 transition-all cursor-pointer group">
+                             <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => {
+                               const selectedFiles = e.target.files;
+                               if (selectedFiles) {
+                                 const newFiles = Array.from(selectedFiles)
+                                 setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di))
+                               }
+                             }} />
+                             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 transition-transform">
+                               <Plus size={24} />
+                             </div>
+                             <span className="font-bold text-sm">Upload Files</span>
+                             <span className="text-xs text-gray-500 mt-1">Raw, music, references</span>
+                           </label>
+
+                           <button onClick={() => updateDraftParam(item.tempId, 'showLinkInput', !item.params.showLinkInput)} 
+                             className={`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl transition-all ${item.params.showLinkInput ? 'bg-primary/10 border-primary/50 text-white' : 'bg-black/40 border-white/5 text-gray-500 hover:border-white/10'}`}>
+                             <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-3">
+                               <LinkIcon size={24} />
+                             </div>
+                             <span className="font-bold text-sm">External Link</span>
+                             <span className="text-xs opacity-70 mt-1">Drive, Dropbox, etc.</span>
+                           </button>
                         </div>
                       </div>
-                    )}
 
-                    {/* VOICEOVER & FOOTAGE_REVIEW */}
-                    {(item.kind === 'VOICEOVER' || item.kind === 'FOOTAGE_REVIEW') && (
-                      <div className="grid grid-cols-1 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-900 mb-2">Length (minutes)</label>
-                          <input type="number" min={1} value={item.params.scriptLength || item.params.footageLength || ''} onChange={e => updateDraftParam(item.tempId, item.kind === 'VOICEOVER' ? 'scriptLength' : 'footageLength', Number(e.target.value))} className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent" />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* CONSULTATION */}
-                    {item.kind === 'CONSULTATION' && (
-                      <div className="grid grid-cols-1 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-900 mb-2">Duration (minutes)</label>
-                          <select value={item.params.duration || 15} onChange={e => updateDraftParam(item.tempId, 'duration', Number(e.target.value))} className="w-full border-b border-gray-300 py-2 focus:border-primary outline-none transition bg-transparent">
-                            <option value={15}>15 Minutes</option>
-                            <option value={30}>30 Minutes</option>
-                            <option value={45}>45 Minutes</option>
-                            <option value={60}>60 Minutes</option>
-                          </select>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ALWAYS SHOW UPLOAD ASSETS SECTION */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-3">Upload assets & additional notes</label>
-                      <label className="border border-dashed border-gray-300 rounded-xl p-10 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition cursor-pointer mb-2 relative">
-                        <input 
-                          type="file" 
-                          multiple 
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          onChange={(e) => {
-                            const selectedFiles = e.target.files;
-                            if (selectedFiles && selectedFiles.length > 0) {
-                              const newFiles = Array.from(selectedFiles)
-                              setDraftItems(draftItems.map(di => 
-                                di.tempId === item.tempId 
-                                  ? { ...di, files: [...di.files, ...newFiles] }
-                                  : di
-                              ))
-                            }
-                          }}
-                        />
-                        <UploadCloud size={32} className="text-gray-400 mb-3" />
-                        <span className="text-gray-600">Drag & drop your files or <span className="text-primary font-medium">browse</span></span>
-                      </label>
-                      
-                      {/* Show Selected Files List */}
-                      {item.files && item.files.length > 0 && (
-                        <div className="space-y-2 mb-4">
-                          {item.files.map((file: File, i: number) => (
-                            <div key={i} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <FileText size={16} className="text-gray-400 shrink-0" />
-                                <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                                <span className="text-xs text-gray-400 shrink-0">({(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
-                              </div>
-                              <button 
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  setDraftItems(draftItems.map(di => 
-                                    di.tempId === item.tempId 
-                                      ? { ...di, files: di.files.filter((_, idx) => idx !== i) }
-                                      : di
-                                  ))
-                                }} 
-                                className="text-red-500 hover:text-red-700 p-1 bg-white rounded shadow-sm border border-red-100"
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {!item.params.showLinkInput ? (
-                        <button onClick={() => updateDraftParam(item.tempId, 'showLinkInput', true)} className="text-primary text-sm font-medium flex items-center gap-1 hover:underline">
-                          Or, provide a link to your files <ArrowRight size={14} />
-                        </button>
-                      ) : (
-                        <div className="relative mb-4">
-                          <LinkIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                          <input type="url" placeholder="https://drive.google.com/..." value={item.params.uploadLink || ''} onChange={e => updateDraftParam(item.tempId, 'uploadLink', e.target.value)} className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition" />
+                      {item.params.showLinkInput && (
+                        <div className="animate-in slide-in-from-top-2 duration-300">
+                          <input type="url" placeholder="https://..." value={item.params.uploadLink || ''} onChange={e => updateDraftParam(item.tempId, 'uploadLink', e.target.value)} 
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary focus:outline-none placeholder:text-gray-500" />
                         </div>
                       )}
 
-                      <textarea 
-                        rows={3} 
-                        placeholder="Any other notes or instructions for our team..."
-                        value={item.params.notes || ''}
-                        onChange={e => updateDraftParam(item.tempId, 'notes', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg mt-4 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
-                      />
+                      {/* File Queue */}
+                      {item.files?.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                           {item.files.map((file, i) => (
+                             <div key={i} className="flex items-center gap-3 bg-white/[0.03] border border-white/5 p-3 rounded-xl animate-in fade-in zoom-in-95">
+                               <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-gray-500">
+                                 <FileText size={18} />
+                               </div>
+                               <div className="flex-1 min-w-0">
+                                 <div className="text-[13px] font-bold truncate">{file.name}</div>
+                                 <div className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">{(file.size / 1024 / 1024).toFixed(1)} MB</div>
+                               </div>
+                               <button onClick={() => setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: di.files.filter((_, idx) => idx !== i) } : di))}
+                                 className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
+                                 <X size={14} />
+                               </button>
+                             </div>
+                           ))}
+                        </div>
+                      )}
+
+                      <textarea rows={3} placeholder="Add any special instructions..." value={item.params.notes || ''} onChange={e => updateDraftParam(item.tempId, 'notes', e.target.value)}
+                        className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-sm focus:ring-2 focus:ring-primary outline-none transition resize-none placeholder:text-gray-600" />
                     </div>
                   </div>
 
-                  {/* Card Footer Subtotal */}
-                  <div className="bg-white border-t border-gray-100 flex items-center justify-between p-6">
-                    <span className="text-gray-500 font-medium">Credits</span>
-                    <span className="text-xl font-bold text-gray-900">{estimateCredits(item)} credits</span>
+                  {/* Pricing Footer */}
+                  <div className="bg-bg-dark/40 border-t border-white/5 p-8 flex items-center justify-between">
+                     <div className="space-y-1">
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Subtotal</span>
+                        <div className="text-2xl font-bold text-white flex items-center gap-2">
+                           {estimateCredits(item)} <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">Credits</span>
+                        </div>
+                     </div>
+                     <div className="text-xs text-gray-500 max-w-[200px] text-right">
+                        This is an automated estimate. Final credit total will be confirmed in the next step.
+                     </div>
                   </div>
                 </div>
               )
@@ -579,32 +593,39 @@ export default function NewOrderPage() {
 
         {/* ─── STEP 3: CONFIRM ──────────────────────────────────────────── */}
         {stepIndex === 3 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 space-y-6">
-            <div className="text-center pb-6 border-b border-gray-100">
-              <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <LayoutGrid size={32} />
+          <div className="bg-bg-card/40 backdrop-blur-lg rounded-2xl border border-white/10 p-10 space-y-10 animate-in zoom-in-95 duration-200">
+            <div className="text-center space-y-4">
+              <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(59,130,246,0.15)] animate-bounce">
+                <Plus size={40} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Your order is ready</h2>
-              <p className="text-gray-500 mt-2">Almost there! Review your total and submit.</p>
+              <h2 className="text-3xl font-bold tracking-tight">Review & Submit</h2>
+              <p className="text-gray-400 font-medium">Almost there! Your project is ready for lift-off.</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="bg-black/20 rounded-2xl border border-white/5 p-6 space-y-4">
               {draftItems.map(item => (
-                <div key={item.tempId} className="flex justify-between items-center py-2 border-b border-gray-50">
-                  <span className="font-medium text-gray-700">{SERVICE_CATALOG.find(c => c.kind === item.kind)?.label}</span>
-                  <span className="text-gray-900 font-bold">{estimateCredits(item)} credits</span>
+                <div key={item.tempId} className="flex justify-between items-center py-3 border-b border-white/[0.02] last:border-0 uppercase tracking-widest text-[11px] font-bold">
+                  <span className="text-gray-400">{SERVICE_CATALOG.find(c => c.kind === item.kind)?.label}</span>
+                  <span className="text-white">{estimateCredits(item)} Credits</span>
                 </div>
               ))}
+              <div className="pt-4 flex justify-between items-center border-t border-white/10">
+                 <span className="text-sm font-bold">TO PAY</span>
+                 <span className="text-3xl font-black text-primary">{confirmedTotal} <span className="text-xs font-bold opacity-50">CREDITS</span></span>
+              </div>
             </div>
 
-            <div className={`p-4 rounded-xl flex items-center gap-3 border ${canAfford ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
-              <Info size={24} />
-              <div>
-                <p className="font-bold">{canAfford ? 'Sufficient Balance' : 'Insufficient Balance'}</p>
-                <p className="text-sm opacity-90">
-                  Total required: {confirmedTotal} credits. You currently have {balance} credits.
-                </p>
+            <div className={`p-5 rounded-2xl flex items-center gap-4 border transition-all ${canAfford ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${canAfford ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                 <Info size={20} />
               </div>
+              <div className="flex-1">
+                <p className="text-sm font-black uppercase">{canAfford ? 'Balance Sufficient' : 'Insufficient Balance'}</p>
+                <p className="text-[11px] font-bold opacity-70 tracking-widest uppercase">Wallet: {balance} • Required: {confirmedTotal}</p>
+              </div>
+              {!canAfford && (
+                <button onClick={() => navigate('/wallet')} className="bg-white/10 hover:bg-white/20 text-white text-[10px] font-black uppercase px-4 py-2 rounded-lg transition-all">Top Up</button>
+              )}
             </div>
           </div>
         )}
@@ -612,46 +633,43 @@ export default function NewOrderPage() {
 
         {/* ─── FLOATING BOTTOM BAR ────────────────────────────────────── */}
         {stepIndex > 0 && (
-          <div className="sticky bottom-6 mt-8 bg-white border border-gray-200 shadow-xl rounded-xl p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4 pl-2">
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-500 uppercase tracking-widest font-bold">Total Credits</span>
-                <span className="text-2xl font-bold text-gray-900">
-                  {stepIndex === 3 ? confirmedTotal : totalEstimatedCredits} <span className="text-base font-normal text-gray-500">credits</span>
+          <div className="sticky bottom-6 mt-8 bg-bg-card/40 backdrop-blur-lg border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] rounded-2xl p-4 pl-8 flex items-center justify-between animate-in slide-in-from-bottom-10 duration-200">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Estimated Total</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">
+                  {stepIndex === 3 ? confirmedTotal : totalEstimatedCredits}
                 </span>
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Credits</span>
               </div>
             </div>
             
             <button
               onClick={handleNext}
               disabled={loading || uploading || (stepIndex === 1 && draftItems.length === 0) || (stepIndex === 3 && !canAfford)}
-              className="bg-primary hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:cursor-not-allowed px-8 py-3 rounded-lg font-bold flex items-center gap-2 transition shadow-md"
+              className="group relative bg-primary hover:bg-blue-600 text-white disabled:opacity-20 disabled:grayscale disabled:scale-100 px-10 py-4 rounded-xl font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 shadow-xl shadow-primary/20"
             >
-              {uploading ? (
-                <>
-                  <Loader2 size={20} className="animate-spin" />
-                  Uploading...
-                </>
-              ) : loading ? (
-                <span className="animate-pulse">Processing...</span>
-              ) : stepIndex === 3 ? (
-                `Submit Order`
-              ) : (
-                <>Next <ArrowRight size={20} /></>
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* Start order submit button inline */}
-        {stepIndex === 0 && (
-          <div className="flex justify-end">
-            <button
-              onClick={handleNext}
-              disabled={loading || !title.trim()}
-              className="bg-primary hover:bg-blue-700 text-white disabled:bg-gray-300 px-8 py-3 rounded-lg font-bold flex items-center gap-2 transition shadow-md"
-            >
-              {loading ? 'Creating...' : <>Start Order <ArrowRight size={20} /></>}
+              <div className="absolute inset-0 bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-xl" />
+              <span className="relative">
+                {uploading ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 size={18} className="animate-spin" />
+                    <span>Syncing Assets</span>
+                  </div>
+                ) : loading ? (
+                   <div className="flex items-center gap-3">
+                    <Loader2 size={18} className="animate-spin" />
+                    <span>Processing</span>
+                  </div>
+                ) : stepIndex === 3 ? (
+                  `Submit Order`
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span>Next Step</span>
+                    <ArrowRight size={18} />
+                  </div>
+                )}
+              </span>
             </button>
           </div>
         )}

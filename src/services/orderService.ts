@@ -42,6 +42,7 @@ export interface OrderItem {
     mimeType: string
     sizeBytes: number
     role: string
+    url?: string
   }>
   createdAt: string
   updatedAt: string
@@ -103,6 +104,11 @@ export async function removeItem(orderId: string, itemId: string) {
 export async function addAssetToItem(orderId: string, itemId: string, assetIds: string[]) {
   const res = await api.post(`/orders/${orderId}/items/${itemId}/assets`, { assetIds })
   return res.data.data as OrderItem
+}
+
+export async function removeAssetFromItem(orderId: string, itemId: string, assetId: string) {
+  const res = await api.delete(`/uploads/${orderId}/${itemId}/${assetId}`)
+  return res.data
 }
 
 export async function submitOrder(orderId: string) {

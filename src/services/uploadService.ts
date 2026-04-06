@@ -7,6 +7,7 @@ export interface UploadStart {
   presignedUrls: string[]
   partSizeBytes: number
   totalParts: number
+  isDirect?: boolean
 }
 
 export interface UploadStatus {
@@ -46,13 +47,30 @@ export async function uploadFile(
   onProgress?: (pct: number) => void,
 ): Promise<string> {
   // 1. Start upload
-  const { uploadSessionId, assetId, presignedUrls, partSizeBytes, totalParts } = await startUpload(
+  const { uploadSessionId, assetId, presignedUrls, partSizeBytes, totalParts, isDirect } = await startUpload(
     file.name,
     file.size,
     file.type || 'application/octet-stream',
   )
 
-  // 2. Upload parts
+  // 1b. Direct Upload Path (Optimization for assets < 20MB)
+  if (isDirect) {
+    if (onProgress) onProgress(10)
+    
+    await fetch(presignedUrls[0], {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    })
+
+    if (onProgress) onProgress(90)
+    await finalizeUpload(uploadSessionId)
+    if (onProgress) onProgress(100)
+    
+    return assetId
+  }
+
+  // 2. Multipart Upload Path (For large assets >= 20MB)
   for (let i = 0; i < totalParts; i++) {
     const start = i * partSizeBytes
     const end = Math.min(start + partSizeBytes, file.size)
