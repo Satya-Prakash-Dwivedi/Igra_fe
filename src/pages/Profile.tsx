@@ -95,7 +95,7 @@ const Profile: React.FC = () => {
       // but the user requested the "URL that cloud returns". 
       // We'll construct the URL here or retrieve it if finalize returns it.
       const finalizeRes = await uploadApi.finalizeUpload(assetId);
-      const publicUrl = finalizeRes?.url || `${import.meta.env.VITE_API_BASE_URL}/uploads/assets/${assetId}`;
+      const publicUrl = finalizeRes?.url || `https://dev.api.igrastudios.com/api/v1/uploads/assets/${assetId}`;
 
       setAvatar(publicUrl);
       setSuccessMessage('Photo uploaded! Remember to save changes.');
