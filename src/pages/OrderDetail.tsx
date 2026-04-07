@@ -83,7 +83,7 @@ export default function OrderDetail() {
   }, [messages])
 
   function setupSocket() {
-    const socket = io(import.meta.env.VITE_SOCKET_URL || window.location.origin, {
+    const socket = io(import.meta.env.VITE_SOCKET_URL || 'https://dev.api.igrastudios.com', {
       path: '/socket.io',
       withCredentials: true,
     })
