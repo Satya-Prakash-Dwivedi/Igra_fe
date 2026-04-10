@@ -80,7 +80,6 @@ export async function uploadFile(
     const uploadRes = await fetch(presignedUrls[i], {
       method: 'PUT',
       body: blob,
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
     })
 
     const etag = uploadRes.headers.get('etag') || `part-${i + 1}`
@@ -122,7 +121,6 @@ export async function resumeUpload(file: File, sessionId: string, onProgress?: (
     const uploadRes = await fetch(presignedUrls[partNumber], {
       method: 'PUT',
       body: blob,
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
     })
 
     const etag = uploadRes.headers.get('etag') || `part-${partNumber}`
