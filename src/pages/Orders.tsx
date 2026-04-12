@@ -169,6 +169,23 @@ export default function Orders() {
                 </div>
               </div>
               
+              {order.status === 'DRAFT' && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation()
+                    try {
+                      await orderApi.submitOrder(order._id)
+                      loadOrders()
+                    } catch (err: any) {
+                      alert(err?.response?.data?.error || err.message)
+                    }
+                  }}
+                  className="mt-6 w-full py-3 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-[0_10px_20px_rgba(59,130,246,0.2)]"
+                >
+                  Pay Now
+                </button>
+              )}
+              
               <div className="mt-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-200">
                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary">View Details</span>
                  <ArrowRight size={14} className="text-primary group-hover:translate-x-1 transition-transform" />
