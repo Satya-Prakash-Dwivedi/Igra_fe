@@ -123,6 +123,23 @@ export default function OrderDetail() {
     }
   }
 
+  async function handleConfirmAndPay() {
+    if (!id || !detail) return
+    setLoading(true)
+    try {
+      await orderApi.submitOrder(id)
+      await loadOrder()
+    } catch (err: any) {
+      logger.error('order_detail.confirm_and_pay_failed', {
+        orderId: id,
+        error: serializeError(err),
+      })
+      alert(err?.response?.data?.error || err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault()
     if (!newMessage.trim() || sending) return
@@ -267,6 +284,14 @@ export default function OrderDetail() {
         </div>
 
         <div className="flex items-center gap-3">
+          {order.status === 'DRAFT' && (
+            <button
+              onClick={handleConfirmAndPay}
+              className="px-6 py-3 bg-primary text-white hover:bg-blue-600 shadow-[0_10px_30px_rgba(59,130,246,0.3)] text-xs font-black uppercase tracking-[0.2em] rounded-2xl transition-all active:scale-95"
+            >
+              Complete & Pay
+            </button>
+          )}
           {canCancel && (
             <button
               onClick={handleCancelOrder}
@@ -424,9 +449,6 @@ export default function OrderDetail() {
                         <section className="p-6 bg-primary/[0.02] border border-primary/10 rounded-2xl shadow-inner">
                           <div className="flex items-center justify-between mb-6">
                             <h4 className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">Pricing</h4>
-                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                               <RotateCcw size={14} />
-                            </div>
                           </div>
                           <div className="space-y-4">
                             <div className="flex justify-between items-end">
@@ -649,38 +671,45 @@ export default function OrderDetail() {
         {activeTab === 'timeline' && (
           <div className="premium-card rounded-[3rem] p-12 shadow-2xl animate-in slide-in-from-left-8 duration-200">
             <div className="max-w-3xl mx-auto">
-              <div className="relative border-l-2 border-white/5 pl-12 space-y-16">
-                {events.map((event) => (
-                  <div key={event._id} className="relative group">
-                    <div className="absolute -left-[61px] top-0 w-6 h-6 rounded-full bg-bg-dark border-[6px] border-white/5 group-hover:border-primary transition-colors duration-200 z-10 shadow-2xl" />
-                    
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xl font-black text-white italic tracking-tighter uppercase">{event.type.replace(/_/g, ' ')}</span>
-                        <span className="text-[10px] font-mono text-gray-600 bg-white/5 px-4 py-1.5 rounded-full border border-white/5">
-                          {new Date(event.createdAt).toLocaleString()}
-                        </span>
+              {events && events.length > 0 ? (
+                <div className="relative border-l-2 border-white/5 pl-12 space-y-16">
+                  {events.map((event) => (
+                    <div key={event._id} className="relative group">
+                      <div className="absolute -left-[61px] top-0 w-6 h-6 rounded-full bg-bg-dark border-[6px] border-white/5 group-hover:border-primary transition-colors duration-200 z-10 shadow-2xl" />
+                      
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xl font-black text-white italic tracking-tighter uppercase">{event.type?.replace(/_/g, ' ') || 'EVENT'}</span>
+                          <span className="text-[10px] font-mono text-gray-600 bg-white/5 px-4 py-1.5 rounded-full border border-white/5">
+                            {event.createdAt ? new Date(event.createdAt).toLocaleString() : 'Date Unknown'}
+                          </span>
+                        </div>
+                        <div className="h-[1px] w-12 bg-primary/20 mb-6" />
                       </div>
-                      <div className="h-[1px] w-12 bg-primary/20 mb-6" />
-                    </div>
 
-                    {Object.keys(event.data).length > 0 && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white/[0.01] p-8 rounded-[2rem] border border-white/5 shadow-inner">
-                        {Object.entries(event.data).map(([key, val]) => (
-                          <div key={key} className="space-y-1">
-                            <span className="text-[9px] text-gray-600 font-black uppercase tracking-[0.3em]">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
-                            </span>
-                            <p className="text-sm text-gray-300 font-bold">
-                              {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                      {event.data && Object.keys(event.data).length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white/[0.01] p-8 rounded-[2rem] border border-white/5 shadow-inner">
+                          {Object.entries(event.data).map(([key, val]) => (
+                            <div key={key} className="space-y-1">
+                              <span className="text-[9px] text-gray-600 font-black uppercase tracking-[0.3em]">
+                                {key.replace(/([A-Z])/g, ' $1').trim()}
+                              </span>
+                              <p className="text-sm text-gray-300 font-bold">
+                                {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 opacity-20">
+                   <Activity size={48} className="mb-4" />
+                   <p className="text-[10px] font-black uppercase tracking-[0.5em]">No Activity Logged</p>
+                </div>
+              )}
             </div>
           </div>
         )}
