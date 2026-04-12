@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   Send,
   CheckCircle,
-  RotateCcw,
   Package,
   MessageSquare,
   Activity,
