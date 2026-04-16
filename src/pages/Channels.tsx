@@ -146,7 +146,7 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
       const assetId = await uploadApi.uploadFile(file)
       const finalizeRes = await uploadApi.finalizeUpload(assetId)
       const publicUrl =
-        finalizeRes?.url || `https://dev.api.igrastudios.com/api/v1/uploads/assets/${assetId}`
+        finalizeRes?.url || `${import.meta.env.VITE_API_BASE_URL}/uploads/assets/${assetId}`
       setLogo(publicUrl)
     } catch (err) {
       logger.error('channels.logo_upload_failed', { error: serializeError(err) })
