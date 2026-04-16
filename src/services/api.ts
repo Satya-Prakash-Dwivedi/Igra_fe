@@ -12,7 +12,7 @@ interface RefreshResponse {
 const logger = createLogger('api')
 
 const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://dev.api.igrastudios.com/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ api.interceptors.response.use(
 
       try {
         const { data } = await axios.get<RefreshResponse>(
-          `${import.meta.env.VITE_API_BASE_URL || 'https://dev.api.igrastudios.com/api/v1'}/auth/refresh`,
+          `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
           { withCredentials: true }
         )
 
