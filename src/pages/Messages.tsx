@@ -28,13 +28,13 @@ const Messages: React.FC = () => {
   }, []);
 
   const setupSocket = () => {
-    if (!user?._id) return;
+    if (!user?.id) return;
     const token = localStorage.getItem('token');
     const url = import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:5000';
     const socket = io(url, { auth: { token } });
     
     socket.on('connect', () => {
-      socket.emit('join-dm', user._id);
+      socket.emit('join-dm', user.id);
     });
 
     socket.on('new-dm', (msg: Message) => {

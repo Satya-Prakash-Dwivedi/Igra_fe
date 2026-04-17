@@ -13,7 +13,6 @@ const AdminStaff: React.FC = () => {
 
   // Add Staff Modal State
   const [showAddModal, setShowAddModal] = useState(false)
-  const [assignUserId, setAssignUserId] = useState('')
   const [assignLoading, setAssignLoading] = useState(false)
 
   // Wait, searching users to add them

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Send, Paperclip, Search, User } from 'lucide-react'
+import { Send, Paperclip, Search } from 'lucide-react'
 import messageService from '../../services/messageService'
 import type { Message, DirectMessageThread } from '../../services/messageService'
 import { serializeError, createLogger } from '../../services/logger'
@@ -10,7 +10,6 @@ import { cn } from '../../components/Button'
 const logger = createLogger('AdminMessages')
 
 const AdminMessages: React.FC = () => {
-  const { user } = useAuth()
   const [threads, setThreads] = useState<DirectMessageThread[]>([])
   const [activeUserId, setActiveUserId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -18,7 +17,6 @@ const AdminMessages: React.FC = () => {
   const [threadsLoading, setThreadsLoading] = useState(true)
   const [messagesLoading, setMessagesLoading] = useState(false)
   const [content, setContent] = useState('')
-  const [error, setError] = useState('')
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const socketRef = useRef<Socket | null>(null)
@@ -68,7 +66,6 @@ const AdminMessages: React.FC = () => {
       const data = await messageService.listDirectMessageThreads()
       setThreads(data)
     } catch (err: any) {
-      setError('Failed to load threads')
       logger.error('failed_to_load_threads', { err: serializeError(err) })
     } finally {
       setThreadsLoading(false)
@@ -208,7 +205,7 @@ const AdminMessages: React.FC = () => {
               {messagesLoading ? (
                 <div className="text-center text-text-muted text-sm py-8">Loading history...</div>
               ) : (
-                messages.map((msg, i) => {
+                messages.map((msg) => {
                   let isMe = msg.senderRole !== 'client' // Admin or staff
                   return (
                     <div key={msg._id} className={cn("flex items-start gap-4 max-w-2xl", isMe ? "ml-auto flex-row-reverse" : "")}>
