@@ -1,6 +1,6 @@
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ShoppingBag, Ticket, Bug, LogOut, Shield } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, Ticket, Bug, LogOut, Shield, Users, UserCircle, MessageSquare } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../Button'
 import { createLogger, serializeError } from '../../services/logger'
@@ -10,6 +10,9 @@ const logger = createLogger('AdminSidebar')
 const navItems = [
   { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
   { to: '/admin/orders',    icon: <ShoppingBag size={18} />,     label: 'Orders' },
+  { to: '/admin/users',     icon: <Users size={18} />,           label: 'Users' },
+  { to: '/admin/staff',     icon: <UserCircle size={18} />,      label: 'Staff Settings' },
+  { to: '/admin/messages',  icon: <MessageSquare size={18} />,   label: 'Messages' },
   { to: '/admin/support/tickets', icon: <Ticket size={18} />,   label: 'Support Tickets' },
   { to: '/admin/support/bugs',    icon: <Bug size={18} />,       label: 'Bug Reports' },
 ]

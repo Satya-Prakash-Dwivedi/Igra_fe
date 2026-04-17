@@ -184,10 +184,30 @@ const adminService = {
     await api.post(`/admin/orders/${oid}/items/${iid}/refund`)
   },
 
-  // Staff
+  // Staff & Users
   async listStaff(): Promise<AdminUser[]> {
     const { data } = await api.get('/admin/staff')
     return data.data.staff ?? data.data
+  },
+
+  async listUsers(params: { search?: string; page?: number; limit?: number } = {}) {
+    const { data } = await api.get('/admin/users', { params })
+    return data.data
+  },
+
+  async getUserDetail(userId: string) {
+    const { data } = await api.get(`/admin/users/${userId}`)
+    return data.data
+  },
+
+  async assignStaff(userId: string) {
+    const { data } = await api.post(`/admin/staff/${userId}/assign`)
+    return data.data.user
+  },
+
+  async removeStaff(userId: string) {
+    const { data } = await api.post(`/admin/staff/${userId}/remove`)
+    return data.data.user
   },
 
   // Support Tickets

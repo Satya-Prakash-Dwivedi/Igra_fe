@@ -30,6 +30,10 @@ const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
 const AdminOrderDetail = lazy(() => import('./pages/admin/AdminOrderDetail'));
 const AdminTickets = lazy(() => import('./pages/admin/AdminTickets'));
 const AdminBugReports = lazy(() => import('./pages/admin/AdminBugReports'));
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
+const AdminUserDetail = lazy(() => import('./pages/admin/AdminUserDetail'));
+const AdminStaff = lazy(() => import('./pages/admin/AdminStaff'));
+const AdminMessages = lazy(() => import('./pages/admin/AdminMessages'));
 
 // A simple Loading Spinner
 const LoadingSpinner = () => (
@@ -86,6 +90,10 @@ function App() {
               <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
               <Route path="/admin/support/tickets" element={<AdminTickets />} />
               <Route path="/admin/support/bugs" element={<AdminBugReports />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/users/:id" element={<AdminUserDetail />} />
+              <Route path="/admin/staff" element={<AdminStaff />} />
+              <Route path="/admin/messages" element={<AdminMessages />} />
             </Route>
 
             {/* Fallback */}
