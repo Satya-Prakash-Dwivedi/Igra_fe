@@ -3,7 +3,6 @@ import { Send, Paperclip, Search } from 'lucide-react'
 import messageService from '../../services/messageService'
 import type { Message, DirectMessageThread } from '../../services/messageService'
 import { serializeError, createLogger } from '../../services/logger'
-import { useAuth } from '../../hooks/useAuth'
 import { io, Socket } from 'socket.io-client'
 import { cn } from '../../components/Button'
 
