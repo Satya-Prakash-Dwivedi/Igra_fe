@@ -19,8 +19,12 @@ const Login: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      await login({ email, password });
-      navigate('/dashboard');
+      const loggedInUser = await login({ email, password });
+      if (loggedInUser?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {

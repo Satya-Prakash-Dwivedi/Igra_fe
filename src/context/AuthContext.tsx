@@ -9,7 +9,7 @@ interface AuthContextType {
   accessToken: string | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (credentials: any) => Promise<void>
+  login: (credentials: any) => Promise<User>
   register: (userData: any) => Promise<void>
   logout: () => Promise<void>
   updateUser: (updatedUser: User) => void
@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateUser(userData)
     setAccessToken(access_token)
     api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+    return userData
   }
 
   const register = async (userData: any) => {
