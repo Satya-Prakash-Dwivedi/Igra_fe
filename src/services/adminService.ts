@@ -48,6 +48,8 @@ export interface AdminUser {
   email: string
   avatar?: string
   role: string
+  createdAt: string
+  totalOrders?: number
 }
 
 export interface AdminOrder {
@@ -106,6 +108,15 @@ export interface AdminTicket {
   createdAt: string
 }
 
+export interface Message {
+  _id: string
+  orderId: string
+  itemId?: string
+  senderId: AdminUser
+  content: string
+  createdAt: string
+}
+
 export interface AdminBugReport {
   _id: string
   __t: string
@@ -149,7 +160,7 @@ const adminService = {
   },
 
   // Orders
-  async listOrders(params: { status?: string; page?: number; limit?: number } = {}): Promise<Paginated<AdminOrder>> {
+  async listOrders(params: { status?: string; assignedTo?: string; page?: number; limit?: number } = {}): Promise<Paginated<AdminOrder>> {
     const { data } = await api.get('/admin/orders', { params })
     const d = data.data
     return { total: d.total, page: d.page, pages: d.pages, items: d.orders }
@@ -182,6 +193,26 @@ const adminService = {
 
   async refundItem(oid: string, iid: string): Promise<void> {
     await api.post(`/admin/orders/${oid}/items/${iid}/refund`)
+  },
+
+  async addAssetToItem(oid: string, iid: string, assetIds: string[], role: string = 'INPUT'): Promise<AdminOrderItem> {
+    const { data } = await api.post(`/admin/orders/${oid}/items/${iid}/assets`, { assetIds, role })
+    return data.data.item
+  },
+
+  async removeAsset(oid: string, iid: string, assetId: string): Promise<void> {
+    await api.delete(`/admin/orders/${oid}/items/${iid}/assets/${assetId}`)
+  },
+
+  // Messages
+  async getMessages(orderId: string, page = 1, limit = 50) {
+    const { data } = await api.get(`/orders/${orderId}/messages`, { params: { page, limit } })
+    return data.data
+  },
+
+  async sendMessage(orderId: string, content: string, itemId?: string) {
+    const { data } = await api.post(`/orders/${orderId}/messages`, { content, itemId })
+    return data.data
   },
 
   // Staff & Users

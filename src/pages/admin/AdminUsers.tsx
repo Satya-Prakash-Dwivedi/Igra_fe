@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import adminService from '../../services/adminService'
+import type { AdminUser } from '../../services/adminService'
 import { serializeError, createLogger } from '../../services/logger'
 
 const logger = createLogger('AdminUsers')
 
 const AdminUsers: React.FC = () => {
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
@@ -93,7 +94,7 @@ const AdminUsers: React.FC = () => {
                   <td colSpan={4} className="p-8 text-center text-text-muted">No users found.</td>
                 </tr>
               ) : (
-                users.map(user => (
+                users.map((user: AdminUser) => (
                   <tr key={user._id} className="hover:bg-bg-dark/50 transition-colors">
                     <td className="px-6 py-4">
                       <Link to={`/admin/users/${user._id}`} className="flex items-center gap-3 w-full outline-none">
@@ -102,7 +103,20 @@ const AdminUsers: React.FC = () => {
                           alt="avatar" 
                           className="w-8 h-8 rounded-full border border-border/50 object-cover"
                         />
-                        <span className="text-sm font-medium text-text-main hover:text-primary transition-colors">{user.name}</span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-text-main hover:text-primary transition-colors">{user.name}</span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {user.role === 'admin' && (
+                              <span className="px-1.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded text-[9px] font-black uppercase tracking-widest">Admin</span>
+                            )}
+                            {user.role === 'staff' && (
+                              <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded text-[9px] font-black uppercase tracking-widest">Staff</span>
+                            )}
+                            {user.role === 'user' && (
+                              <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded text-[9px] font-black uppercase tracking-widest">Client</span>
+                            )}
+                          </div>
+                        </div>
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-sm text-text-muted">{user.email}</td>
@@ -124,7 +138,7 @@ const AdminUsers: React.FC = () => {
           <div className="p-4 border-t border-border flex justify-between items-center">
             <button
               disabled={page === 1}
-              onClick={() => setPage(p => p - 1)}
+              onClick={() => setPage((p: number) => p - 1)}
               className="px-4 py-2 bg-bg-dark border border-border rounded-lg text-sm disabled:opacity-50 hover:bg-bg-card transition-colors text-text-main shadow-sm"
             >
               Previous
@@ -132,7 +146,7 @@ const AdminUsers: React.FC = () => {
             <span className="text-sm text-text-muted">Page {page} of {totalPages}</span>
             <button
               disabled={page === totalPages}
-              onClick={() => setPage(p => p + 1)}
+              onClick={() => setPage((p: number) => p + 1)}
               className="px-4 py-2 bg-bg-dark border border-border rounded-lg text-sm disabled:opacity-50 hover:bg-bg-card transition-colors text-text-main shadow-sm"
             >
               Next
