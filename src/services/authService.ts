@@ -2,10 +2,22 @@ import api from './api';
 
 export interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  name: string; // Keep for convenience / legacy
   email: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'client' | 'staff';
   avatar?: string;
+  company?: {
+    name: string;
+  };
+  credits?: number;
+  organization?: string;
+  youtubeChannel?: string;
+  notificationPreferences?: {
+    email: boolean;
+    inApp: boolean;
+  };
 }
 
 export interface AuthResponse {
@@ -19,13 +31,22 @@ export interface AuthResponse {
 
 export interface LoginCredentials {
   email: string;
-  password?: string; // Optional for Google OAuth or other flows
+  password?: string;
 }
 
 export interface RegisterData {
   name: string;
   email: string;
   password?: string;
+}
+
+export interface ProfileUpdateData {
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+  companyName?: string;
+  youtubeChannel?: string;
+  notificationEmail?: boolean;
 }
 
 const authService = {
@@ -46,6 +67,11 @@ const authService = {
 
   async getProfile(): Promise<AuthResponse> {
     const { data } = await api.get<AuthResponse>('/auth/profile');
+    return data;
+  },
+
+  async updateProfile(profileData: ProfileUpdateData): Promise<AuthResponse> {
+    const { data } = await api.patch<AuthResponse>('/auth/profile', profileData);
     return data;
   },
 

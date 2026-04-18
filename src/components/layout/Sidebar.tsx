@@ -1,179 +1,238 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
-  Coins, 
-  FileText, 
-  MessageSquare, 
-  Radio, 
-  UserCircle, 
-  LifeBuoy, 
-  Bug, 
+import React, { useState } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Coins,
+  FileText,
+  MessageSquare,
+  Radio,
+  UserCircle,
+  Bug,
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Layout
-} from 'lucide-react';
-import { cn } from '../Button';
-import { useAuth } from '../../hooks/useAuth';
-import BugReportModal from '../modals/BugReportModal';
+  Package,
+} from 'lucide-react'
+import { cn } from '../Button'
+import { useAuth } from '../../hooks/useAuth'
+import BugReportModal from '../modals/BugReportModal'
+import { createLogger, serializeError } from '../../services/logger'
+
+const logger = createLogger('Sidebar')
 
 interface NavItemProps {
-  to?: string;
-  icon: React.ReactNode;
-  label: string;
-  collapsed: boolean;
-  badge?: boolean;
-  destructive?: boolean;
-  onClick?: () => void;
+  to?: string
+  icon: React.ReactNode
+  label: string
+  collapsed: boolean
+  badge?: boolean
+  destructive?: boolean
+  onClick?: () => void
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon, label, collapsed, badge, destructive, onClick }) => {
+const NavItem: React.FC<NavItemProps> = ({
+  to,
+  icon,
+  label,
+  collapsed,
+  badge,
+  destructive,
+  onClick,
+}) => {
   const content = (
     <>
-      <div className="relative">
-        {icon}
+      <div className="relative z-10">
+        <div className={cn(
+          "w-5 h-5 flex items-center justify-center transition-transform duration-200 transform-gpu",
+          "group-hover:scale-110 group-active:scale-95"
+        )}>
+          {icon}
+        </div>
         {badge && (
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-bg-dark"></span>
+          <span className="absolute -top-1.5 -right-1.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(244,63,94,0.6)] animate-pulse"></span>
         )}
       </div>
-      <span className={cn(
-        "font-medium transition-all duration-300 overflow-hidden whitespace-nowrap",
-        collapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
-      )}>
+      <span
+        className={cn(
+          'font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-200 transform-gpu overflow-hidden whitespace-nowrap z-10',
+          collapsed ? 'opacity-0 w-0 -translate-x-2' : 'opacity-100 w-auto'
+        )}
+      >
         {label}
       </span>
+      
       {collapsed && (
-        <div className="absolute left-14 px-2 py-1 bg-bg-card border border-border text-text-main text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
-          {label}
-        </div>
+              <div className="absolute left-14 px-4 py-2 bg-bg-dark border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-[opacity,transform] duration-200 z-50 whitespace-nowrap shadow-2xl translate-x-2 group-hover:translate-x-0 backdrop-blur-md italic transform-gpu">
+            {label}
+         </div>
       )}
     </>
-  );
+  )
 
-  const className = ({ isActive }: { isActive?: boolean } = {}) => cn(
-    "group relative flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 w-full text-left",
-    isActive 
-      ? "bg-bg-card text-text-main border-l-2 border-primary" 
-      : "text-text-muted hover:text-text-main hover:bg-bg-card",
-    destructive && "hover:text-error hover:bg-error/10"
-  );
+  const className = ({ isActive }: { isActive?: boolean } = {}) =>
+    cn(
+      'group relative flex items-center gap-4 px-4 py-2 rounded-xl cursor-pointer transition-[color,background-color] duration-200 w-full text-left outline-none overflow-hidden mb-1 transform-gpu',
+      isActive
+        ? 'text-white bg-white/[0.05] shadow-sm'
+        : 'text-text-dim hover:text-white hover:bg-white/[0.02]',
+      destructive && 'hover:text-red-500 hover:bg-red-500/5'
+    )
+
+  const activeGlow = (isActive: boolean) => isActive && !collapsed && (
+     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[2px_0_10px_rgba(244,63,94,0.5)] transition-opacity duration-200" />
+  )
 
   if (to) {
     return (
-      <NavLink to={to} className={className}>
-        {content}
+      <NavLink to={to} className={({ isActive }) => cn(className({ isActive }), "relative")}>
+        {({ isActive }) => (
+          <>
+            {activeGlow(isActive)}
+            {content}
+          </>
+        )}
       </NavLink>
-    );
+    )
   }
 
   return (
-    <button onClick={onClick} className={className()}>
+    <button onClick={onClick} className={cn(className(), "relative")}>
       {content}
     </button>
-  );
-};
+  )
+}
 
-const Sidebar: React.FC = () => {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    const saved = localStorage.getItem('sidebar-collapsed');
-    return saved ? JSON.parse(saved) : false;
-  });
-  const [isBugModalOpen, setIsBugModalOpen] = useState(false);
+interface SidebarProps {
+  isCollapsed: boolean
+  onToggle: (collapsed: boolean) => void
+}
 
-  useEffect(() => {
-    localStorage.setItem('sidebar-collapsed', JSON.stringify(isCollapsed));
-  }, [isCollapsed]);
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  const [isBugModalOpen, setIsBugModalOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
-      await logout();
-      navigate('/login');
+      await logout()
+      navigate('/login')
     } catch (err) {
-      console.error('Logout failed', err);
+      logger.error('auth.logout_navigation_failed', {
+        error: serializeError(err),
+      })
     }
-  };
+  }
 
   const topNavItems = [
-    { to: '/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { to: '/orders', icon: <ShoppingBag size={20} />, label: 'Orders' },
-    { to: '/credits', icon: <Coins size={20} />, label: 'Credits' },
-    { to: '/invoices', icon: <FileText size={20} />, label: 'Invoices' },
-    { to: '/messages', icon: <MessageSquare size={20} />, label: 'Messages', badge: true },
-    { to: '/channels', icon: <Radio size={20} />, label: 'Channels' },
-  ];
+    { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
+    { to: '/orders', icon: <ShoppingBag size={18} />, label: 'Orders' },
+    { to: '/credits', icon: <Coins size={18} />, label: 'Wallet' },
+    { to: '/invoices', icon: <FileText size={18} />, label: 'Invoices' },
+    { to: '/messages', icon: <MessageSquare size={18} />, label: 'Messages', badge: true },
+    { to: '/channels', icon: <Radio size={18} />, label: 'Channels' },
+  ]
 
   return (
     <>
-      <aside className={cn(
-        "fixed left-0 top-0 h-screen bg-bg-dark border-r border-border flex flex-col transition-all duration-300 z-40",
-        isCollapsed ? "w-16" : "w-64"
-      )}>
+    <aside
+        className={cn(
+          'fixed left-0 top-0 h-screen bg-bg-dark border-r border-white/5 flex flex-col transition-[width] duration-300 z-40 backdrop-blur-md transform-gpu',
+          isCollapsed ? 'w-[72px]' : 'w-64'
+        )}
+      >
         {/* Logo Area */}
-        <div className="h-16 flex items-center px-4 border-b border-border relative">
-          <div className="flex items-center gap-3">
-            <div className="min-w-[32px] h-8 bg-primary rounded flex items-center justify-center text-text-main">
-              <Layout size={18} />
+        <div className="h-20 flex items-center px-6 relative">
+          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/dashboard')}>
+            <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center p-2 shadow-lg transition-transform duration-200 group-hover:scale-105 transform-gpu">
+               <Package size={20} />
             </div>
             {!isCollapsed && (
-              <span className="font-bold text-lg tracking-tighter uppercase whitespace-nowrap">Igra Studios</span>
+              <div className="flex flex-col animate-in fade-in slide-in-left duration-200">
+                 <span className="font-black text-lg tracking-tighter uppercase text-white leading-none italic">
+                   Igra
+                 </span>
+                 <span className="text-[7px] font-black tracking-[0.4em] uppercase text-primary mt-0.5">Studios</span>
+              </div>
             )}
           </div>
-          
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-bg-card border border-border rounded-full flex items-center justify-center text-text-muted hover:text-text-main transition-colors z-50 shadow-lg"
+
+          <button
+            onClick={() => onToggle(!isCollapsed)}
+            className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 z-50 shadow-2xl border-4 border-bg-dark transform-gpu"
           >
             {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
         </div>
 
+        {/* Global Search Button Placeholder */}
+        <div className="px-4 mb-6">
+           <div className={cn(
+             "w-full bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 transition-colors duration-200",
+             isCollapsed ? "justify-center h-10" : "px-4 h-11"
+           )}>
+              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+              {!isCollapsed && <span className="text-[9px] font-bold uppercase tracking-widest text-text-dim">Primary Sector</span>}
+           </div>
+        </div>
+
         {/* Navigation */}
-        <div className="flex-1 flex flex-col p-2 overflow-y-auto overflow-x-hidden">
-          <nav className="space-y-1">
-            {topNavItems.map((item) => (
-              <NavItem key={item.to} {...item} collapsed={isCollapsed} />
-            ))}
-          </nav>
+        <div className="flex-1 flex flex-col px-4 overflow-y-auto overflow-x-hidden no-scrollbar">
+          <div className="space-y-8">
+            <div>
+              {!isCollapsed && (
+                <div className="px-4 mb-4 text-[7px] font-black uppercase tracking-[0.4em] text-text-dim flex items-center gap-2 animate-in fade-in duration-300">
+                   Navigation
+                </div>
+              )}
+              <nav className="space-y-1">
+                {topNavItems.map((item) => (
+                  <NavItem key={item.to} {...item} collapsed={isCollapsed} />
+                ))}
+              </nav>
+            </div>
+
+            <div>
+               {!isCollapsed && (
+                <div className="px-4 mb-4 text-[7px] font-black uppercase tracking-[0.4em] text-text-dim flex items-center gap-2 animate-in fade-in duration-300">
+                   Account Settings
+                </div>
+              )}
+              <nav className="space-y-1">
+                <NavItem
+                  to="/profile"
+                  icon={<UserCircle size={18} />}
+                  label="Profile"
+                  collapsed={isCollapsed}
+                />
+                <NavItem
+                  onClick={() => setIsBugModalOpen(true)}
+                  icon={<Bug size={18} />}
+                  label="Report Bug"
+                  collapsed={isCollapsed}
+                />
+              </nav>
+            </div>
+          </div>
 
           <div className="flex-1" />
 
-          <nav className="space-y-1 pt-4 border-t border-border mt-4">
-            <NavItem 
-              to="/profile" 
-              icon={<UserCircle size={20} />} 
-              label="My Profile" 
-              collapsed={isCollapsed} 
+          {/* Bottom Logout */}
+          <div className="pt-4 pb-6 border-t border-white/5 mt-auto">
+            <NavItem
+              onClick={handleLogout}
+              icon={<LogOut size={18} />}
+              label="Logout"
+              collapsed={isCollapsed}
+              destructive
             />
-            <NavItem 
-              to="/support" 
-              icon={<LifeBuoy size={20} />} 
-              label="Support" 
-              collapsed={isCollapsed} 
-            />
-            <NavItem 
-              onClick={() => setIsBugModalOpen(true)} 
-              icon={<Bug size={20} />} 
-              label="Report a Bug" 
-              collapsed={isCollapsed} 
-            />
-            <NavItem 
-              onClick={handleLogout} 
-              icon={<LogOut size={20} />} 
-              label="Logout" 
-              collapsed={isCollapsed} 
-              destructive 
-            />
-          </nav>
+          </div>
         </div>
       </aside>
 
       <BugReportModal isOpen={isBugModalOpen} onClose={() => setIsBugModalOpen(false)} />
     </>
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar
