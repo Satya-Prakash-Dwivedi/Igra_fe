@@ -138,7 +138,7 @@ const ItemCard: React.FC<{
         assetIds.push(assetId)
       }
       if (assetIds.length > 0) {
-        const updated = await adminService.addAssetToItem(orderId, item._id, assetIds, 'DELIVERY')
+        const updated = await adminService.addAssetToItem(orderId, item._id, assetIds, 'OUTPUT')
         onUpdated(updated)
       }
     } catch (err) {
