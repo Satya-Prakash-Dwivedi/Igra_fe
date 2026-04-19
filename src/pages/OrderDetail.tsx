@@ -279,6 +279,21 @@ export default function OrderDetail() {
               <span>{items.length} Items</span>
               <span className="w-1.5 h-1.5 rounded-full bg-white/10" />
               <span className="text-primary/70">{order.totalCreditsQuoted} Credits Total</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-white/10" />
+              <div className="flex items-center gap-2">
+                {order.assignedTo && typeof order.assignedTo === 'object' ? (
+                  <>
+                    <img 
+                      src={(order.assignedTo as any).avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+                      alt="assignee" 
+                      className="w-4 h-4 rounded-full border border-white/10"
+                    />
+                    <span className="text-xs text-white">{(order.assignedTo as any).name}</span>
+                  </>
+                ) : (
+                  <span className="text-xs text-gray-600 italic">Awaiting staff assignment</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -300,8 +315,16 @@ export default function OrderDetail() {
               Terminate Order
             </button>
           )}
-          <button className="px-6 py-3 bg-white text-black hover:bg-gray-200 text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95">
-            Support Ticket
+          <button 
+            onClick={() => setActiveTab('chat')}
+            className={cn(
+              "px-6 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95",
+              order.assignedTo 
+                ? "bg-white text-black hover:bg-gray-200" 
+                : "bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed"
+            )}
+          >
+            {order.assignedTo ? 'Message Support' : 'Awaiting Assignment'}
           </button>
         </div>
       </div>

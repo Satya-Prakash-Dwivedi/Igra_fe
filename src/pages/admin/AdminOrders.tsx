@@ -6,6 +6,7 @@ import type { AdminOrder, OrderStatus } from '../../services/adminService'
 import StatusBadge from '../../components/admin/StatusBadge'
 import Pagination from '../../components/admin/Pagination'
 import { createLogger, serializeError } from '../../services/logger'
+import { useAuth } from '../../hooks/useAuth'
 
 const logger = createLogger('AdminOrders')
 
@@ -30,14 +31,21 @@ const AdminOrders: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const { user } = useAuth()
   const statusFilter = (searchParams.get('status') as OrderStatus) || ''
+  const assignedToFilter = searchParams.get('assignedTo') || ''
   const page = parseInt(searchParams.get('page') ?? '1', 10)
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const result = await adminService.listOrders({ status: statusFilter || undefined, page, limit: 20 })
+      const result = await adminService.listOrders({ 
+        status: statusFilter || undefined, 
+        assignedTo: assignedToFilter || undefined,
+        page, 
+        limit: 20 
+      })
       setOrders(result.items)
       setTotal(result.total)
       setPages(result.pages)
@@ -47,19 +55,32 @@ const AdminOrders: React.FC = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [statusFilter, page])
+  }, [statusFilter, assignedToFilter, page])
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
 
   const setFilter = (status: string) => {
     const params: Record<string, string> = { page: '1' }
     if (status) params.status = status
+    if (assignedToFilter) params.assignedTo = assignedToFilter
+    setSearchParams(params)
+  }
+
+  const toggleOnlyMine = () => {
+    const params: Record<string, string> = { page: '1' }
+    if (statusFilter) params.status = statusFilter
+    
+    if (!assignedToFilter && user?.id) {
+      params.assignedTo = user.id
+    }
+    // if already filtering by me, removing it will set to "All"
     setSearchParams(params)
   }
 
   const setPage = (p: number) => {
     const params: Record<string, string> = { page: String(p) }
     if (statusFilter) params.status = statusFilter
+    if (assignedToFilter) params.assignedTo = assignedToFilter
     setSearchParams(params)
   }
 
@@ -70,18 +91,30 @@ const AdminOrders: React.FC = () => {
         <span className="text-text-muted text-sm">{total} total</span>
       </div>
 
-      {/* Filter */}
-      <div className="mb-4">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-4 mb-6">
         <select
           value={statusFilter}
           onChange={(e) => setFilter(e.target.value)}
-          className="bg-bg-card border border-border rounded-lg px-3 py-2 text-sm text-text-main focus:outline-none focus:border-primary transition-colors"
+          className="bg-bg-card border border-border rounded-lg px-3 py-2 text-sm text-text-main focus:outline-none focus:border-primary transition-colors min-w-[160px]"
         >
           <option value="">All Statuses</option>
           {ORDER_STATUSES.map((s) => (
             <option key={s} value={s}>{STATUS_LABELS[s]}</option>
           ))}
         </select>
+
+        <label className="flex items-center gap-2 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={!!assignedToFilter && assignedToFilter === user?.id}
+            onChange={toggleOnlyMine}
+            className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-bg-card"
+          />
+          <span className="text-sm text-text-muted group-hover:text-text-main transition-colors">
+            Show only assigned to me
+          </span>
+        </label>
       </div>
 
       {isLoading && (
