@@ -8,6 +8,7 @@ import {
   FileText, Search, Layout, PenTool, LayoutGrid, Phone, Eye, MessageSquare,
   Plus, X, Info, Link as LinkIcon, Loader2
 } from 'lucide-react'
+import { cn } from '../components/Button'
 
 // ─── Constants & Types ──────────────────────────────────────────
 
@@ -334,12 +335,30 @@ export default function NewOrderPage() {
                       <h3 className="font-bold text-lg mb-2">{pkg.label}</h3>
                       <p className="text-sm text-gray-400 mb-8 line-clamp-2">{pkg.desc}</p>
                       
-                      <button
-                        onClick={() => handleAddPackage(pkg.kind)}
-                        className="mt-auto w-full py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
-                      >
-                        <Plus size={18} /> {count > 0 ? `Add ${pkg.label} (${count})` : `Add ${pkg.label}`}
-                      </button>
+                      <div className="mt-auto flex gap-2">
+                        <button
+                          onClick={() => handleAddPackage(pkg.kind)}
+                          className={cn(
+                            "flex-1 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95",
+                            count > 0 && "bg-primary/10 border-primary/20 text-primary"
+                          )}
+                        >
+                          <Plus size={18} /> {count > 0 ? `Add (${count})` : `Add ${pkg.label}`}
+                        </button>
+                        {count > 0 && (
+                          <button
+                            onClick={() => {
+                              const itemsOfKind = draftItems.filter(i => i.kind === pkg.kind);
+                              const lastItem = itemsOfKind[itemsOfKind.length - 1];
+                              if (lastItem) handleRemovePackage(lastItem.tempId);
+                            }}
+                            className="w-12 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-red-500 hover:border-red-500 text-white flex items-center justify-center transition-all active:scale-95"
+                            title="Remove last added"
+                          >
+                            <X size={18} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )

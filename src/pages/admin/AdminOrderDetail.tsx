@@ -579,23 +579,27 @@ const AdminOrderDetail: React.FC = () => {
       <div className="flex gap-2 bg-white/[0.02] backdrop-blur-md rounded-[2rem] p-2 border border-white/5 shadow-inner">
         {[
           { key: 'items' as const, label: 'Production Units', icon: Package, count: items.length },
-          { key: 'chat' as const, label: 'Comms Link', icon: MessageSquare, count: messages.length },
+          { key: 'chat' as const, label: 'Communication', icon: MessageSquare, count: messages.length },
           { key: 'timeline' as const, label: 'Audit Log', icon: Activity, count: events.length },
         ].map(({ key, label, icon: Icon, count }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex-1 justify-center transition-all group ${
+            className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex-1 justify-center transition-all group relative ${
               activeTab === key 
                 ? 'bg-white text-black shadow-2xl scale-[1.02]' 
                 : 'text-gray-500 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Icon size={16} className={activeTab === key ? "text-primary" : "text-gray-600 group-hover:text-primary transition-colors"} />
+            <div className="relative">
+              <Icon size={16} className={activeTab === key ? "text-primary" : "text-gray-600 group-hover:text-primary transition-colors"} />
+              {key === 'chat' && count > 0 && (
+                <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[9px] font-bold min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 shadow-md border-2 border-bg-dark animate-in zoom-in duration-300">
+                  {count}
+                </span>
+              )}
+            </div>
             {label}
-            <span className={`px-2.5 py-0.5 rounded-lg text-[9px] font-black ${activeTab === key ? 'bg-black/5 text-black' : 'bg-white/5 text-gray-500'}`}>
-              {count}
-            </span>
           </button>
         ))}
       </div>
@@ -626,7 +630,7 @@ const AdminOrderDetail: React.FC = () => {
                   <MessageSquare size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Encrypted Comms</h3>
+                  <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Communication Stream</h3>
                   <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Order #{(order as any).orderNumber} · Secure Stream</p>
                 </div>
               </div>

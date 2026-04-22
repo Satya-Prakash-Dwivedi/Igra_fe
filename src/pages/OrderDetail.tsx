@@ -369,24 +369,28 @@ export default function OrderDetail() {
       {/* Navigation Tabs */}
       <div className="flex gap-2 bg-white/[0.02] backdrop-blur-md rounded-[2rem] p-2 border border-white/5 shadow-inner">
         {[
-          { key: 'items' as const, label: 'Line Items', icon: Package, count: items.length },
-          { key: 'chat' as const, label: 'Messages', icon: MessageSquare, count: messages.length },
-          { key: 'timeline' as const, label: 'Activity', icon: Activity, count: events.length },
+          { key: 'items' as const, label: 'Production Units', icon: Package, count: items.length },
+          { key: 'chat' as const, label: 'Communication', icon: MessageSquare, count: messages.length },
+          { key: 'timeline' as const, label: 'Audit Log', icon: Activity, count: events.length },
         ].map(({ key, label, icon: Icon, count }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-3 px-6 py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest flex-1 justify-center transition-all group ${
+            className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex-1 justify-center transition-all group relative ${
               activeTab === key 
-                ? 'bg-white text-black shadow-lg' 
+                ? 'bg-white text-black shadow-2xl scale-[1.02]' 
                 : 'text-gray-500 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Icon size={14} className={activeTab === key ? "text-black" : "text-gray-600 group-hover:text-primary transition-colors"} />
+            <div className="relative">
+              <Icon size={16} className={activeTab === key ? "text-primary" : "text-gray-600 group-hover:text-primary transition-colors"} />
+              {key === 'chat' && count > 0 && (
+                <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[9px] font-bold min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 shadow-md border-2 border-bg-dark animate-in zoom-in duration-300">
+                  {count}
+                </span>
+              )}
+            </div>
             {label}
-            <span className={`px-2 py-0.5 rounded-full text-[9px] ${activeTab === key ? 'bg-black/5 text-black' : 'bg-white/5 text-gray-500'}`}>
-              {count}
-            </span>
           </button>
         ))}
       </div>
@@ -617,9 +621,9 @@ export default function OrderDetail() {
                      <MessageSquare size={18} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-white">Project Messages</h3>
-                    <p className="text-[9px] font-bold text-gray-500 uppercase">Discussion related to this order</p>
-                  </div>
+                  <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Communication Stream</h3>
+                  <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Order #{(order as any).orderNumber} · Secure Stream</p>
+                </div>
                </div>
                <div className="flex -space-x-3">
                   {[1,2,3,4].map(i => (
@@ -758,6 +762,8 @@ export default function OrderDetail() {
                   <X size={28} />
                 </button>
             </div>
+            
+
 
             <div className="premium-card p-8 rounded-[2.5rem] border-white/10 flex flex-col md:flex-row justify-between items-center gap-8 translate-y-0 shadow-2xl">
               <div className="flex items-center gap-8">
