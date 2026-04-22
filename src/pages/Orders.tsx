@@ -5,6 +5,7 @@ import type { Order } from '../services/orderService'
 import { Plus, Clock, CheckCircle, XCircle, Eye, ArrowRight, Package, ChevronRight } from 'lucide-react'
 import { createLogger, serializeError } from '../services/logger'
 import { cn } from '../components/Button'
+import { toast } from 'sonner'
 
 const logger = createLogger('Orders')
 
@@ -177,7 +178,7 @@ export default function Orders() {
                       await orderApi.submitOrder(order._id)
                       loadOrders()
                     } catch (err: any) {
-                      alert(err?.response?.data?.error || err.message)
+                      toast.error(err?.response?.data?.error || err.message)
                     }
                   }}
                   className="mt-6 w-full py-3 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-[0_10px_20px_rgba(59,130,246,0.2)]"
