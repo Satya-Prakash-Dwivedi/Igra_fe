@@ -2,6 +2,8 @@ import { lazy, Suspense, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
+import { Toaster } from 'sonner';
+
 // Layouts
 import DashboardLayout from './layouts/DashboardLayout';
 import AdminLayout from './layouts/AdminLayout';
@@ -60,6 +62,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <AuthProvider>
+      <Toaster richColors position="top-right" theme="dark" />
       <Router>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>

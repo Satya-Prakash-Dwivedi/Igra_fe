@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { cn } from '../components/Button'
 import { createLogger, serializeError } from '../services/logger'
+import { toast } from 'sonner'
 
 const logger = createLogger('OrderDetail')
 import * as uploadApi from '../services/uploadService'
@@ -134,7 +135,14 @@ export default function OrderDetail() {
         orderId: id,
         error: serializeError(err),
       })
-      alert(err?.response?.data?.error || err.message)
+      const msg = err?.response?.data?.error || err.message
+      if (msg.toLowerCase().includes('insufficient credits')) {
+        if (confirm('Insufficient credits. Would you like to go to the credits page to top up?')) {
+          navigate('/credits')
+        }
+      } else {
+        toast.error(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -181,7 +189,7 @@ export default function OrderDetail() {
         itemId,
         error: serializeError(err),
       })
-      alert(err?.response?.data?.error || err.message)
+      toast.error(err?.response?.data?.error || err.message)
     }
   }
 
@@ -200,7 +208,7 @@ export default function OrderDetail() {
         await loadOrder()
       }
     } catch (err: any) {
-      alert(err?.response?.data?.error || err.message)
+      toast.error(err?.response?.data?.error || err.message)
     } finally {
       setUploadingItem(null)
     }
@@ -216,7 +224,7 @@ export default function OrderDetail() {
         orderId: id,
         error: serializeError(err),
       })
-      alert(err?.response?.data?.error || err.message)
+      toast.error(err?.response?.data?.error || err.message)
     }
   }
 
@@ -232,7 +240,7 @@ export default function OrderDetail() {
         assetId,
         error: serializeError(err),
       })
-      alert(err?.response?.data?.error || err.message)
+      toast.error(err?.response?.data?.error || err.message)
     }
   }
 

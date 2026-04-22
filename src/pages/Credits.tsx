@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { createLogger, serializeError } from '../services/logger'
 import { cn } from '../components/Button'
+import { toast } from 'sonner'
 
 const logger = createLogger('Credits')
 
@@ -50,7 +51,7 @@ export default function Credits() {
           await billingApi.capturePurchase(token)
           window.history.replaceState({}, document.title, window.location.pathname)
           await loadData()
-          alert('Credits purchased successfully!')
+          toast.success('Credits purchased successfully!')
         } catch (err: any) {
           logger.error('credits.capture_failed', {
             paypalToken: token,
@@ -97,7 +98,7 @@ export default function Credits() {
         packId,
         error: serializeError(err),
       })
-      alert(err?.response?.data?.error || 'Purchase failed')
+      toast.error(err?.response?.data?.error || 'Purchase failed')
       setPurchasing(null)
     }
   }
