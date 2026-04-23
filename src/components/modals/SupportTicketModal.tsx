@@ -80,8 +80,7 @@ const SupportTicketModal: React.FC<SupportTicketModalProps> = ({ isOpen, onClose
       if (attachedFiles.length > 0) {
         setIsUploadingFiles(true)
         for (const file of attachedFiles) {
-          const assetId = await uploadApi.uploadFile(file)
-          await uploadApi.finalizeUpload(assetId)
+          const { assetId } = await uploadApi.uploadFile(file)
           assetIds.push(assetId)
         }
         setIsUploadingFiles(false)
