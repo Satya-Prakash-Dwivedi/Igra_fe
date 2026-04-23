@@ -92,10 +92,13 @@ export async function uploadFile(
     }
   }
 
-  // 3. Finalize
-  await finalizeUpload(uploadSessionId)
+  // 3. Finalize and return asset details
+  const finalizeRes = await finalizeUpload(uploadSessionId)
 
-  return assetId
+  return {
+    assetId,
+    url: finalizeRes?.url
+  }
 }
 
 /**

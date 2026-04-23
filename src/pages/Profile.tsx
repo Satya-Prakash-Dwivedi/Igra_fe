@@ -88,13 +88,14 @@ const Profile: React.FC = () => {
     
     try {
       // 1. Upload to cloud
-      const assetId = await uploadApi.uploadFile(file, (pct) => {
+      const { assetId, url } = await uploadApi.uploadFile(file, (pct) => {
         logger.info('profile.photo_upload_progress', { progress: pct });
       });
 
-      // 2. The upload is already finalized by uploadFile.
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
-      const publicUrl = `${baseUrl}/uploads/view/${assetId}`;
+      // 2. The upload is already finalized by uploadFile. 
+      // Use the URL from backend if available, otherwise construct fallback.
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+      const publicUrl = url || `${baseUrl}/uploads/view/${assetId}`;
 
       setAvatar(publicUrl);
       setSuccessMessage('Photo uploaded! Remember to save changes.');

@@ -134,7 +134,7 @@ const ItemCard: React.FC<{
     try {
       const assetIds: string[] = []
       for (const file of Array.from(files)) {
-        const assetId = await uploadApi.uploadFile(file)
+        const { assetId } = await uploadApi.uploadFile(file)
         assetIds.push(assetId)
       }
       if (assetIds.length > 0) {

@@ -147,7 +147,7 @@ export default function NewOrderPage() {
           if (draft.files.length > 0) {
             setUploading(true)
             for (const file of draft.files) {
-              const assetId = await uploadApi.uploadFile(file, (pct) => {
+              const { assetId } = await uploadApi.uploadFile(file, (pct) => {
                 setUploadProgress(prev => ({ ...prev, [file.name]: pct }))
               })
               assetIds.push(assetId)

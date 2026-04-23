@@ -200,7 +200,7 @@ export default function OrderDetail() {
     try {
       const assetIds: string[] = []
       for (const file of Array.from(files)) {
-        const assetId = await uploadApi.uploadFile(file)
+        const { assetId } = await uploadApi.uploadFile(file)
         assetIds.push(assetId)
       }
       if (assetIds.length > 0) {
