@@ -49,10 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (userData: any) => {
     const response = await authService.register(userData)
-    const { user: newUser, access_token } = response.data
-    updateUser(newUser)
-    setAccessToken(access_token)
-    api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+    return response
   }
 
   const updateUser = useCallback((updatedUser: User) => {

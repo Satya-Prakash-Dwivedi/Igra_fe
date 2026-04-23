@@ -11,6 +11,7 @@ import AdminLayout from './layouts/AdminLayout';
 // Auth Pages
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 
 // Dashboard Pages
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -69,6 +70,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             
             {/* Protected Dashboard Routes */}
             <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
