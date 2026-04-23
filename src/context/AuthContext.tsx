@@ -10,7 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (credentials: any) => Promise<User>
-  register: (userData: any) => Promise<void>
+  register: (userData: any) => Promise<{ success: boolean; message: string }>
   logout: () => Promise<void>
   updateUser: (updatedUser: User) => void
 }
