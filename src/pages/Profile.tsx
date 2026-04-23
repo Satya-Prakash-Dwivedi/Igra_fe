@@ -21,8 +21,9 @@ const Profile: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form State
-  const [firstName, setFirstName] = useState(user?.firstName || '');
-  const [lastName, setLastName] = useState(user?.lastName || '');
+  const [firstName, setFirstName] = useState(user?.firstName || user?.name?.split(' ')[0] || '');
+  const [lastName, setLastName] = useState(user?.lastName || user?.name?.split(' ').slice(1).join(' ') || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [companyName, setCompanyName] = useState(user?.company?.name || '');
   const [youtubeChannel, setYoutubeChannel] = useState(user?.youtubeChannel || '');
@@ -37,8 +38,9 @@ const Profile: React.FC = () => {
   // Sync state when user context changes
   useEffect(() => {
     if (user) {
-      setFirstName(user.firstName || '');
-      setLastName(user.lastName || '');
+      setFirstName(user.firstName || user.name?.split(' ')[0] || '');
+      setLastName(user.lastName || user.name?.split(' ').slice(1).join(' ') || '');
+      setEmail(user.email || '');
       setAvatar(user.avatar || '');
       setCompanyName(user.company?.name || '');
       setYoutubeChannel(user.youtubeChannel || '');
@@ -90,9 +92,10 @@ const Profile: React.FC = () => {
         logger.info('profile.photo_upload_progress', { progress: pct });
       });
 
-      // 2. The file is already finalized by uploadFile. 
+      // 2. The upload is already finalized by uploadFile. 
       // Use the URL from backend if available, otherwise construct fallback.
-      const publicUrl = url || `${import.meta.env.VITE_API_BASE_URL}/uploads/view/${assetId}`;
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+      const publicUrl = url || `${baseUrl}/uploads/view/${assetId}`;
 
       setAvatar(publicUrl);
       setSuccessMessage('Photo uploaded! Remember to save changes.');
@@ -249,6 +252,15 @@ const Profile: React.FC = () => {
                 )}
               />
               {errors.lastName && <p className="text-xs text-error mt-1">{errors.lastName}</p>}
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-text-muted text-sm font-medium uppercase tracking-wider">Email</label>
+              <input 
+                type="email" 
+                value={email}
+                disabled
+                className="w-full bg-transparent border-b border-border py-2 text-text-muted focus:outline-none cursor-not-allowed text-sm"
+              />
             </div>
           </div>
 
