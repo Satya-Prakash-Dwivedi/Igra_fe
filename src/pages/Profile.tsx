@@ -86,16 +86,13 @@ const Profile: React.FC = () => {
     
     try {
       // 1. Upload to cloud
-      const assetId = await uploadApi.uploadFile(file, (pct) => {
+      const { assetId, url } = await uploadApi.uploadFile(file, (pct) => {
         logger.info('profile.photo_upload_progress', { progress: pct });
       });
 
-      // 2. Finalize and get URL
-      // Note: Based on backend implementation details, assetId is often sufficient 
-      // but the user requested the "URL that cloud returns". 
-      // We'll construct the URL here or retrieve it if finalize returns it.
-      const finalizeRes = await uploadApi.finalizeUpload(assetId);
-      const publicUrl = finalizeRes?.url || `${import.meta.env.VITE_API_BASE_URL}/uploads/assets/${assetId}`;
+      // 2. The file is already finalized by uploadFile. 
+      // Use the URL from backend if available, otherwise construct fallback.
+      const publicUrl = url || `${import.meta.env.VITE_API_BASE_URL}/uploads/view/${assetId}`;
 
       setAvatar(publicUrl);
       setSuccessMessage('Photo uploaded! Remember to save changes.');

@@ -157,19 +157,30 @@ const Dashboard: React.FC = () => {
 
         {/* Sidebar Cards */}
         <div className="space-y-6">
-           <div className="premium-card rounded-3xl p-8 bg-gradient-to-br from-primary/10 to-transparent border-primary/20 flex flex-col justify-between">
+            <div 
+              className="premium-card rounded-3xl p-8 bg-gradient-to-br from-primary/10 to-transparent border-primary/20 flex flex-col justify-between cursor-pointer group/wallet hover:border-primary/40 transition-all duration-300"
+              onClick={() => navigate('/credits')}
+            >
               <div>
-                <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center mb-6">
+                <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center mb-6 group-hover/wallet:scale-110 transition-transform duration-200">
                    <Zap size={20} fill="currentColor" />
                 </div>
-                <h3 className="text-xl font-black text-white tracking-tight mb-4 uppercase italic">Wallet</h3>
+                <h3 className="text-xl font-black text-white tracking-tight mb-4 uppercase italic group-hover/wallet:text-primary transition-colors">Wallet</h3>
                 <div className="space-y-1 mb-6">
                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Available Credits</p>
                    <p className="text-3xl font-black text-white">{user?.credits || '0'}</p>
                 </div>
               </div>
-              <button className="w-full py-3.5 bg-white text-black rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-90 transition-all">Top Up Balance</button>
-           </div>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate('/credits');
+                }}
+                className="w-full py-3.5 bg-white text-black rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-lg active:scale-95"
+              >
+                Top Up Balance
+              </button>
+            </div>
 
            <div className="premium-card rounded-3xl p-8 bg-white/[0.01]">
               <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Account Status</h3>

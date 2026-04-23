@@ -143,11 +143,8 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
 
     setIsUploadingLogo(true)
     try {
-      const assetId = await uploadApi.uploadFile(file)
-      const finalizeRes = await uploadApi.finalizeUpload(assetId)
-      const publicUrl =
-        finalizeRes?.url || `${import.meta.env.VITE_API_BASE_URL}/uploads/assets/${assetId}`
-      setLogo(publicUrl)
+      const { url } = await uploadApi.uploadFile(file)
+      setLogo(url || '')
     } catch (err) {
       logger.error('channels.logo_upload_failed', { error: serializeError(err) })
       setErrors((prev) => ({ ...prev, general: 'Logo upload failed. Please try again.' }))
