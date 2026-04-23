@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Package, ArrowRight, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { toast } from 'sonner';
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -20,8 +21,9 @@ const Register: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      await register({ name, email, password });
-      navigate('/dashboard');
+      const res = await register({ name, email, password });
+      toast.success(res?.message || 'Registration successful. Please check your email to verify your account.');
+      navigate('/login');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create account');
     } finally {
