@@ -25,7 +25,7 @@ const SERVICE_CATALOG = [
   { kind: 'IMAGE_RETOUCHING', label: 'Image Retouching', icon: LayoutGrid, desc: '100 credits', minCredits: 100 },
   { kind: 'CONSULTATION', label: 'Consultation Call', icon: Phone, desc: '100 credits per 15 minutes', minCredits: 0 },
   { kind: 'FOOTAGE_REVIEW', label: 'Footage Review', icon: Eye, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
-  { kind: 'CUSTOM', label: 'Custom Request', icon: MessageSquare, desc: 'Let us know what you need', minCredits: 0 },
+  { kind: 'CUSTOM', label: 'Custom Request', icon: MessageSquare, desc: '50 credits (base price)', minCredits: 50 },
 ]
 
 type DraftItem = {
