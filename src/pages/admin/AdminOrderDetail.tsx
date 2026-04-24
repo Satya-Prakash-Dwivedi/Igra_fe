@@ -644,8 +644,11 @@ const AdminOrderDetail: React.FC = () => {
                 </div>
               ) : (
                 messages.map((msg: Message, i: number) => {
-                  const isMine = msg.senderId?._id === (auth?.user as any)?.id
-                  const showHeader = i === 0 || messages[i - 1].senderId?._id !== msg.senderId?._id
+                  const currentUserId = (auth?.user as any)?.id || (auth?.user as any)?._id
+                  const senderId = msg.senderId?._id || msg.senderId
+                  const isMine = senderId === currentUserId
+                  const prevSenderId = i > 0 ? (messages[i - 1].senderId?._id || messages[i - 1].senderId) : null
+                  const showHeader = i === 0 || prevSenderId !== senderId
                   
                   return (
                     <div key={msg._id} className={cn(

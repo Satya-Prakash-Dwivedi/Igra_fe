@@ -648,8 +648,9 @@ export default function OrderDetail() {
                 </div>
               ) : (
                 messages.map((msg, i) => {
-                  const isMine = msg.senderId?._id === (auth?.user as any)?._id
-                  const showHeader = i === 0 || messages[i - 1].senderId?._id !== msg.senderId?._id
+                  const currentUserId = (auth?.user as any)?._id || (auth?.user as any)?.id
+                  const isMine = msg.senderId?._id === currentUserId || msg.senderId === currentUserId
+                  const showHeader = i === 0 || (msg.senderId?._id || msg.senderId) !== (messages[i - 1].senderId?._id || messages[i - 1].senderId)
                   
                   return (
                     <div key={msg._id} className={cn(

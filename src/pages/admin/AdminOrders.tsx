@@ -154,11 +154,14 @@ const AdminOrders: React.FC = () => {
                   {orders.map((order) => (
                     <tr
                       key={order._id}
-                      onClick={() => navigate(`/admin/orders/${order._id}`)}
+                      onClick={() => {
+                        console.log('Navigating to order:', order._id);
+                        navigate(`/admin/orders/${order._id}`);
+                      }}
                       className="hover:bg-bg-dark cursor-pointer transition-colors group"
                     >
                       <td className="px-4 py-3 font-mono text-xs text-primary whitespace-nowrap">
-                        {order.orderNumber}
+                        <span className="hover:underline">{order.orderNumber}</span>
                       </td>
                       <td className="px-4 py-3">
                         <p className="text-text-main font-medium">{order.userId?.name ?? '—'}</p>
