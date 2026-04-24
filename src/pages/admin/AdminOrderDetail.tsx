@@ -238,12 +238,26 @@ const ItemCard: React.FC<{
               <section>
                 <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-6">Configuration</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(item.params).map(([key, val]) => (
-                    <div key={key} className="p-4 bg-white/[0.02] rounded-2xl border border-white/5">
-                      <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mb-1">{key.replace(/_/g, ' ')}</p>
-                      <p className="text-sm text-gray-200 font-bold break-words">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</p>
-                    </div>
-                  ))}
+                  {Object.entries(item.params).map(([key, val]) => {
+                    if (key === 'showLinkInput') return null;
+                    return (
+                      <div key={key} className="p-4 bg-white/[0.02] rounded-2xl border border-white/5">
+                        <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mb-1">{key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim()}</p>
+                        {Array.isArray(val) ? (
+                          <div className="space-y-1 mt-1">
+                            {val.map((v, i) => (
+                              <div key={i} className="flex items-center gap-2 text-sm text-gray-200 font-bold">
+                                <span className="text-[10px] text-primary/60 shrink-0">#{i + 1}</span>
+                                <a href={String(v)} target="_blank" rel="noreferrer" className="truncate hover:text-primary transition-colors">{String(v)}</a>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-200 font-bold break-words">{String(val)}</p>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </section>
             </div>

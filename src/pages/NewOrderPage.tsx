@@ -25,7 +25,7 @@ const SERVICE_CATALOG = [
   { kind: 'IMAGE_RETOUCHING', label: 'Image Retouching', icon: LayoutGrid, desc: '100 credits', minCredits: 100 },
   { kind: 'CONSULTATION', label: 'Consultation Call', icon: Phone, desc: '100 credits per 15 minutes', minCredits: 0 },
   { kind: 'FOOTAGE_REVIEW', label: 'Footage Review', icon: Eye, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
-  { kind: 'CUSTOM', label: 'Custom Request', icon: MessageSquare, desc: 'Let us know what you need', minCredits: 0 },
+  { kind: 'CUSTOM', label: 'Custom Request', icon: MessageSquare, desc: '50 credits (base price)', minCredits: 50 },
 ]
 
 type DraftItem = {
@@ -666,9 +666,61 @@ export default function NewOrderPage() {
                       </div>
 
                       {item.params.showLinkInput && (
-                        <div className="animate-in slide-in-from-top-2 duration-300">
-                          <input type="url" placeholder="https://..." value={item.params.uploadLink || ''} onChange={e => updateDraftParam(item.tempId, 'uploadLink', e.target.value)} 
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary focus:outline-none placeholder:text-gray-500" />
+                        <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                          <div className="flex gap-2">
+                            <input 
+                              type="url" 
+                              placeholder="https://..." 
+                              id={`link-input-${item.tempId}`}
+                              className="flex-1 bg-black/40 border border-white/10 rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary focus:outline-none placeholder:text-gray-500" 
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const val = (e.target as HTMLInputElement).value;
+                                  if (val) {
+                                    const currentLinks = item.params.externalLinks || [];
+                                    updateDraftParam(item.tempId, 'externalLinks', [...currentLinks, val]);
+                                    (e.target as HTMLInputElement).value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            <button 
+                              onClick={() => {
+                                const el = document.getElementById(`link-input-${item.tempId}`) as HTMLInputElement;
+                                if (el && el.value) {
+                                  const currentLinks = item.params.externalLinks || [];
+                                  updateDraftParam(item.tempId, 'externalLinks', [...currentLinks, el.value]);
+                                  el.value = '';
+                                }
+                              }}
+                              className="px-6 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-all active:scale-95 shadow-lg"
+                            >
+                              Add
+                            </button>
+                          </div>
+                          
+                          {item.params.externalLinks?.length > 0 && (
+                            <div className="space-y-2">
+                              {item.params.externalLinks.map((link: string, i: number) => (
+                                <div key={i} className="flex items-center justify-between bg-white/[0.03] border border-white/5 px-4 py-3 rounded-xl animate-in fade-in slide-in-from-left-2">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <span className="text-[10px] font-black text-primary uppercase">Link {i + 1}</span>
+                                    <span className="text-sm text-gray-300 truncate font-medium">{link}</span>
+                                  </div>
+                                  <button 
+                                    onClick={() => {
+                                      const filtered = item.params.externalLinks.filter((_: any, idx: number) => idx !== i);
+                                      updateDraftParam(item.tempId, 'externalLinks', filtered);
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
 
