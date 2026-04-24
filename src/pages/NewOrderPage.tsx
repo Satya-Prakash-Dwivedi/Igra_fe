@@ -10,6 +10,18 @@ import {
 } from 'lucide-react'
 import { cn } from '../components/Button'
 
+// Thumbnail Style Images
+import exaggeratedImg from '../assets/thumbnails/exaggerated.png'
+import headshotImg from '../assets/thumbnails/headshot.png'
+import quoteImg from '../assets/thumbnails/quote.png'
+import statementImg from '../assets/thumbnails/statement.png'
+import beforeAfterImg from '../assets/thumbnails/before_after.png'
+import versusImg from '../assets/thumbnails/versus.png'
+import processImg from '../assets/thumbnails/process.png'
+import noTextImg from '../assets/thumbnails/no_text.png'
+import otherImg from '../assets/thumbnails/other.png'
+
+
 // ─── Constants & Types ──────────────────────────────────────────
 
 const SERVICE_CATALOG = [
@@ -537,16 +549,27 @@ export default function NewOrderPage() {
                       <div className="space-y-6">
                         <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Design Style</label>
                         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
-                          {['Exaggerated', 'Headshot', 'Quote', 'Statement', 'Before & After', 'Versus', 'Process', 'No Text', 'Other'].map(style => (
-                            <button key={style} onClick={() => updateDraftParam(item.tempId, 'style', style)}
-                              className={`p-1.5 rounded-xl border flex flex-col gap-2 transition-all group ${item.params.style === style ? 'bg-primary/20 border-primary' : 'bg-black/40 border-white/5 hover:border-white/20'}`}>
-                              <div className="aspect-video bg-white/5 rounded-lg flex items-center justify-center text-white/20 group-hover:bg-white/10 transition-colors">
-                                <Image size={24} />
+                          {[
+                            { id: 'Exaggerated', label: 'Exaggerated', img: exaggeratedImg },
+                            { id: 'Headshot', label: 'Headshot', img: headshotImg },
+                            { id: 'Quote', label: 'Quote', img: quoteImg },
+                            { id: 'Statement', label: 'Statement', img: statementImg },
+                            { id: 'Before & After', label: 'Before & After', img: beforeAfterImg },
+                            { id: 'Versus', label: 'Versus', img: versusImg },
+                            { id: 'Process', label: 'Process', img: processImg },
+                            { id: 'No Text', label: 'No Text', img: noTextImg },
+                            { id: 'Other', label: 'Other', img: otherImg },
+                          ].map(style => (
+                            <button key={style.id} onClick={() => updateDraftParam(item.tempId, 'style', style.id)}
+                              className={`p-1.5 rounded-xl border flex flex-col gap-2 transition-all group ${item.params.style === style.id ? 'bg-primary/20 border-primary' : 'bg-black/40 border-white/5 hover:border-white/20'}`}>
+                              <div className="aspect-video bg-white/5 rounded-lg overflow-hidden flex items-center justify-center transition-colors">
+                                <img src={style.img} alt={style.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                               </div>
-                              <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-wider text-center">{style}</div>
+                              <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-wider text-center">{style.label}</div>
                             </button>
                           ))}
                         </div>
+
                       </div>
                     )}
 
