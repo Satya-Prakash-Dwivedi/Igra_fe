@@ -30,7 +30,7 @@ const SERVICE_CATALOG = [
   { kind: 'INTRO', label: 'Custom Intro', icon: PlayCircle, desc: '100 credits', minCredits: 100 },
   { kind: 'OUTRO', label: 'Custom Outro', icon: StopCircle, desc: '100 credits', minCredits: 100 },
   { kind: 'VOICEOVER', label: 'AI Voiceover', icon: Mic, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
-  { kind: 'SCRIPT', label: 'Script Writing', icon: FileText, desc: '100 credits per 500 words', minCredits: 0 },
+  { kind: 'SCRIPT', label: 'Script Writing', icon: FileText, desc: '0.2 credits per word', minCredits: 0 },
   { kind: 'SEO', label: 'Video SEO', icon: Search, desc: '100 credits per video', minCredits: 100 },
   { kind: 'CHANNEL_BANNER', label: 'Channel Banner', icon: Layout, desc: '150 credits', minCredits: 150 },
   { kind: 'LOGO_DESIGN', label: 'Logo Design', icon: PenTool, desc: '100 credits', minCredits: 100 },
@@ -69,7 +69,7 @@ function estimateCredits(item: DraftItem): number {
     base = Math.max(50, (params.scriptLength || 0) * 10)
   } else if (item.kind === 'SCRIPT') {
     const words = params.wordCount || 0
-    base = Math.ceil(words / 500) * 100
+    base = Math.ceil(words * 0.2)
   } else if (item.kind === 'CONSULTATION') {
     const mins = params.duration || 15
     base = Math.ceil(mins / 15) * 100
