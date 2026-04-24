@@ -194,17 +194,34 @@ export default function NewOrderPage() {
   const handleAddPackage = (kind: string) => {
     const initialParams: any = {}
     
-    // Default form values based on design
+    // Default form values based on design to satisfy backend validation
     if (kind === 'VIDEO_EDIT') {
       initialParams.hasRawFootage = true
       initialParams.outputRatio = '16:9'
       initialParams.rawFootageLength = 1
       initialParams.desiredLength = 1
       initialParams.addBroll = false
-      initialParams.tone = ''
-      initialParams.pace = ''
+      initialParams.tone = 'Professional'
+      initialParams.pace = 'Normal'
+    } else if (kind === 'THUMBNAIL') {
+      initialParams.style = 'Exaggerated'
+    } else if (kind === 'VOICEOVER') {
+      initialParams.scriptLength = 5
+    } else if (kind === 'SCRIPT') {
+      initialParams.wordCount = 500
+    } else if (kind === 'SEO') {
+      initialParams.videoUrl = 'https://youtube.com/watch?v=example'
     } else if (kind === 'CONSULTATION') {
       initialParams.duration = 15
+    } else if (kind === 'FOOTAGE_REVIEW') {
+      initialParams.footageLength = 10
+    } else if (kind === 'CUSTOM') {
+      initialParams.description = 'Custom request description...'
+    } else {
+      // For INTRO, OUTRO, CHANNEL_BANNER, LOGO_DESIGN, IMAGE_RETOUCHING
+      // We still initialize with generic params to be safe
+      initialParams.uploadType = 'file'
+      initialParams.notes = ''
     }
     
     setDraftItems([...draftItems, {
@@ -344,7 +361,7 @@ export default function NewOrderPage() {
                         <button
                           onClick={() => handleAddPackage(pkg.kind)}
                           className={cn(
-                            "flex-1 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95",
+                            "flex-1 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary hover:text-white text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95",
                             count > 0 && "bg-primary/10 border-primary/20 text-primary"
                           )}
                         >
@@ -530,6 +547,90 @@ export default function NewOrderPage() {
                             </button>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* SCRIPT WRITING */}
+                    {item.kind === 'SCRIPT' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Estimated Word Count</label>
+                        <input
+                          type="number" step={100} min={50}
+                          value={item.params.wordCount || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'wordCount', Number(e.target.value))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                    )}
+
+                    {/* VOICEOVER */}
+                    {item.kind === 'VOICEOVER' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Script Length (minutes)</label>
+                        <input
+                          type="number" min={1}
+                          value={item.params.scriptLength || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'scriptLength', Number(e.target.value))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                    )}
+
+                    {/* SEO */}
+                    {item.kind === 'SEO' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Video URL</label>
+                        <input
+                          type="url"
+                          placeholder="https://youtube.com/watch?v=..."
+                          value={item.params.videoUrl || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'videoUrl', e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                    )}
+
+                    {/* CONSULTATION */}
+                    {item.kind === 'CONSULTATION' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Duration (minutes)</label>
+                        <select
+                          value={item.params.duration || 15}
+                          onChange={e => updateDraftParam(item.tempId, 'duration', Number(e.target.value))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        >
+                          <option value={15}>15 Minutes</option>
+                          <option value={30}>30 Minutes</option>
+                          <option value={45}>45 Minutes</option>
+                          <option value={60}>60 Minutes</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* CUSTOM */}
+                    {item.kind === 'CUSTOM' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Description of Request</label>
+                        <textarea
+                          rows={4}
+                          value={item.params.description || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'description', e.target.value)}
+                          placeholder="Tell us exactly what you need..."
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white focus:ring-2 focus:ring-primary outline-none transition resize-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* FOOTAGE REVIEW */}
+                    {item.kind === 'FOOTAGE_REVIEW' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Raw Footage Length (minutes)</label>
+                        <input
+                          type="number" min={1}
+                          value={item.params.footageLength || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'footageLength', Number(e.target.value))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        />
                       </div>
                     )}
 
