@@ -55,8 +55,13 @@ const authService = {
     return data;
   },
 
-  async register(userData: RegisterData): Promise<AuthResponse> {
-    const { data } = await api.post<AuthResponse>('/auth/register', userData);
+  async register(userData: RegisterData): Promise<{success: boolean; message: string}> {
+    const { data } = await api.post<{success: boolean; message: string}>('/auth/register', userData);
+    return data;
+  },
+
+  async verifyEmail(token: string): Promise<{success: boolean; message: string}> {
+    const { data } = await api.post<{success: boolean; message: string}>('/auth/verify-email', { token });
     return data;
   },
 

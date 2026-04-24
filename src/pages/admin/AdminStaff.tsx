@@ -3,6 +3,7 @@ import { UserPlus, Shield, Trash2, Search } from 'lucide-react'
 import adminService from '../../services/adminService'
 import type { AdminUser } from '../../services/adminService'
 import { serializeError, createLogger } from '../../services/logger'
+import { toast } from 'sonner'
 
 const logger = createLogger('AdminStaff')
 
@@ -61,7 +62,7 @@ const AdminStaff: React.FC = () => {
       fetchStaff()
     } catch (err: any) {
       logger.error('failed_to_assign_staff', { err: serializeError(err) })
-      alert(err.response?.data?.message || 'Failed to assign staff')
+      toast.error(err.response?.data?.message || 'Failed to assign staff')
     } finally {
       setAssignLoading(false)
     }
@@ -74,7 +75,7 @@ const AdminStaff: React.FC = () => {
       fetchStaff()
     } catch (err: any) {
       logger.error('failed_to_remove_staff', { err: serializeError(err) })
-      alert(err.response?.data?.message || 'Failed to remove staff')
+      toast.error(err.response?.data?.message || 'Failed to remove staff')
     }
   }
 

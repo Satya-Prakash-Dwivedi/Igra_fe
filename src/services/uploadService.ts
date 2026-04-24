@@ -17,6 +17,11 @@ export interface UploadStatus {
   isComplete: boolean
 }
 
+export interface UploadResult {
+  assetId: string
+  url: string
+}
+
 // ─── API Functions ────────────────────────────────────────────
 export async function startUpload(fileName: string, fileSize: number, mimeType: string) {
   const res = await api.post('/uploads/start', { fileName, fileSize, mimeType })
@@ -40,12 +45,12 @@ export async function getUploadStatus(sessionId: string) {
 
 /**
  * Upload a file in chunks using the resumable upload API.
- * Returns the assetId once complete.
+ * Returns the assetId and url once complete.
  */
 export async function uploadFile(
   file: File,
   onProgress?: (pct: number) => void,
-): Promise<string> {
+): Promise<UploadResult> {
   // 1. Start upload
   const { uploadSessionId, assetId, presignedUrls, partSizeBytes, totalParts, isDirect } = await startUpload(
     file.name,
@@ -64,10 +69,13 @@ export async function uploadFile(
     })
 
     if (onProgress) onProgress(90)
-    await finalizeUpload(uploadSessionId)
+    const finalizeRes = await finalizeUpload(uploadSessionId)
     if (onProgress) onProgress(100)
     
-    return assetId
+    return {
+      assetId,
+      url: finalizeRes?.url
+    }
   }
 
   // 2. Multipart Upload Path (For large assets >= 20MB)
@@ -92,16 +100,19 @@ export async function uploadFile(
     }
   }
 
-  // 3. Finalize
-  await finalizeUpload(uploadSessionId)
+  // 3. Finalize and return asset details
+  const finalizeRes = await finalizeUpload(uploadSessionId)
 
-  return assetId
+  return {
+    assetId,
+    url: finalizeRes?.url
+  }
 }
 
 /**
  * Resume an interrupted multipart upload by checking status and only uploading missing chunks.
  */
-export async function resumeUpload(file: File, sessionId: string, onProgress?: (pct: number) => void): Promise<string> {
+export async function resumeUpload(file: File, sessionId: string, onProgress?: (pct: number) => void): Promise<UploadResult> {
   const res = await api.get(`/uploads/${sessionId}/resume`)
   const { uploadSessionId, assetId, partSizeBytes, totalParts, uploadedPartNumbers, presignedUrls } = res.data.data
 
@@ -130,6 +141,10 @@ export async function resumeUpload(file: File, sessionId: string, onProgress?: (
     if (onProgress) onProgress(Math.round((totalUploaded / totalParts) * 100))
   }
 
-  await finalizeUpload(uploadSessionId)
-  return assetId
+  const finalizeRes = await finalizeUpload(uploadSessionId)
+  return {
+    assetId,
+    url: finalizeRes?.url
+  }
 }
+

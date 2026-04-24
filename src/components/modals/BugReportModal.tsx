@@ -61,8 +61,7 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
       if (screenshots.length > 0) {
         setIsUploadingFiles(true)
         for (const file of screenshots) {
-          const assetId = await uploadApi.uploadFile(file)
-          await uploadApi.finalizeUpload(assetId)
+          const { assetId } = await uploadApi.uploadFile(file)
           assetIds.push(assetId)
         }
         setIsUploadingFiles(false)

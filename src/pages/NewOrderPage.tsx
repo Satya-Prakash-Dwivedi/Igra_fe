@@ -8,21 +8,22 @@ import {
   FileText, Search, Layout, PenTool, LayoutGrid, Phone, Eye, MessageSquare,
   Plus, X, Info, Link as LinkIcon, Loader2
 } from 'lucide-react'
+import { cn } from '../components/Button'
 
 // ─── Constants & Types ──────────────────────────────────────────
 
 const SERVICE_CATALOG = [
-  { kind: 'VIDEO_EDIT', label: 'Video', icon: PlaySquare, desc: '20 credits per minute of raw footage (min. 100 credits)', minCredits: 100 },
+  { kind: 'VIDEO_EDIT', label: 'Video', icon: PlaySquare, desc: '20 credits per minute of raw footage', minCredits: 0 },
   { kind: 'THUMBNAIL', label: 'Thumbnail Design', icon: Image, desc: '50 credits per thumbnail', minCredits: 50 },
-  { kind: 'INTRO', label: 'Custom Intro', icon: PlayCircle, desc: 'Starting at 100 credits', minCredits: 100 },
-  { kind: 'OUTRO', label: 'Custom Outro', icon: StopCircle, desc: 'Starting at 100 credits', minCredits: 100 },
+  { kind: 'INTRO', label: 'Custom Intro', icon: PlayCircle, desc: '100 credits', minCredits: 100 },
+  { kind: 'OUTRO', label: 'Custom Outro', icon: StopCircle, desc: '100 credits', minCredits: 100 },
   { kind: 'VOICEOVER', label: 'AI Voiceover', icon: Mic, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
-  { kind: 'SCRIPT', label: 'Script Writing', icon: FileText, desc: '100 credits per 500 words', minCredits: 100 },
+  { kind: 'SCRIPT', label: 'Script Writing', icon: FileText, desc: '100 credits per 500 words', minCredits: 0 },
   { kind: 'SEO', label: 'Video SEO', icon: Search, desc: '100 credits per video', minCredits: 100 },
   { kind: 'CHANNEL_BANNER', label: 'Channel Banner', icon: Layout, desc: '150 credits', minCredits: 150 },
   { kind: 'LOGO_DESIGN', label: 'Logo Design', icon: PenTool, desc: '100 credits', minCredits: 100 },
   { kind: 'IMAGE_RETOUCHING', label: 'Image Retouching', icon: LayoutGrid, desc: '100 credits', minCredits: 100 },
-  { kind: 'CONSULTATION', label: 'Consultation Call', icon: Phone, desc: '100 credits per 15 minutes', minCredits: 100 },
+  { kind: 'CONSULTATION', label: 'Consultation Call', icon: Phone, desc: '100 credits per 15 minutes', minCredits: 0 },
   { kind: 'FOOTAGE_REVIEW', label: 'Footage Review', icon: Eye, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
   { kind: 'CUSTOM', label: 'Custom Request', icon: MessageSquare, desc: 'Let us know what you need', minCredits: 0 },
 ]
@@ -49,17 +50,17 @@ function estimateCredits(item: DraftItem): number {
   let base = cat?.minCredits || 0
 
   if (item.kind === 'VIDEO_EDIT') {
-    base = Math.max(100, (params.rawFootageLength || 0) * 20)
+    base = (params.rawFootageLength || 0) * 20
     if (params.hasRawFootage === false) base += 100
     if (params.addBroll === true) base += 100
   } else if (item.kind === 'VOICEOVER') {
     base = Math.max(50, (params.scriptLength || 0) * 10)
   } else if (item.kind === 'SCRIPT') {
     const words = params.wordCount || 0
-    base = Math.max(100, Math.ceil(words / 500) * 100)
+    base = Math.ceil(words / 500) * 100
   } else if (item.kind === 'CONSULTATION') {
     const mins = params.duration || 15
-    base = Math.max(100, Math.ceil(mins / 15) * 100)
+    base = Math.ceil(mins / 15) * 100
   } else if (item.kind === 'FOOTAGE_REVIEW') {
     base = Math.max(50, (params.footageLength || 0) * 10)
   }
@@ -146,7 +147,7 @@ export default function NewOrderPage() {
           if (draft.files.length > 0) {
             setUploading(true)
             for (const file of draft.files) {
-              const assetId = await uploadApi.uploadFile(file, (pct) => {
+              const { assetId } = await uploadApi.uploadFile(file, (pct) => {
                 setUploadProgress(prev => ({ ...prev, [file.name]: pct }))
               })
               assetIds.push(assetId)
@@ -173,6 +174,11 @@ export default function NewOrderPage() {
     // Step 3 (Confirm -> Submit)
     if (stepIndex === 3) {
       if (!orderId) return
+      if (!canAfford) {
+        setError('Insufficient credits. Redirecting to top-up page...')
+        setTimeout(() => navigate('/credits'), 2000)
+        return
+      }
       setLoading(true)
       try {
         await orderApi.submitOrder(orderId)
@@ -192,8 +198,8 @@ export default function NewOrderPage() {
     if (kind === 'VIDEO_EDIT') {
       initialParams.hasRawFootage = true
       initialParams.outputRatio = '16:9'
-      initialParams.rawFootageLength = 30
-      initialParams.desiredLength = 5
+      initialParams.rawFootageLength = 1
+      initialParams.desiredLength = 1
       initialParams.addBroll = false
       initialParams.tone = ''
       initialParams.pace = ''
@@ -334,12 +340,30 @@ export default function NewOrderPage() {
                       <h3 className="font-bold text-lg mb-2">{pkg.label}</h3>
                       <p className="text-sm text-gray-400 mb-8 line-clamp-2">{pkg.desc}</p>
                       
-                      <button
-                        onClick={() => handleAddPackage(pkg.kind)}
-                        className="mt-auto w-full py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
-                      >
-                        <Plus size={18} /> {count > 0 ? `Add ${pkg.label} (${count})` : `Add ${pkg.label}`}
-                      </button>
+                      <div className="mt-auto flex gap-2">
+                        <button
+                          onClick={() => handleAddPackage(pkg.kind)}
+                          className={cn(
+                            "flex-1 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95",
+                            count > 0 && "bg-primary/10 border-primary/20 text-primary"
+                          )}
+                        >
+                          <Plus size={18} /> {count > 0 ? `Add (${count})` : `Add ${pkg.label}`}
+                        </button>
+                        {count > 0 && (
+                          <button
+                            onClick={() => {
+                              const itemsOfKind = draftItems.filter(i => i.kind === pkg.kind);
+                              const lastItem = itemsOfKind[itemsOfKind.length - 1];
+                              if (lastItem) handleRemovePackage(lastItem.tempId);
+                            }}
+                            className="w-12 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-red-500 hover:border-red-500 text-white flex items-center justify-center transition-all active:scale-95"
+                            title="Remove last added"
+                          >
+                            <X size={18} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
@@ -624,7 +648,7 @@ export default function NewOrderPage() {
                 <p className="text-[11px] font-bold opacity-70 tracking-widest uppercase">Wallet: {balance} • Required: {confirmedTotal}</p>
               </div>
               {!canAfford && (
-                <button onClick={() => navigate('/wallet')} className="bg-white/10 hover:bg-white/20 text-white text-[10px] font-black uppercase px-4 py-2 rounded-lg transition-all">Top Up</button>
+                <button onClick={() => navigate('/credits')} className="bg-white/10 hover:bg-white/20 text-white text-[10px] font-black uppercase px-4 py-2 rounded-lg transition-all">Top Up</button>
               )}
             </div>
           </div>
@@ -646,7 +670,7 @@ export default function NewOrderPage() {
             
             <button
               onClick={handleNext}
-              disabled={loading || uploading || (stepIndex === 1 && draftItems.length === 0) || (stepIndex === 3 && !canAfford)}
+              disabled={loading || uploading || (stepIndex === 1 && draftItems.length === 0)}
               className="group relative bg-primary hover:bg-blue-600 text-white disabled:opacity-20 disabled:grayscale disabled:scale-100 px-10 py-4 rounded-xl font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 shadow-xl shadow-primary/20"
             >
               <div className="absolute inset-0 bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-xl" />

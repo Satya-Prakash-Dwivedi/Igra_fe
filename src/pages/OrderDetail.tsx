@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { cn } from '../components/Button'
 import { createLogger, serializeError } from '../services/logger'
+import { toast } from 'sonner'
 
 const logger = createLogger('OrderDetail')
 import * as uploadApi from '../services/uploadService'
@@ -134,7 +135,14 @@ export default function OrderDetail() {
         orderId: id,
         error: serializeError(err),
       })
-      alert(err?.response?.data?.error || err.message)
+      const msg = err?.response?.data?.error || err.message
+      if (msg.toLowerCase().includes('insufficient credits')) {
+        if (confirm('Insufficient credits. Would you like to go to the credits page to top up?')) {
+          navigate('/credits')
+        }
+      } else {
+        toast.error(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -181,7 +189,7 @@ export default function OrderDetail() {
         itemId,
         error: serializeError(err),
       })
-      alert(err?.response?.data?.error || err.message)
+      toast.error(err?.response?.data?.error || err.message)
     }
   }
 
@@ -192,7 +200,7 @@ export default function OrderDetail() {
     try {
       const assetIds: string[] = []
       for (const file of Array.from(files)) {
-        const assetId = await uploadApi.uploadFile(file)
+        const { assetId } = await uploadApi.uploadFile(file)
         assetIds.push(assetId)
       }
       if (assetIds.length > 0) {
@@ -200,7 +208,7 @@ export default function OrderDetail() {
         await loadOrder()
       }
     } catch (err: any) {
-      alert(err?.response?.data?.error || err.message)
+      toast.error(err?.response?.data?.error || err.message)
     } finally {
       setUploadingItem(null)
     }
@@ -216,7 +224,7 @@ export default function OrderDetail() {
         orderId: id,
         error: serializeError(err),
       })
-      alert(err?.response?.data?.error || err.message)
+      toast.error(err?.response?.data?.error || err.message)
     }
   }
 
@@ -232,7 +240,7 @@ export default function OrderDetail() {
         assetId,
         error: serializeError(err),
       })
-      alert(err?.response?.data?.error || err.message)
+      toast.error(err?.response?.data?.error || err.message)
     }
   }
 
@@ -279,6 +287,21 @@ export default function OrderDetail() {
               <span>{items.length} Items</span>
               <span className="w-1.5 h-1.5 rounded-full bg-white/10" />
               <span className="text-primary/70">{order.totalCreditsQuoted} Credits Total</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-white/10" />
+              <div className="flex items-center gap-2">
+                {order.assignedTo && typeof order.assignedTo === 'object' ? (
+                  <>
+                    <img 
+                      src={(order.assignedTo as any).avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+                      alt="assignee" 
+                      className="w-4 h-4 rounded-full border border-white/10"
+                    />
+                    <span className="text-xs text-white">{(order.assignedTo as any).name}</span>
+                  </>
+                ) : (
+                  <span className="text-xs text-gray-600 italic">Awaiting staff assignment</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -300,8 +323,16 @@ export default function OrderDetail() {
               Terminate Order
             </button>
           )}
-          <button className="px-6 py-3 bg-white text-black hover:bg-gray-200 text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95">
-            Support Ticket
+          <button 
+            onClick={() => setActiveTab('chat')}
+            className={cn(
+              "px-6 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95",
+              order.assignedTo 
+                ? "bg-white text-black hover:bg-gray-200" 
+                : "bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed"
+            )}
+          >
+            {order.assignedTo ? 'Message Support' : 'Awaiting Assignment'}
           </button>
         </div>
       </div>
@@ -346,24 +377,28 @@ export default function OrderDetail() {
       {/* Navigation Tabs */}
       <div className="flex gap-2 bg-white/[0.02] backdrop-blur-md rounded-[2rem] p-2 border border-white/5 shadow-inner">
         {[
-          { key: 'items' as const, label: 'Line Items', icon: Package, count: items.length },
-          { key: 'chat' as const, label: 'Messages', icon: MessageSquare, count: messages.length },
-          { key: 'timeline' as const, label: 'Activity', icon: Activity, count: events.length },
+          { key: 'items' as const, label: 'Production Units', icon: Package, count: items.length },
+          { key: 'chat' as const, label: 'Communication', icon: MessageSquare, count: messages.length },
+          { key: 'timeline' as const, label: 'Audit Log', icon: Activity, count: events.length },
         ].map(({ key, label, icon: Icon, count }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-3 px-6 py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest flex-1 justify-center transition-all group ${
+            className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex-1 justify-center transition-all group relative ${
               activeTab === key 
-                ? 'bg-white text-black shadow-lg' 
+                ? 'bg-white text-black shadow-2xl scale-[1.02]' 
                 : 'text-gray-500 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Icon size={14} className={activeTab === key ? "text-black" : "text-gray-600 group-hover:text-primary transition-colors"} />
+            <div className="relative">
+              <Icon size={16} className={activeTab === key ? "text-primary" : "text-gray-600 group-hover:text-primary transition-colors"} />
+              {key === 'chat' && count > 0 && (
+                <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[9px] font-bold min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 shadow-md border-2 border-bg-dark animate-in zoom-in duration-300">
+                  {count}
+                </span>
+              )}
+            </div>
             {label}
-            <span className={`px-2 py-0.5 rounded-full text-[9px] ${activeTab === key ? 'bg-black/5 text-black' : 'bg-white/5 text-gray-500'}`}>
-              {count}
-            </span>
           </button>
         ))}
       </div>
@@ -594,9 +629,9 @@ export default function OrderDetail() {
                      <MessageSquare size={18} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-white">Project Messages</h3>
-                    <p className="text-[9px] font-bold text-gray-500 uppercase">Discussion related to this order</p>
-                  </div>
+                  <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Communication Stream</h3>
+                  <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Order #{(order as any).orderNumber} · Secure Stream</p>
+                </div>
                </div>
                <div className="flex -space-x-3">
                   {[1,2,3,4].map(i => (
@@ -735,6 +770,8 @@ export default function OrderDetail() {
                   <X size={28} />
                 </button>
             </div>
+            
+
 
             <div className="premium-card p-8 rounded-[2.5rem] border-white/10 flex flex-col md:flex-row justify-between items-center gap-8 translate-y-0 shadow-2xl">
               <div className="flex items-center gap-8">

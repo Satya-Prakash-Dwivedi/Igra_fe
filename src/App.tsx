@@ -2,6 +2,8 @@ import { lazy, Suspense, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
+import { Toaster } from 'sonner';
+
 // Layouts
 import DashboardLayout from './layouts/DashboardLayout';
 import AdminLayout from './layouts/AdminLayout';
@@ -9,6 +11,7 @@ import AdminLayout from './layouts/AdminLayout';
 // Auth Pages
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 
 // Dashboard Pages
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -60,12 +63,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <AuthProvider>
+      <Toaster richColors position="top-right" theme="dark" />
       <Router>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             
             {/* Protected Dashboard Routes */}
             <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
