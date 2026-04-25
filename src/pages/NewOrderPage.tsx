@@ -10,6 +10,18 @@ import {
 } from 'lucide-react'
 import { cn } from '../components/Button'
 
+// Thumbnail Style Images
+import exaggeratedImg from '../assets/thumbnails/exaggerated.png'
+import headshotImg from '../assets/thumbnails/headshot.png'
+import quoteImg from '../assets/thumbnails/quote.png'
+import statementImg from '../assets/thumbnails/statement.png'
+import beforeAfterImg from '../assets/thumbnails/before_after.png'
+import versusImg from '../assets/thumbnails/versus.png'
+import processImg from '../assets/thumbnails/process.png'
+import noTextImg from '../assets/thumbnails/no_text.png'
+import otherImg from '../assets/thumbnails/other.png'
+
+
 // ─── Constants & Types ──────────────────────────────────────────
 
 const SERVICE_CATALOG = [
@@ -18,14 +30,14 @@ const SERVICE_CATALOG = [
   { kind: 'INTRO', label: 'Custom Intro', icon: PlayCircle, desc: '100 credits', minCredits: 100 },
   { kind: 'OUTRO', label: 'Custom Outro', icon: StopCircle, desc: '100 credits', minCredits: 100 },
   { kind: 'VOICEOVER', label: 'AI Voiceover', icon: Mic, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
-  { kind: 'SCRIPT', label: 'Script Writing', icon: FileText, desc: '100 credits per 500 words', minCredits: 0 },
+  { kind: 'SCRIPT', label: 'Script Writing', icon: FileText, desc: '0.2 credits per word', minCredits: 0 },
   { kind: 'SEO', label: 'Video SEO', icon: Search, desc: '100 credits per video', minCredits: 100 },
   { kind: 'CHANNEL_BANNER', label: 'Channel Banner', icon: Layout, desc: '150 credits', minCredits: 150 },
   { kind: 'LOGO_DESIGN', label: 'Logo Design', icon: PenTool, desc: '100 credits', minCredits: 100 },
   { kind: 'IMAGE_RETOUCHING', label: 'Image Retouching', icon: LayoutGrid, desc: '100 credits', minCredits: 100 },
   { kind: 'CONSULTATION', label: 'Consultation Call', icon: Phone, desc: '100 credits per 15 minutes', minCredits: 0 },
   { kind: 'FOOTAGE_REVIEW', label: 'Footage Review', icon: Eye, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
-  { kind: 'CUSTOM', label: 'Custom Request', icon: MessageSquare, desc: 'Let us know what you need', minCredits: 0 },
+  { kind: 'CUSTOM', label: 'Custom Request', icon: MessageSquare, desc: '50 credits (base price)', minCredits: 50 },
 ]
 
 type DraftItem = {
@@ -57,7 +69,7 @@ function estimateCredits(item: DraftItem): number {
     base = Math.max(50, (params.scriptLength || 0) * 10)
   } else if (item.kind === 'SCRIPT') {
     const words = params.wordCount || 0
-    base = Math.ceil(words / 500) * 100
+    base = Math.ceil(words * 0.2)
   } else if (item.kind === 'CONSULTATION') {
     const mins = params.duration || 15
     base = Math.ceil(mins / 15) * 100
@@ -194,17 +206,34 @@ export default function NewOrderPage() {
   const handleAddPackage = (kind: string) => {
     const initialParams: any = {}
     
-    // Default form values based on design
+    // Default form values based on design to satisfy backend validation
     if (kind === 'VIDEO_EDIT') {
       initialParams.hasRawFootage = true
       initialParams.outputRatio = '16:9'
       initialParams.rawFootageLength = 1
       initialParams.desiredLength = 1
       initialParams.addBroll = false
-      initialParams.tone = ''
-      initialParams.pace = ''
+      initialParams.tone = 'Professional'
+      initialParams.pace = 'Normal'
+    } else if (kind === 'THUMBNAIL') {
+      initialParams.style = 'Exaggerated'
+    } else if (kind === 'VOICEOVER') {
+      initialParams.scriptLength = 5
+    } else if (kind === 'SCRIPT') {
+      initialParams.wordCount = 500
+    } else if (kind === 'SEO') {
+      initialParams.videoUrl = 'https://youtube.com/watch?v=example'
     } else if (kind === 'CONSULTATION') {
       initialParams.duration = 15
+    } else if (kind === 'FOOTAGE_REVIEW') {
+      initialParams.footageLength = 10
+    } else if (kind === 'CUSTOM') {
+      initialParams.description = 'Custom request description...'
+    } else {
+      // For INTRO, OUTRO, CHANNEL_BANNER, LOGO_DESIGN, IMAGE_RETOUCHING
+      // We still initialize with generic params to be safe
+      initialParams.uploadType = 'file'
+      initialParams.notes = ''
     }
     
     setDraftItems([...draftItems, {
@@ -344,7 +373,7 @@ export default function NewOrderPage() {
                         <button
                           onClick={() => handleAddPackage(pkg.kind)}
                           className={cn(
-                            "flex-1 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95",
+                            "flex-1 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary hover:text-white text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95",
                             count > 0 && "bg-primary/10 border-primary/20 text-primary"
                           )}
                         >
@@ -520,16 +549,111 @@ export default function NewOrderPage() {
                       <div className="space-y-6">
                         <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Design Style</label>
                         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
-                          {['Exaggerated', 'Headshot', 'Quote', 'Statement', 'Before & After', 'Versus', 'Process', 'No Text', 'Other'].map(style => (
-                            <button key={style} onClick={() => updateDraftParam(item.tempId, 'style', style)}
-                              className={`p-1.5 rounded-xl border flex flex-col gap-2 transition-all group ${item.params.style === style ? 'bg-primary/20 border-primary' : 'bg-black/40 border-white/5 hover:border-white/20'}`}>
-                              <div className="aspect-video bg-white/5 rounded-lg flex items-center justify-center text-white/20 group-hover:bg-white/10 transition-colors">
-                                <Image size={24} />
+                          {[
+                            { id: 'Exaggerated', label: 'Exaggerated', img: exaggeratedImg },
+                            { id: 'Headshot', label: 'Headshot', img: headshotImg },
+                            { id: 'Quote', label: 'Quote', img: quoteImg },
+                            { id: 'Statement', label: 'Statement', img: statementImg },
+                            { id: 'Before & After', label: 'Before & After', img: beforeAfterImg },
+                            { id: 'Versus', label: 'Versus', img: versusImg },
+                            { id: 'Process', label: 'Process', img: processImg },
+                            { id: 'No Text', label: 'No Text', img: noTextImg },
+                            { id: 'Other', label: 'Other', img: otherImg },
+                          ].map(style => (
+                            <button key={style.id} onClick={() => updateDraftParam(item.tempId, 'style', style.id)}
+                              className={`p-1.5 rounded-xl border flex flex-col gap-2 transition-all group ${item.params.style === style.id ? 'bg-primary/20 border-primary' : 'bg-black/40 border-white/5 hover:border-white/20'}`}>
+                              <div className="aspect-video bg-white/5 rounded-lg overflow-hidden flex items-center justify-center transition-colors">
+                                <img src={style.img} alt={style.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                               </div>
-                              <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-wider text-center">{style}</div>
+                              <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-wider text-center">{style.label}</div>
                             </button>
                           ))}
                         </div>
+
+                      </div>
+                    )}
+
+                    {/* SCRIPT WRITING */}
+                    {item.kind === 'SCRIPT' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Estimated Word Count</label>
+                        <input
+                          type="number" step={100} min={50}
+                          value={item.params.wordCount || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'wordCount', Number(e.target.value))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                    )}
+
+                    {/* VOICEOVER */}
+                    {item.kind === 'VOICEOVER' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Script Length (minutes)</label>
+                        <input
+                          type="number" min={1}
+                          value={item.params.scriptLength || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'scriptLength', Number(e.target.value))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                    )}
+
+                    {/* SEO */}
+                    {item.kind === 'SEO' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Video URL</label>
+                        <input
+                          type="url"
+                          placeholder="https://youtube.com/watch?v=..."
+                          value={item.params.videoUrl || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'videoUrl', e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                    )}
+
+                    {/* CONSULTATION */}
+                    {item.kind === 'CONSULTATION' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Duration (minutes)</label>
+                        <select
+                          value={item.params.duration || 15}
+                          onChange={e => updateDraftParam(item.tempId, 'duration', Number(e.target.value))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        >
+                          <option value={15}>15 Minutes</option>
+                          <option value={30}>30 Minutes</option>
+                          <option value={45}>45 Minutes</option>
+                          <option value={60}>60 Minutes</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* CUSTOM */}
+                    {item.kind === 'CUSTOM' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Description of Request</label>
+                        <textarea
+                          rows={4}
+                          value={item.params.description || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'description', e.target.value)}
+                          placeholder="Tell us exactly what you need..."
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white focus:ring-2 focus:ring-primary outline-none transition resize-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* FOOTAGE REVIEW */}
+                    {item.kind === 'FOOTAGE_REVIEW' && (
+                      <div className="space-y-4">
+                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Raw Footage Length (minutes)</label>
+                        <input
+                          type="number" min={1}
+                          value={item.params.footageLength || ''}
+                          onChange={e => updateDraftParam(item.tempId, 'footageLength', Number(e.target.value))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        />
                       </div>
                     )}
 
@@ -565,9 +689,61 @@ export default function NewOrderPage() {
                       </div>
 
                       {item.params.showLinkInput && (
-                        <div className="animate-in slide-in-from-top-2 duration-300">
-                          <input type="url" placeholder="https://..." value={item.params.uploadLink || ''} onChange={e => updateDraftParam(item.tempId, 'uploadLink', e.target.value)} 
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary focus:outline-none placeholder:text-gray-500" />
+                        <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                          <div className="flex gap-2">
+                            <input 
+                              type="url" 
+                              placeholder="https://..." 
+                              id={`link-input-${item.tempId}`}
+                              className="flex-1 bg-black/40 border border-white/10 rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary focus:outline-none placeholder:text-gray-500" 
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const val = (e.target as HTMLInputElement).value;
+                                  if (val) {
+                                    const currentLinks = item.params.externalLinks || [];
+                                    updateDraftParam(item.tempId, 'externalLinks', [...currentLinks, val]);
+                                    (e.target as HTMLInputElement).value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            <button 
+                              onClick={() => {
+                                const el = document.getElementById(`link-input-${item.tempId}`) as HTMLInputElement;
+                                if (el && el.value) {
+                                  const currentLinks = item.params.externalLinks || [];
+                                  updateDraftParam(item.tempId, 'externalLinks', [...currentLinks, el.value]);
+                                  el.value = '';
+                                }
+                              }}
+                              className="px-6 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-all active:scale-95 shadow-lg"
+                            >
+                              Add
+                            </button>
+                          </div>
+                          
+                          {item.params.externalLinks?.length > 0 && (
+                            <div className="space-y-2">
+                              {item.params.externalLinks.map((link: string, i: number) => (
+                                <div key={i} className="flex items-center justify-between bg-white/[0.03] border border-white/5 px-4 py-3 rounded-xl animate-in fade-in slide-in-from-left-2">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <span className="text-[10px] font-black text-primary uppercase">Link {i + 1}</span>
+                                    <span className="text-sm text-gray-300 truncate font-medium">{link}</span>
+                                  </div>
+                                  <button 
+                                    onClick={() => {
+                                      const filtered = item.params.externalLinks.filter((_: any, idx: number) => idx !== i);
+                                      updateDraftParam(item.tempId, 'externalLinks', filtered);
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
 

@@ -472,12 +472,26 @@ export default function OrderDetail() {
                         <section>
                           <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-6">Configuration</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {Object.entries(item.params).map(([key, val]) => (
-                              <div key={key} className="p-4 bg-white/[0.02] rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-                                <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mb-1">{key}</p>
-                                <p className="text-sm text-gray-200 font-bold">{String(val)}</p>
-                              </div>
-                            ))}
+                            {Object.entries(item.params).map(([key, val]) => {
+                              if (key === 'showLinkInput') return null;
+                              return (
+                                <div key={key} className="p-4 bg-white/[0.02] rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
+                                  <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mb-1">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                                  {Array.isArray(val) ? (
+                                    <div className="space-y-1 mt-1">
+                                      {val.map((v, i) => (
+                                        <div key={i} className="flex items-center gap-2 text-sm text-gray-200 font-bold">
+                                          <span className="text-[10px] text-primary/60 shrink-0">#{i + 1}</span>
+                                          <a href={String(v)} target="_blank" rel="noreferrer" className="truncate hover:text-primary transition-colors">{String(v)}</a>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-gray-200 font-bold break-words">{String(val)}</p>
+                                  )}
+                                </div>
+                              )
+                            })}
                           </div>
                         </section>
 
@@ -648,8 +662,9 @@ export default function OrderDetail() {
                 </div>
               ) : (
                 messages.map((msg, i) => {
-                  const isMine = msg.senderId?._id === (auth?.user as any)?._id
-                  const showHeader = i === 0 || messages[i - 1].senderId?._id !== msg.senderId?._id
+                  const currentUserId = (auth?.user as any)?._id || (auth?.user as any)?.id
+                  const isMine = msg.senderId?._id === currentUserId || msg.senderId === currentUserId
+                  const showHeader = i === 0 || (msg.senderId?._id || msg.senderId) !== (messages[i - 1].senderId?._id || messages[i - 1].senderId)
                   
                   return (
                     <div key={msg._id} className={cn(
