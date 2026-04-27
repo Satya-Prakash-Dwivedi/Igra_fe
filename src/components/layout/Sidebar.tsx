@@ -18,6 +18,7 @@ import { cn } from '../Button'
 import { useAuth } from '../../hooks/useAuth'
 import BugReportModal from '../modals/BugReportModal'
 import { createLogger, serializeError } from '../../services/logger'
+import LogoutModal from '../modals/LogoutModal'
 
 const logger = createLogger('Sidebar')
 
@@ -55,7 +56,7 @@ const NavItem: React.FC<NavItemProps> = ({
       </div>
       <span
         className={cn(
-          'font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-200 transform-gpu overflow-hidden whitespace-nowrap z-10',
+          'font-bold text-[11px] uppercase tracking-wider transition-all duration-200 transform-gpu overflow-hidden whitespace-nowrap z-10',
           collapsed ? 'opacity-0 w-0 -translate-x-2' : 'opacity-100 w-auto'
         )}
       >
@@ -112,15 +113,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const [isBugModalOpen, setIsBugModalOpen] = useState(false)
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true)
       await logout()
       navigate('/login')
     } catch (err) {
       logger.error('auth.logout_navigation_failed', {
         error: serializeError(err),
       })
+    } finally {
+      setIsLoggingOut(false)
+      setIsLogoutModalOpen(false)
     }
   }
 
@@ -149,10 +156,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
             </div>
             {!isCollapsed && (
               <div className="flex flex-col animate-in fade-in slide-in-left duration-200">
-                 <span className="font-black text-lg tracking-tighter uppercase text-white leading-none italic">
+                 <span className="font-bold text-xl tracking-tight uppercase text-white leading-none">
                    Igra
                  </span>
-                 <span className="text-[7px] font-black tracking-[0.4em] uppercase text-primary mt-0.5">Studios</span>
+                 <span className="text-[8px] font-bold tracking-widest uppercase text-primary mt-0.5">Studios</span>
               </div>
             )}
           </div>
@@ -181,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           <div className="space-y-8">
             <div>
               {!isCollapsed && (
-                <div className="px-4 mb-4 text-[7px] font-black uppercase tracking-[0.4em] text-text-dim flex items-center gap-2 animate-in fade-in duration-300">
+                <div className="px-4 mb-4 text-[9px] font-bold uppercase tracking-widest text-text-dim/40 flex items-center gap-2 animate-in fade-in duration-300">
                    Navigation
                 </div>
               )}
@@ -194,7 +201,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
             <div>
                {!isCollapsed && (
-                <div className="px-4 mb-4 text-[7px] font-black uppercase tracking-[0.4em] text-text-dim flex items-center gap-2 animate-in fade-in duration-300">
+                <div className="px-4 mb-4 text-[9px] font-bold uppercase tracking-widest text-text-dim/40 flex items-center gap-2 animate-in fade-in duration-300">
                    Account Settings
                 </div>
               )}
@@ -220,7 +227,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           {/* Bottom Logout */}
           <div className="pt-4 pb-6 border-t border-white/5 mt-auto">
             <NavItem
-              onClick={handleLogout}
+              onClick={() => setIsLogoutModalOpen(true)}
               icon={<LogOut size={18} />}
               label="Logout"
               collapsed={isCollapsed}
@@ -231,6 +238,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
       </aside>
 
       <BugReportModal isOpen={isBugModalOpen} onClose={() => setIsBugModalOpen(false)} />
+      <LogoutModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        isLoading={isLoggingOut}
+      />
     </>
   )
 }

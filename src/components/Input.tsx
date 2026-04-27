@@ -31,7 +31,7 @@ const Input: React.FC<InputProps> = ({
         <input
           type={inputType}
           className={cn(
-            'flex h-10 w-full rounded-md border border-border bg-bg-card px-3 py-2 text-sm text-text-main ring-offset-bg-dark file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
+            'flex h-11 w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-main ring-offset-bg-dark file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
             error && 'border-error ring-error',
             className
           )}
