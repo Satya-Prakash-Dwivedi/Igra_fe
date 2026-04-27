@@ -5,6 +5,7 @@ import type { Message, DirectMessageThread } from '../../services/messageService
 import { serializeError, createLogger } from '../../services/logger'
 import socketService from '../../services/socketService'
 import Button, { cn } from '../../components/Button'
+import { resolveApiUrl } from '../../utils/urlUtils'
 
 const logger = createLogger('AdminMessages')
 
@@ -27,20 +28,33 @@ const AdminMessages: React.FC = () => {
     if (activeUserId) {
       fetchMessages(activeUserId)
       
-      socketService.connect()
-      socketService.joinDM(activeUserId)
-
       const socket = socketService.getSocket()
-      socket.on('new-dm', (msg: Message) => {
-        setMessages(prev => {
-          if (prev.find(m => m._id === msg._id)) return prev
-          return [...prev, msg]
-        })
-        setTimeout(() => scrollToBottom(), 100)
-      })
+      
+      const setupSocket = () => {
+        socketService.joinDM(activeUserId)
+      }
+
+      const handleNewDM = (msg: Message) => {
+        if (msg.userId === activeUserId) {
+          setMessages(prev => {
+            if (prev.find(m => m._id === msg._id)) return prev
+            return [...prev, msg]
+          })
+          setTimeout(() => scrollToBottom(), 100)
+        }
+        fetchThreads()
+      }
+
+      socket.on('connect', setupSocket)
+      socket.on('new-dm', handleNewDM)
+      
+      if (socket.connected) {
+        setupSocket()
+      }
 
       return () => {
-        socket.off('new-dm')
+        socket.off('connect', setupSocket)
+        socket.off('new-dm', handleNewDM)
         socketService.leaveDM(activeUserId)
       }
     }
@@ -140,7 +154,7 @@ const AdminMessages: React.FC = () => {
               >
                 <div className="relative flex-shrink-0">
                   <img 
-                    src={thread.user.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+                    src={resolveApiUrl(thread.user.avatar) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
                     alt="avatar" 
                     className={cn(
                       "w-9 h-9 rounded-lg object-cover border transition-all duration-500",
@@ -187,7 +201,7 @@ const AdminMessages: React.FC = () => {
             <div className="h-16 border-b border-white/5 bg-bg-dark/60 backdrop-blur-3xl px-8 flex items-center justify-between z-30">
               <div className="flex items-center gap-3">
                  <img 
-                   src={activeThread?.user.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+                   src={resolveApiUrl(activeThread?.user.avatar) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
                    alt="avatar" 
                    className="w-8 h-8 rounded-lg border border-white/10 object-cover"
                  />

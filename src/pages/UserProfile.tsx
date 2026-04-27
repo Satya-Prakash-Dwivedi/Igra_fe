@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { resolveApiUrl } from '../utils/urlUtils';
 import authService from '../services/authService';
 import uploadService from '../services/uploadService';
 import { User, Mail, Building, Bell, Camera, X, Youtube, ShieldAlert } from 'lucide-react';
@@ -25,12 +26,6 @@ const UserProfile: React.FC = () => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const getAvatarUrl = (avatarPath?: string) => {
-    if (!avatarPath) return '';
-    if (avatarPath.startsWith('http')) return avatarPath;
-    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:5000';
-    return `${baseUrl}${avatarPath.startsWith('/') ? '' : '/'}${avatarPath}`;
-  };
 
   useEffect(() => {
     if (user) {
@@ -108,7 +103,7 @@ const UserProfile: React.FC = () => {
           <div className="relative">
             <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-white/5 bg-bg-card shadow-2xl">
               {avatar ? (
-                <img src={getAvatarUrl(avatar)} alt="Profile" className="w-full h-full object-cover" />
+                <img src={resolveApiUrl(avatar)} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-text-dim/20">
                   <User size={64} />

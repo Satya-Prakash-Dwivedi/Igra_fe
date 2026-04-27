@@ -35,6 +35,7 @@ import socketService from '../../services/socketService'
 import { AuthContext } from '../../context/AuthContext'
 import adminService from '../../services/adminService'
 import * as uploadApi from '../../services/uploadService'
+import { resolveApiUrl } from '../../utils/urlUtils'
 import type {
   AdminOrderDetailData, AdminOrderItem, AdminOrderEvent,
   AdminUser, ReviewAction, OrderItemStatus, Message
@@ -319,7 +320,7 @@ const ItemCard: React.FC<{
                         <div key={asset._id} className="group/asset relative bg-primary/5 border border-primary/10 rounded-3xl overflow-hidden hover:border-primary/40 transition-all duration-500 shadow-xl">
                           <div className="aspect-[4/3] w-full bg-black/60 flex items-center justify-center relative overflow-hidden">
                             {asset.mimeType.startsWith('image/') ? (
-                              <img src={(asset as any).url} className="w-full h-full object-cover group-hover/asset:scale-110 transition-all duration-700" alt="deliverable" />
+                              <img src={resolveApiUrl((asset as any).url)} className="w-full h-full object-cover group-hover/asset:scale-110 transition-all duration-700" alt="deliverable" />
                             ) : (
                               <div className="flex flex-col items-center gap-3 text-text-dim/20">
                                 {asset.mimeType.includes('video') ? <Video size={32} /> : <FileIcon size={32} />}
@@ -369,7 +370,7 @@ const ItemCard: React.FC<{
                         <div key={asset._id} className="group/asset relative bg-black/40 border border-white/5 rounded-3xl overflow-hidden hover:border-white/20 transition-all duration-500 shadow-xl">
                           <div className="aspect-[4/3] w-full bg-black/60 flex items-center justify-center relative overflow-hidden">
                             {asset.mimeType.startsWith('image/') ? (
-                              <img src={(asset as any).url} className="w-full h-full object-cover group-hover/asset:scale-110 transition-all duration-700" alt="input asset" />
+                              <img src={resolveApiUrl((asset as any).url)} className="w-full h-full object-cover group-hover/asset:scale-110 transition-all duration-700" alt="input asset" />
                             ) : (
                               <div className="flex flex-col items-center gap-3 text-text-dim/20">
                                 {asset.mimeType.includes('video') ? <Video size={32} /> : <FileIcon size={32} />}
@@ -651,7 +652,7 @@ const AdminOrderDetail: React.FC = () => {
           <Link to={`/admin/users/${order.userId?._id}`} className="group/user flex items-center gap-6 p-8 bg-black/20 rounded-[2.5rem] border border-white/5 hover:border-primary/20 transition-all duration-500 shadow-xl">
             <div className="relative">
                <img 
-                 src={order.userId?.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+                 src={resolveApiUrl(order.userId?.avatar) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
                  alt="client" 
                  className="w-16 h-16 rounded-2xl border-2 border-white/10 object-cover shadow-2xl group-hover/user:scale-110 transition-all duration-500"
                />
@@ -933,7 +934,7 @@ const AdminOrderDetail: React.FC = () => {
           <div className="relative w-full max-w-7xl h-full flex flex-col gap-8 animate-in zoom-in-95 duration-700">
             <div className="flex-1 rounded-[4rem] overflow-hidden border border-white/10 bg-black shadow-[0_0_100px_rgba(0,0,0,1)] relative flex items-center justify-center group/modal">
                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-20 pointer-events-none" />
-               <img src={previewAsset.url} alt={previewAsset.originalName} className="max-w-full max-h-full object-contain p-12 select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-1000" />
+               <img src={resolveApiUrl(previewAsset.url)} alt={previewAsset.originalName} className="max-w-full max-h-full object-contain p-12 select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-1000" />
                
                <div className="absolute top-10 right-10 flex gap-4">
                   <button onClick={() => setPreviewAsset(null)} className="w-16 h-16 bg-white/5 hover:bg-white text-white hover:text-black backdrop-blur-2xl rounded-[1.5rem] flex items-center justify-center border border-white/10 transition-all hover:rotate-90 shadow-2xl active:scale-90">

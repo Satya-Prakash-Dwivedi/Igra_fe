@@ -108,10 +108,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const userId = user?._id || user?.id
     if (userId) {
-      socketService.joinUser(userId)
-      return () => socketService.leaveUser(userId)
+      const socket = socketService.getSocket()
+      
+      const setupSocket = () => {
+        socketService.joinUser(userId)
+      }
+
+      socket.on('connect', setupSocket)
+      
+      if (socket.connected) {
+        setupSocket()
+      }
+
+      return () => {
+        socket.off('connect', setupSocket)
+        socketService.leaveUser(userId)
+      }
     }
-  }, [user]) // Re-run whenever the user object changes
+  }, [user?._id, user?.id]) // Re-run whenever the user ID changes
 
   const value = useMemo(
     () => ({

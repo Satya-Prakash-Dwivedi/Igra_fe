@@ -5,6 +5,7 @@ import adminService from '../../services/adminService'
 import type { AdminUser } from '../../services/adminService'
 import { serializeError, createLogger } from '../../services/logger'
 import Button, { cn } from '../../components/Button'
+import { resolveApiUrl } from '../../utils/urlUtils'
 
 const logger = createLogger('AdminUsers')
 
@@ -42,12 +43,6 @@ const AdminUsers: React.FC = () => {
     fetchUsers()
   }
 
-  const getAvatarUrl = (avatar?: string) => {
-    if (!avatar) return 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-    if (avatar.startsWith('http')) return avatar;
-    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:5000';
-    return `${baseUrl}${avatar.startsWith('/') ? '' : '/'}${avatar}`;
-  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-12 p-8 md:p-14 animate-in fade-in duration-1000 relative">
@@ -137,7 +132,7 @@ const AdminUsers: React.FC = () => {
                       <Link to={`/admin/users/${user._id}`} className="flex items-center gap-5 outline-none group/avatar">
                         <div className="relative flex-shrink-0">
                            <img 
-                             src={getAvatarUrl(user.avatar)} 
+                             src={user.avatar ? resolveApiUrl(user.avatar) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
                              alt="avatar" 
                              className="w-14 h-14 rounded-2xl border border-white/5 object-cover shadow-2xl transition-all duration-500 group-hover/avatar:border-primary/40 group-hover/avatar:scale-105 transform-gpu"
                            />

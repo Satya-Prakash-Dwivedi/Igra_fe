@@ -6,6 +6,8 @@ import { createLogger, serializeError } from '../../services/logger'
 import Button, { cn } from '../../components/Button'
 import ConfirmModal from '../../components/modals/ConfirmModal'
 
+import { resolveApiUrl } from '../../utils/urlUtils'
+
 const logger = createLogger('AdminUserDetail')
 
 const AdminUserDetail: React.FC = () => {
@@ -44,12 +46,6 @@ const AdminUserDetail: React.FC = () => {
     }
   }
 
-  const getAvatarUrl = (avatar?: string) => {
-    if (!avatar) return 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-    if (avatar.startsWith('http')) return avatar;
-    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:5000';
-    return `${baseUrl}${avatar.startsWith('/') ? '' : '/'}${avatar}`;
-  };
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] gap-8 animate-in fade-in duration-1000">
@@ -110,7 +106,7 @@ const AdminUserDetail: React.FC = () => {
         <div className="flex flex-col lg:flex-row items-center lg:items-start gap-16 relative z-10">
           <div className="relative flex-shrink-0 group/avatar">
              <img 
-               src={getAvatarUrl(user.avatar)} 
+               src={user.avatar ? resolveApiUrl(user.avatar) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
                alt="avatar" 
                className="w-32 h-32 rounded-[2rem] border border-white/10 object-cover shadow-2xl transition-all duration-700 group-hover/avatar:scale-105 group-hover/avatar:border-primary/40 transform-gpu"
              />

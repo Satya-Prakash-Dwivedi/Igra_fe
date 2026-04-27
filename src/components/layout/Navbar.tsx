@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Search, Bell, Menu, User, LogOut } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { resolveApiUrl } from '../../utils/urlUtils'
 import { createLogger, serializeError } from '../../services/logger'
 
 const logger = createLogger('Navbar')
@@ -96,7 +97,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
             className="w-10 h-10 rounded-xl bg-white text-black border-2 border-bg-dark flex items-center justify-center text-xs font-black hover:scale-105 active:scale-95 transition-transform duration-200 overflow-hidden shadow-lg italic transform-gpu"
           >
             {user?.avatar ? (
-              <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+              <img 
+                src={resolveApiUrl(user.avatar)} 
+                alt="Profile" 
+                className="w-full h-full object-cover" 
+              />
             ) : (
               getInitials()
             )}

@@ -77,16 +77,29 @@ export default function OrderDetail() {
       loadOrder()
       loadMessages()
       
-      socketService.connect()
-      socketService.joinOrder(id)
-
       const socket = socketService.getSocket()
-      socket.on('new-message', (msg: Message) => {
-        setMessages((prev) => [...prev, msg])
-      })
+      
+      const setupSocket = () => {
+        socketService.joinOrder(id)
+      }
+
+      const handleNewMessage = (msg: Message) => {
+        setMessages((prev) => {
+          if (prev.find(m => m._id === msg._id)) return prev
+          return [...prev, msg]
+        })
+      }
+
+      socket.on('connect', setupSocket)
+      socket.on('new-message', handleNewMessage)
+      
+      if (socket.connected) {
+        setupSocket()
+      }
 
       return () => {
-        socket.off('new-message')
+        socket.off('connect', setupSocket)
+        socket.off('new-message', handleNewMessage)
         socketService.leaveOrder(id)
       }
     }

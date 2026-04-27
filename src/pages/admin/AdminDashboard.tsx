@@ -7,6 +7,8 @@ import { createLogger, serializeError } from '../../services/logger'
 import Button, { cn } from '../../components/Button'
 import StatusBadge from '../../components/admin/StatusBadge'
 
+import { resolveApiUrl } from '../../utils/urlUtils'
+
 const logger = createLogger('AdminDashboard')
 
 const StatCard: React.FC<{
@@ -241,7 +243,7 @@ const AdminDashboard: React.FC = () => {
                             >
                                 <div className="w-10 h-10 rounded-2xl bg-white/5 flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/5">
                                     {msg.senderId?.avatar ? (
-                                        <img src={msg.senderId.avatar} alt={msg.senderId.name} className="w-full h-full object-cover" />
+                                        <img src={resolveApiUrl(msg.senderId.avatar)} alt={msg.senderId.name} className="w-full h-full object-cover" />
                                     ) : (
                                         <UserIcon size={18} className="text-text-dim/40" />
                                     )}
