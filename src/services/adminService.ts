@@ -110,7 +110,11 @@ export interface AdminTicket {
 
 export interface Message {
   _id: string
-  orderId: string
+  orderId: {
+    _id: string
+    orderNumber: string
+    title: string
+  } | string
   itemId?: string
   senderId: AdminUser
   content: string
@@ -156,6 +160,11 @@ const adminService = {
   // Dashboard
   async getDashboard(): Promise<DashboardStats> {
     const { data } = await api.get<{ success: boolean; data: DashboardStats }>('/admin/dashboard')
+    return data.data
+  },
+  
+  async getRecentMessages(limit = 10): Promise<Message[]> {
+    const { data } = await api.get('/admin/messages/recent', { params: { limit } })
     return data.data
   },
 

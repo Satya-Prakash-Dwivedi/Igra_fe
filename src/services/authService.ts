@@ -2,6 +2,7 @@ import api from './api';
 
 export interface User {
   _id: string;
+  id?: string; // Support backend's 'id' alias
   firstName: string;
   lastName: string;
   name: string; // Keep for convenience / legacy

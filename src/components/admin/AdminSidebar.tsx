@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../Button'
 import { createLogger, serializeError } from '../../services/logger';
 import LogoutModal from '../modals/LogoutModal';
+import NotificationBell from '../NotificationBell';
 
 const logger = createLogger('AdminSidebar')
 
@@ -49,6 +50,11 @@ const AdminSidebar: React.FC = () => {
             <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Admin Portal</span>
           </div>
         </div>
+      </div>
+
+      {/* Notifications */}
+      <div className="p-3">
+         <NotificationBell />
       </div>
 
       {/* Nav */}

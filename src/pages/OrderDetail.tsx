@@ -28,7 +28,7 @@ import {
   Cpu,
   Monitor
 } from 'lucide-react'
-import { cn } from '../components/Button'
+import Button, { cn } from '../components/Button'
 import { createLogger, serializeError } from '../services/logger'
 import { toast } from 'sonner'
 import * as uploadApi from '../services/uploadService'
@@ -216,6 +216,25 @@ export default function OrderDetail() {
     }
   }
 
+  async function handleDownload(url: string, fileName: string) {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(blobUrl)
+    } catch (err) {
+      logger.error('order.download_failed', { url, error: serializeError(err) })
+      // Fallback to opening in new tab if fetch fails (e.g. CORS)
+      window.open(url, '_blank')
+    }
+  }
+
   if (loading || !detail) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4 animate-in fade-in duration-700">
@@ -361,26 +380,59 @@ export default function OrderDetail() {
                         </div>
                       </div>
 
-                      <div className="space-y-6">
-                        <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Files & Assets</h4>
-                        {item.assets && item.assets.length > 0 ? (
-                          <div className="grid grid-cols-2 gap-4">
-                            {item.assets.map((asset: any) => (
-                              <div key={asset._id} className="group relative bg-black/20 border border-white/5 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
-                                <div className="flex items-center justify-between">
-                                  {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-text-dim/40" />}
-                                  <button onClick={() => handleRemoveAsset(item._id, asset._id)} className="text-text-dim/20 hover:text-error transition-colors"><Trash2 size={14} /></button>
-                                </div>
-                                <p className="text-[10px] text-white font-bold truncate">{asset.originalName}</p>
-                                <a href={asset.url} target="_blank" rel="noreferrer" className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1">
-                                  <Download size={10} /> Download
-                                </a>
+                        <div className="space-y-6">
+                          {/* Deliverables Section */}
+                          <div className="space-y-3">
+                            <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest">Deliverables</h4>
+                            {(item.assets ?? []).filter(a => a.role === 'OUTPUT').length > 0 ? (
+                              <div className="grid grid-cols-2 gap-4">
+                                {(item.assets ?? []).filter(a => a.role === 'OUTPUT').map((asset: any) => (
+                                  <div key={asset._id} className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
+                                    <div className="flex items-center justify-between">
+                                      {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-primary/40" />}
+                                      <span className="text-[8px] font-bold text-primary uppercase tracking-widest">Studio Output</span>
+                                    </div>
+                                    <p className="text-[10px] text-white font-bold truncate">{asset.originalName}</p>
+                                    <button 
+                                      onClick={() => handleDownload(asset.url, asset.originalName)}
+                                      className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                                    >
+                                      <Download size={10} /> Download
+                                    </button>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
+                            ) : (
+                              <p className="text-[10px] text-text-dim/20 italic">No deliverables yet.</p>
+                            )}
                           </div>
-                        ) : (
-                          <p className="text-[10px] text-text-dim/20 italic">No files attached.</p>
-                        )}
+
+                          {/* Client Uploads Section */}
+                          <div className="space-y-3">
+                            <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Your Uploads</h4>
+                            {(item.assets ?? []).filter(a => a.role !== 'OUTPUT').length > 0 ? (
+                              <div className="grid grid-cols-2 gap-4">
+                                {(item.assets ?? []).filter(a => a.role !== 'OUTPUT').map((asset: any) => (
+                                  <div key={asset._id} className="group relative bg-black/20 border border-white/5 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
+                                    <div className="flex items-center justify-between">
+                                      {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-text-dim/40" />}
+                                      <button onClick={() => handleRemoveAsset(item._id, asset._id)} className="text-text-dim/20 hover:text-error transition-colors"><Trash2 size={14} /></button>
+                                    </div>
+                                    <p className="text-[10px] text-white font-bold truncate">{asset.originalName}</p>
+                                    <button 
+                                      onClick={() => handleDownload(asset.url, asset.originalName)}
+                                      className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                                    >
+                                      <Download size={10} /> Download
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-[10px] text-text-dim/20 italic">No uploads.</p>
+                            )}
+                          </div>
+                        </div>
 
                         <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/5 rounded-xl py-10 hover:border-primary/40 cursor-pointer transition-all">
                           <input type="file" multiple className="hidden" onChange={(e) => handleFileUpload(item._id, e.target.files)} disabled={uploadingItem === item._id} />
@@ -392,7 +444,6 @@ export default function OrderDetail() {
                           )}
                         </label>
                       </div>
-                    </div>
 
                     {item.status === 'DELIVERED' && (
                       <div className="mt-8 flex gap-3 border-t border-white/5 pt-6">
@@ -417,7 +468,10 @@ export default function OrderDetail() {
                 </div>
               ) : (
                 messages.map((msg, i) => {
-                  const isMine = msg.senderId?._id === auth?.user?._id || msg.senderId === auth?.user?._id
+                  if (!msg) return null;
+                  const senderId = msg.senderId?._id || msg.senderId;
+                  const currentUserId = auth?.user?._id || (auth?.user as any)?.id;
+                  const isMine = senderId === currentUserId;
                   return (
                     <div key={msg._id} className={cn("flex flex-col", isMine ? "items-end" : "items-start")}>
                       <div className={cn(
@@ -427,7 +481,7 @@ export default function OrderDetail() {
                         {msg.content}
                       </div>
                       <span className="text-[8px] font-bold text-text-dim/20 uppercase mt-1 px-1">
-                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                       </span>
                     </div>
                   )

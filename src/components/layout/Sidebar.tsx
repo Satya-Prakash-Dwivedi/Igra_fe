@@ -19,6 +19,7 @@ import { useAuth } from '../../hooks/useAuth'
 import BugReportModal from '../modals/BugReportModal'
 import { createLogger, serializeError } from '../../services/logger'
 import LogoutModal from '../modals/LogoutModal'
+import NotificationBell from '../NotificationBell'
 
 const logger = createLogger('Sidebar')
 
@@ -170,6 +171,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           >
             {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
+        </div>
+
+        {/* Notifications */}
+        <div className="px-4 mb-6">
+           <NotificationBell isCollapsed={isCollapsed} />
         </div>
 
         {/* Global Search Button Placeholder */}

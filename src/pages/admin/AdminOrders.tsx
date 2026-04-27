@@ -90,22 +90,13 @@ const AdminOrders: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <h1 className="text-white font-bold text-4xl tracking-tight">Production <span className="text-primary italic">queue</span></h1>
-          <div className="flex items-center gap-3">
-             <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-lg text-[10px] font-bold text-primary uppercase tracking-widest">
-                <Database size={10} /> Active database
-             </div>
-             <p className="text-text-dim text-sm font-medium">{total} total orders found</p>
-          </div>
+        <div className="flex items-center gap-3">
+           <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-lg text-[10px] font-bold text-primary uppercase tracking-widest">
+              <Database size={10} /> Active database
+           </div>
+           <p className="text-text-dim text-sm font-medium">{total} total orders found</p>
         </div>
-        
-        <div className="flex items-center gap-4">
-           <Button variant="outline" className="rounded-xl border-white/5 bg-white/5 px-6">
-              Export CSV
-           </Button>
-           <Button variant="primary" className="rounded-xl px-8 shadow-xl shadow-primary/20">
-              Bulk update
-           </Button>
-        </div>
+      </div>
       </div>
 
       {/* Control Bar */}
