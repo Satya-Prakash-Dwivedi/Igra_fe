@@ -16,6 +16,7 @@ import { cn } from '../components/Button';
 import Button from '../components/Button';
 import { useAuth } from '../hooks/useAuth';
 import socketService from '../services/socketService';
+import { resolveApiUrl } from '../utils/urlUtils';
 
 const logger = createLogger('Messages');
 
@@ -27,27 +28,39 @@ const Messages: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchMessages();
-    
-    if (user?._id) {
-      socketService.connect();
-      socketService.joinDM(user._id);
-
+    const userId = user?._id || user?.id;
+    if (userId) {
+      fetchMessages();
+      
       const socket = socketService.getSocket();
-      socket.on('new-dm', (msg: Message) => {
+      
+      const setupSocket = () => {
+        socketService.joinDM(userId!);
+      };
+
+      const handleNewDM = (msg: Message) => {
         setMessages(prev => {
           if (prev.find(m => m._id === msg._id)) return prev;
           return [...prev, msg];
         });
         setTimeout(() => scrollToBottom(), 100);
-      });
+      };
+
+      socket.on('connect', setupSocket);
+      socket.on('new-dm', handleNewDM);
+      
+      // Initial join
+      if (socket.connected) {
+        setupSocket();
+      }
 
       return () => {
-        socket.off('new-dm');
-        socketService.leaveDM(user._id);
+        socket.off('connect', setupSocket);
+        socket.off('new-dm', handleNewDM);
+        socketService.leaveDM(userId!);
       };
     }
-  }, [user?._id]);
+  }, [user?._id, user?.id]);
 
   const fetchMessages = async () => {
     try {
@@ -125,21 +138,25 @@ const Messages: React.FC = () => {
             </div>
           ) : (
             messages.map((msg) => {
+              if (!msg) return null;
               const isMe = msg.senderRole === 'client';
+              const senderAvatar = msg.senderId && typeof msg.senderId === 'object' ? msg.senderId.avatar : null;
+              const senderName = msg.senderId && typeof msg.senderId === 'object' ? msg.senderId.name : (isMe ? 'You' : 'Editor');
+              
               return (
                 <div key={msg._id} className={cn("flex items-start gap-4 max-w-[85%] animate-in duration-300", isMe ? "ml-auto flex-row-reverse" : "slide-in-from-left-2")}>
                   <div className="w-10 h-10 rounded-xl border border-white/5 flex items-center justify-center bg-bg-dark text-white font-bold text-xs flex-shrink-0 overflow-hidden shadow-lg">
-                    {msg.senderId?.avatar ? (
-                      <img src={msg.senderId.avatar} className="w-full h-full object-cover" />
+                    {senderAvatar ? (
+                      <img src={resolveApiUrl(senderAvatar)} className="w-full h-full object-cover" />
                     ) : (
                       isMe ? <UserIcon size={18} className="text-primary" /> : <ShieldCheck size={18} className="text-success" />
                     )}
                   </div>
                   <div className={cn("space-y-1.5", isMe ? "text-right" : "text-left")}>
                     <div className={cn("flex items-center gap-2", isMe && "flex-row-reverse")}>
-                      <span className="text-white text-[10px] font-bold">{isMe ? 'You' : msg.senderId?.name || 'Editor'}</span>
+                      <span className="text-white text-[10px] font-bold">{senderName}</span>
                       <span className="text-text-dim/40 text-[9px] font-bold uppercase tracking-wider">
-                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                       </span>
                     </div>
                     <div className={cn(

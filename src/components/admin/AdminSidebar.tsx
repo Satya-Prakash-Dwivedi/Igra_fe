@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../Button'
 import { createLogger, serializeError } from '../../services/logger';
 import LogoutModal from '../modals/LogoutModal';
+import NotificationBell from '../NotificationBell';
 
 const logger = createLogger('AdminSidebar')
 
@@ -17,6 +18,8 @@ const navItems = [
   { to: '/admin/support/tickets', icon: <Ticket size={18} />,   label: 'Support Tickets' },
   { to: '/admin/support/bugs',    icon: <Bug size={18} />,       label: 'Bug Reports' },
 ]
+
+import { resolveApiUrl } from '../../utils/urlUtils'
 
 const AdminSidebar: React.FC = () => {
   const { user, logout } = useAuth()
@@ -51,6 +54,11 @@ const AdminSidebar: React.FC = () => {
         </div>
       </div>
 
+      {/* Notifications */}
+      <div className="p-3">
+         <NotificationBell />
+      </div>
+
       {/* Nav */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => (
@@ -75,8 +83,16 @@ const AdminSidebar: React.FC = () => {
       {/* User + Logout */}
       <div className="p-3 border-t border-border">
         <div className="flex items-center gap-3 px-3 py-2 mb-1">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold flex-shrink-0">
-            {user?.firstName?.[0] ?? user?.name?.[0] ?? 'A'}
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold flex-shrink-0 overflow-hidden border border-border/50">
+            {user?.avatar ? (
+              <img 
+                src={resolveApiUrl(user.avatar)} 
+                alt={user.name} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              user?.firstName?.[0] ?? user?.name?.[0] ?? 'A'
+            )}
           </div>
           <div className="min-w-0">
             <p className="text-text-main text-xs font-semibold truncate">{user?.name ?? 'Admin'}</p>

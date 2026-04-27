@@ -35,6 +35,9 @@ import socketService from '../../services/socketService'
 import { AuthContext } from '../../context/AuthContext'
 import adminService from '../../services/adminService'
 import * as uploadApi from '../../services/uploadService'
+import { resolveApiUrl } from '../../utils/urlUtils'
+import ConfirmModal from '../../components/modals/ConfirmModal'
+import { toast } from 'sonner'
 import type {
   AdminOrderDetailData, AdminOrderItem, AdminOrderEvent,
   AdminUser, ReviewAction, OrderItemStatus, Message
@@ -85,7 +88,8 @@ const ItemCard: React.FC<{
   onToggle: () => void
   onUpdated: (updated: AdminOrderItem) => void
   onPreview: (asset: any) => void
-}> = ({ item, orderId, isExpanded, onToggle, onUpdated, onPreview }) => {
+  setConfirmModal: (state: any) => void
+}> = ({ item, orderId, isExpanded, onToggle, onUpdated, onPreview, setConfirmModal }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -166,6 +170,24 @@ const ItemCard: React.FC<{
     } catch (err) {
       logger.error('admin_item.asset_remove_failed', { error: serializeError(err) })
       setError('Remove failed.')
+    }
+  }
+
+  const handleDownload = async (url: string, fileName: string) => {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(blobUrl)
+    } catch (err) {
+      logger.error('admin_item.download_failed', { url, error: serializeError(err) })
+      window.open(url, '_blank')
     }
   }
 
@@ -288,53 +310,101 @@ const ItemCard: React.FC<{
             </div>
 
             <div className="space-y-8">
-              <div className="flex items-center gap-3">
-                 <ImageIcon size={14} className="text-primary/40" />
-                 <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Output deliverables ({item.assets?.length || 0})</h4>
-              </div>
-              
-              {item.assets && item.assets.length > 0 ? (
-                <div className="grid grid-cols-2 gap-4">
-                  {item.assets.map((asset) => (
-                    <div key={asset._id} className="group/asset relative bg-black/40 border border-white/5 rounded-3xl overflow-hidden hover:border-primary/40 transition-all duration-500 shadow-xl">
-                      <div className="aspect-[4/3] w-full bg-black/60 flex items-center justify-center relative overflow-hidden">
-                        {asset.mimeType.startsWith('image/') ? (
-                          <img src={(asset as any).url} className="w-full h-full object-cover group-hover/asset:scale-110 transition-all duration-700" alt="deliverable" />
-                        ) : (
-                          <div className="flex flex-col items-center gap-3 text-text-dim/20">
-                            {asset.mimeType.includes('video') ? <Video size={32} /> : <FileIcon size={32} />}
+              <div className="space-y-10">
+                {/* Deliverables Section */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <ImageIcon size={14} className="text-primary/40" />
+                    <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Output deliverables ({(item.assets ?? []).filter(a => a.role === 'OUTPUT').length})</h4>
+                  </div>
+                  {(item.assets ?? []).filter(a => a.role === 'OUTPUT').length > 0 ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      {(item.assets ?? []).filter(a => a.role === 'OUTPUT').map((asset) => (
+                        <div key={asset._id} className="group/asset relative bg-primary/5 border border-primary/10 rounded-3xl overflow-hidden hover:border-primary/40 transition-all duration-500 shadow-xl">
+                          <div className="aspect-[4/3] w-full bg-black/60 flex items-center justify-center relative overflow-hidden">
+                            {asset.mimeType.startsWith('image/') ? (
+                              <img src={resolveApiUrl((asset as any).url)} className="w-full h-full object-cover group-hover/asset:scale-110 transition-all duration-700" alt="deliverable" />
+                            ) : (
+                              <div className="flex flex-col items-center gap-3 text-text-dim/20">
+                                {asset.mimeType.includes('video') ? <Video size={32} /> : <FileIcon size={32} />}
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/asset:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 backdrop-blur-md">
+                              <button onClick={() => handleDownload((asset as any).url, asset.originalName)} className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white text-text-dim hover:text-black rounded-xl transition-all shadow-xl">
+                                 <Download size={18} />
+                              </button>
+                              {asset.mimeType.startsWith('image/') && (
+                                 <button onClick={() => onPreview(asset)} className="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-xl transition-all shadow-xl shadow-primary/20 scale-110">
+                                    <Maximize2 size={18} />
+                                 </button>
+                              )}
+                              <button onClick={() => handleRemoveAsset(asset._id)} className="w-10 h-10 flex items-center justify-center bg-error/10 text-error rounded-xl hover:bg-error hover:text-white transition-all shadow-xl shadow-error/10">
+                                 <Trash2 size={18} />
+                              </button>
+                            </div>
                           </div>
-                        )}
-                        <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/asset:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 backdrop-blur-md">
-                          <a href={(asset as any).url} target="_blank" rel="noreferrer" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white text-text-dim hover:text-black rounded-xl transition-all shadow-xl">
-                             <ExternalLink size={18} />
-                          </a>
-                          {asset.mimeType.startsWith('image/') && (
-                             <button onClick={() => onPreview(asset)} className="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-xl transition-all shadow-xl shadow-primary/20 scale-110">
-                                <Maximize2 size={18} />
-                             </button>
-                          )}
-                          <button onClick={() => handleRemoveAsset(asset._id)} className="w-10 h-10 flex items-center justify-center bg-error/10 text-error rounded-xl hover:bg-error hover:text-white transition-all shadow-xl shadow-error/10">
-                             <Trash2 size={18} />
-                          </button>
+                          <div className="p-4 bg-white/[0.02]">
+                            <p className="text-[10px] text-white font-bold truncate tracking-tight">{asset.originalName}</p>
+                            <div className="flex items-center justify-between opacity-40 text-[8px] font-bold uppercase tracking-widest mt-1.5">
+                              <span>{(asset.sizeBytes / 1024 / 1024).toFixed(1)}MB</span>
+                              <span className="text-primary">{asset.role}</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="p-4 bg-white/[0.02]">
-                        <p className="text-[10px] text-white font-bold truncate tracking-tight">{asset.originalName}</p>
-                        <div className="flex items-center justify-between opacity-40 text-[8px] font-bold uppercase tracking-widest mt-1.5">
-                          <span>{(asset.sizeBytes / 1024 / 1024).toFixed(1)}MB</span>
-                          <span className="text-primary">{asset.role}</span>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-20 border-2 border-dashed border-white/5 rounded-[2.5rem] bg-white/[0.01] flex flex-col items-center justify-center gap-4 text-text-dim/20">
-                   <Package size={40} className="opacity-20" />
-                   <p className="text-[10px] font-bold uppercase tracking-widest text-center">No deliverables cataloged</p>
-                </div>
-              )}
+                  ) : (
+                    <div className="py-10 border border-dashed border-white/5 rounded-3xl bg-white/[0.01] flex flex-col items-center justify-center gap-3 text-text-dim/20">
+                       <Package size={24} className="opacity-20" />
+                       <p className="text-[9px] font-bold uppercase tracking-widest text-center">No deliverables yet</p>
+                    </div>
+                  )}
+                </section>
+
+                {/* Input Assets Section */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <FileIcon size={14} className="text-text-dim/40" />
+                    <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Client uploads ({(item.assets ?? []).filter(a => a.role !== 'OUTPUT').length})</h4>
+                  </div>
+                  {(item.assets ?? []).filter(a => a.role !== 'OUTPUT').length > 0 ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      {(item.assets ?? []).filter(a => a.role !== 'OUTPUT').map((asset) => (
+                        <div key={asset._id} className="group/asset relative bg-black/40 border border-white/5 rounded-3xl overflow-hidden hover:border-white/20 transition-all duration-500 shadow-xl">
+                          <div className="aspect-[4/3] w-full bg-black/60 flex items-center justify-center relative overflow-hidden">
+                            {asset.mimeType.startsWith('image/') ? (
+                              <img src={resolveApiUrl((asset as any).url)} className="w-full h-full object-cover group-hover/asset:scale-110 transition-all duration-700" alt="input asset" />
+                            ) : (
+                              <div className="flex flex-col items-center gap-3 text-text-dim/20">
+                                {asset.mimeType.includes('video') ? <Video size={32} /> : <FileIcon size={32} />}
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/asset:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 backdrop-blur-md">
+                              <button onClick={() => handleDownload((asset as any).url, asset.originalName)} className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white text-text-dim hover:text-black rounded-xl transition-all shadow-xl">
+                                 <Download size={18} />
+                              </button>
+                              <button onClick={() => handleRemoveAsset(asset._id)} className="w-10 h-10 flex items-center justify-center bg-error/10 text-error rounded-xl hover:bg-error hover:text-white transition-all shadow-xl shadow-error/10">
+                                 <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="p-4 bg-white/[0.02]">
+                            <p className="text-[10px] text-white font-bold truncate tracking-tight">{asset.originalName}</p>
+                            <div className="flex items-center justify-between opacity-40 text-[8px] font-bold uppercase tracking-widest mt-1.5">
+                              <span>{(asset.sizeBytes / 1024 / 1024).toFixed(1)}MB</span>
+                              <span className="text-text-dim">{asset.role}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-10 border border-dashed border-white/5 rounded-3xl bg-white/[0.01] flex flex-col items-center justify-center gap-3 text-text-dim/20">
+                       <p className="text-[9px] font-bold uppercase tracking-widest text-center">No client uploads</p>
+                    </div>
+                  )}
+                </section>
+              </div>
 
               <label className={cn(
                 "group/up relative flex flex-col items-center justify-center gap-4 border-2 border-dashed rounded-[2.5rem] py-14 transition-all duration-500 cursor-pointer overflow-hidden",
@@ -383,6 +453,18 @@ const AdminOrderDetail: React.FC = () => {
   const [sending, setSending] = useState(false)
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [previewAsset, setPreviewAsset] = useState<any | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'primary' | 'error' | 'success';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
 
   const [isReviewing, setIsReviewing] = useState(false)
   const [isAssigning, setIsAssigning] = useState(false)
@@ -585,7 +667,7 @@ const AdminOrderDetail: React.FC = () => {
           <Link to={`/admin/users/${order.userId?._id}`} className="group/user flex items-center gap-6 p-8 bg-black/20 rounded-[2.5rem] border border-white/5 hover:border-primary/20 transition-all duration-500 shadow-xl">
             <div className="relative">
                <img 
-                 src={order.userId?.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+                 src={resolveApiUrl(order.userId?.avatar) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
                  alt="client" 
                  className="w-16 h-16 rounded-2xl border-2 border-white/10 object-cover shadow-2xl group-hover/user:scale-110 transition-all duration-500"
                />
@@ -668,6 +750,88 @@ const AdminOrderDetail: React.FC = () => {
         </div>
       )}
 
+      {/* Production Delivery Control */}
+      {order.status === 'IN_PROGRESS' && (
+        <div className="bg-primary/5 border border-primary/10 rounded-[3rem] p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10 animate-in slide-in-from-top-4 duration-700 shadow-2xl relative overflow-hidden group mb-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/10 to-transparent opacity-20" />
+          <div className="space-y-3 relative z-10 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-4">
+               <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 animate-pulse"><UploadCloud size={24} /></div>
+               <h2 className="text-2xl font-bold text-white tracking-tight italic">Production <span className="text-primary not-italic">active</span></h2>
+            </div>
+            <p className="text-text-dim/60 text-sm font-medium max-w-xl">Deliver final production assets to the client. The client will be notified to review the deliverables.</p>
+          </div>
+          <Button
+            onClick={() => {
+              setConfirmModal({
+                isOpen: true,
+                title: 'Deliver Production',
+                message: 'Deliver the final assets to the client and open the review window?',
+                variant: 'primary',
+                onConfirm: async () => {
+                  setIsLoading(true)
+                  try {
+                    await adminService.deliverOrder(id!)
+                    toast.success('Order delivered for review.')
+                    setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
+                    fetchAll()
+                  } catch (err: any) {
+                    toast.error(err?.response?.data?.error || err.message)
+                  } finally {
+                    setIsLoading(false)
+                  }
+                }
+              })
+            }}
+            isLoading={isLoading}
+            className="bg-white text-black hover:bg-primary hover:text-white px-10 py-5 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-2xl shadow-white/5 active:scale-95 border-none relative z-10"
+          >
+            Deliver Production
+          </Button>
+        </div>
+      )}
+
+      {/* Finalization Control */}
+      {order.status === 'FINALIZING' && (
+        <div className="bg-primary/5 border border-primary/10 rounded-[3rem] p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10 animate-in slide-in-from-top-4 duration-700 shadow-2xl relative overflow-hidden group mb-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/10 to-transparent opacity-20" />
+          <div className="space-y-3 relative z-10 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-4">
+               <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 animate-pulse"><Check size={24} /></div>
+               <h2 className="text-2xl font-bold text-white tracking-tight italic">Review <span className="text-primary not-italic">completed</span></h2>
+            </div>
+            <p className="text-text-dim/60 text-sm font-medium max-w-xl">The client has completed their review. Finalize the order to archive the transmission and close the unit.</p>
+          </div>
+          <Button
+            onClick={() => {
+              setConfirmModal({
+                isOpen: true,
+                title: 'Finalize Order',
+                message: 'Mark this order as complete? This will archive the unit and notify the client.',
+                variant: 'primary',
+                onConfirm: async () => {
+                  setIsLoading(true)
+                  try {
+                    await adminService.finalizeOrder(id!)
+                    toast.success('Order completed successfully.')
+                    setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
+                    fetchAll()
+                  } catch (err: any) {
+                    toast.error(err?.response?.data?.error || err.message)
+                  } finally {
+                    setIsLoading(false)
+                  }
+                }
+              })
+            }}
+            isLoading={isLoading}
+            className="bg-white text-black hover:bg-primary hover:text-white px-10 py-5 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-2xl shadow-white/5 active:scale-95 border-none relative z-10"
+          >
+            Mark as Order Complete
+          </Button>
+        </div>
+      )}
+
       {/* Navigation Matrix */}
       <div className="flex flex-wrap gap-3 bg-white/[0.02] backdrop-blur-3xl rounded-[2.5rem] p-3 border border-white/5 shadow-2xl">
         {[
@@ -711,6 +875,7 @@ const AdminOrderDetail: React.FC = () => {
                 onToggle={() => setExpandedItem(expandedItem === item._id ? null : item._id)}
                 onUpdated={handleItemUpdated}
                 onPreview={setPreviewAsset}
+                setConfirmModal={setConfirmModal}
               />
             ))}
             {items.length === 0 && (
@@ -762,6 +927,7 @@ const AdminOrderDetail: React.FC = () => {
                    </div>
                    
                    {messages.map((msg: Message, i: number) => {
+                     if (!msg) return null;
                      const currentUserId = (auth?.user as any)?.id || (auth?.user as any)?._id
                      const senderId = msg.senderId?._id || msg.senderId
                      const isMine = senderId === currentUserId
@@ -779,7 +945,7 @@ const AdminOrderDetail: React.FC = () => {
                                  <UserIcon size={12} />
                               </div>
                               <span className="text-[10px] font-bold uppercase tracking-widest text-text-dim">
-                                 {isMine ? 'Lead Controller' : msg.senderId?.name}
+                                 {isMine ? 'Lead Controller' : msg.senderId?.name || 'System'}
                               </span>
                            </div>
                          )}
@@ -794,7 +960,7 @@ const AdminOrderDetail: React.FC = () => {
                              "absolute top-full mt-3 flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest text-text-dim/20 opacity-0 group-hover:opacity-100 transition-all duration-500",
                              isMine ? "right-4 flex-row-reverse" : "left-4"
                            )}>
-                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                             {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                              {isMine && <Check size={10} className="text-white" />}
                            </div>
                          </div>
@@ -866,7 +1032,7 @@ const AdminOrderDetail: React.FC = () => {
           <div className="relative w-full max-w-7xl h-full flex flex-col gap-8 animate-in zoom-in-95 duration-700">
             <div className="flex-1 rounded-[4rem] overflow-hidden border border-white/10 bg-black shadow-[0_0_100px_rgba(0,0,0,1)] relative flex items-center justify-center group/modal">
                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-20 pointer-events-none" />
-               <img src={previewAsset.url} alt={previewAsset.originalName} className="max-w-full max-h-full object-contain p-12 select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-1000" />
+               <img src={resolveApiUrl(previewAsset.url)} alt={previewAsset.originalName} className="max-w-full max-h-full object-contain p-12 select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-1000" />
                
                <div className="absolute top-10 right-10 flex gap-4">
                   <button onClick={() => setPreviewAsset(null)} className="w-16 h-16 bg-white/5 hover:bg-white text-white hover:text-black backdrop-blur-2xl rounded-[1.5rem] flex items-center justify-center border border-white/10 transition-all hover:rotate-90 shadow-2xl active:scale-90">
@@ -907,6 +1073,15 @@ const AdminOrderDetail: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   )
 }

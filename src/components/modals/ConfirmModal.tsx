@@ -39,9 +39,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         };
       case 'success':
         return {
-          iconBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-emerald-500/5',
-          confirmBtn: 'bg-emerald-500 hover:bg-emerald-500/90 shadow-emerald-500/10',
-          accentColor: 'text-emerald-500'
+          iconBg: 'bg-primary/10 border-primary/20 text-primary shadow-primary/5',
+          confirmBtn: 'bg-primary hover:bg-primary/90 shadow-primary/10',
+          accentColor: 'text-primary'
         };
       default:
         return {

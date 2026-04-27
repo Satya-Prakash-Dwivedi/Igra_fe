@@ -6,6 +6,8 @@ import { serializeError, createLogger } from '../../services/logger'
 import { toast } from 'sonner'
 import Button, { cn } from '../../components/Button'
 
+import { resolveApiUrl } from '../../utils/urlUtils'
+
 const logger = createLogger('AdminStaff')
 
 const AdminStaff: React.FC = () => {
@@ -127,7 +129,7 @@ const AdminStaff: React.FC = () => {
               <div className="relative mb-6">
                 <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-2 border-white/10 shadow-2xl group-hover:scale-105 group-hover:border-primary transition-all duration-500">
                    <img 
-                     src={member.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+                     src={resolveApiUrl(member.avatar) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
                      alt="avatar" 
                      className="w-full h-full object-cover"
                    />
@@ -219,7 +221,7 @@ const AdminStaff: React.FC = () => {
                   searchResults.map(u => (
                     <div key={u._id} className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-[1.5rem] group hover:border-primary/40 transition-all duration-500 shadow-xl">
                       <div className="flex items-center gap-4">
-                         <img src={u.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} className="w-12 h-12 rounded-xl object-cover border border-white/10 shadow-lg" />
+                         <img src={resolveApiUrl(u.avatar) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} className="w-12 h-12 rounded-xl object-cover border border-white/10 shadow-lg" />
                          <div className="min-w-0">
                            <p className="text-white font-bold tracking-tight truncate max-w-[150px]">{u.name}</p>
                            <p className="text-xs text-text-dim/60 font-medium truncate max-w-[150px]">{u.email}</p>

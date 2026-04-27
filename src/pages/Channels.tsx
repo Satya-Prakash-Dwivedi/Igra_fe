@@ -6,6 +6,7 @@ import type { Channel, ChannelFormData, ChannelPace, ChannelTone } from '../serv
 import * as uploadApi from '../services/uploadService'
 import { createLogger, serializeError } from '../services/logger'
 import { toast } from 'sonner'
+import { resolveApiUrl } from '../utils/urlUtils'
 
 const logger = createLogger('Channels')
 
@@ -48,7 +49,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ channel, onEdit }) => (
       {channel.logo ? (
         <div className="relative">
           <img
-            src={channel.logo}
+            src={resolveApiUrl(channel.logo)}
             alt={channel.name}
             className="w-20 h-20 rounded-2xl object-cover border border-white/10 shadow-2xl transition-transform duration-500 group-hover:scale-105"
           />
@@ -257,6 +258,7 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
             <ChannelCard 
               channel={{
                 _id: 'preview',
+                userId: 'preview-user',
                 name: name || 'Channel Name',
                 channelUrl: channelUrl || 'https://youtube.com/@handle',
                 logo: logo,
@@ -280,7 +282,11 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
               className="w-24 h-24 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group overflow-hidden relative"
             >
               {logo ? (
-                <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+                <img 
+                  src={resolveApiUrl(logo)} 
+                  alt="Logo" 
+                  className="w-full h-full object-cover" 
+                />
               ) : (
                 <User size={32} className="text-text-dim/20" />
               )}

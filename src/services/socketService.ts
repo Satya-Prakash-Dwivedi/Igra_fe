@@ -79,6 +79,22 @@ class SocketService {
       logger.info('socket.leaving_dm', { userId });
     }
   }
+
+  joinUser(userId: string) {
+    const socket = this.getSocket();
+    if (socket) {
+      socket.emit('join-user', userId);
+      logger.info('socket.joining_user', { userId });
+    }
+  }
+
+  leaveUser(userId: string) {
+    const socket = this.getSocket();
+    if (socket) {
+      socket.emit('leave-user', userId);
+      logger.info('socket.leaving_user', { userId });
+    }
+  }
 }
 
 export const socketService = new SocketService();

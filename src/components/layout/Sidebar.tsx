@@ -16,9 +16,11 @@ import {
 } from 'lucide-react'
 import { cn } from '../Button'
 import { useAuth } from '../../hooks/useAuth'
+import { resolveApiUrl } from '../../utils/urlUtils'
 import BugReportModal from '../modals/BugReportModal'
 import { createLogger, serializeError } from '../../services/logger'
 import LogoutModal from '../modals/LogoutModal'
+import NotificationBell from '../NotificationBell'
 
 const logger = createLogger('Sidebar')
 
@@ -110,7 +112,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [isBugModalOpen, setIsBugModalOpen] = useState(false)
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
@@ -172,6 +174,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           </button>
         </div>
 
+        {/* Notifications */}
+        <div className="px-4 mb-6">
+           <NotificationBell isCollapsed={isCollapsed} />
+        </div>
+
         {/* Global Search Button Placeholder */}
         <div className="px-4 mb-6">
            <div className={cn(
@@ -224,8 +231,36 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
           <div className="flex-1" />
 
+          {/* User Profile Section */}
+          <div className="pt-4 px-4 mb-2">
+            <div 
+              className={cn(
+                "flex items-center gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/5 transition-all duration-300",
+                isCollapsed ? "justify-center px-0" : "px-3"
+              )}
+            >
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-[10px] font-black flex-shrink-0 overflow-hidden border border-white/10 shadow-lg">
+                {user?.avatar ? (
+                  <img 
+                    src={resolveApiUrl(user.avatar)} 
+                    alt={user.name} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user?.firstName?.[0] ?? user?.name?.[0] ?? 'U'
+                )}
+              </div>
+              {!isCollapsed && (
+                <div className="flex flex-col min-w-0 animate-in fade-in slide-in-from-left-2 duration-300">
+                  <span className="text-[10px] font-bold text-white truncate">{user?.name}</span>
+                  <span className="text-[8px] font-medium text-text-dim/60 uppercase tracking-widest truncate">{user?.role}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Bottom Logout */}
-          <div className="pt-4 pb-6 border-t border-white/5 mt-auto">
+          <div className="pb-6">
             <NavItem
               onClick={() => setIsLogoutModalOpen(true)}
               icon={<LogOut size={18} />}
