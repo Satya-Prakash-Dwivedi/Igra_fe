@@ -1,7 +1,7 @@
 import api from './api';
 
 export interface User {
-  id: string;
+  _id: string;
   firstName: string;
   lastName: string;
   name: string; // Keep for convenience / legacy
@@ -82,6 +82,21 @@ const authService = {
 
   async refreshToken(): Promise<AuthResponse> {
     const { data } = await api.get<AuthResponse>('/auth/refresh');
+    return data;
+  },
+  
+  async resendVerification(email: string): Promise<{ success: boolean; message: string }> {
+    const { data } = await api.post<{ success: boolean; message: string }>('/auth/resend-verification', { email });
+    return data;
+  },
+
+  async forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+    const { data } = await api.post<{ success: boolean; message: string }>('/auth/forgot-password', { email });
+    return data;
+  },
+
+  async resetPassword(token: string, password?: string): Promise<{ success: boolean; message: string }> {
+    const { data } = await api.post<{ success: boolean; message: string }>('/auth/reset-password', { token, password });
     return data;
   },
 };

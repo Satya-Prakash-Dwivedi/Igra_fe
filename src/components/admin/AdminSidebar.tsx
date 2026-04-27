@@ -3,7 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, ShoppingBag, Ticket, Bug, LogOut, Shield, Users, UserCircle, MessageSquare } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../Button'
-import { createLogger, serializeError } from '../../services/logger'
+import { createLogger, serializeError } from '../../services/logger';
+import LogoutModal from '../modals/LogoutModal';
 
 const logger = createLogger('AdminSidebar')
 
@@ -20,13 +21,19 @@ const navItems = [
 const AdminSidebar: React.FC = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false)
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false)
 
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true)
       await logout()
       navigate('/login')
     } catch (err) {
       logger.error('admin.logout_failed', { error: serializeError(err) })
+    } finally {
+      setIsLoggingOut(false)
+      setIsLogoutModalOpen(false)
     }
   }
 
@@ -77,13 +84,20 @@ const AdminSidebar: React.FC = () => {
           </div>
         </div>
         <button
-          onClick={handleLogout}
+          onClick={() => setIsLogoutModalOpen(true)}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-muted hover:text-error hover:bg-error/10 transition-colors"
         >
           <LogOut size={16} />
           Logout
         </button>
       </div>
+
+      <LogoutModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        isLoading={isLoggingOut}
+      />
     </aside>
   )
 }

@@ -17,14 +17,15 @@ import {
 import { createLogger, serializeError } from '../services/logger'
 import { cn } from '../components/Button'
 import { toast } from 'sonner'
+import Button from '../components/Button'
 
 const logger = createLogger('Credits')
 
 const REASON_LABELS: Record<string, { label: string; color: string }> = {
-  PACK_PURCHASE: { label: 'Credit Purchase', color: 'text-emerald-400' },
-  ORDER_CAPTURE: { label: 'Order Payment', color: 'text-rose-400' },
-  REFUND: { label: 'Refund', color: 'text-emerald-400' },
-  ADJUSTMENT: { label: 'Adjustment', color: 'text-blue-400' },
+  PACK_PURCHASE: { label: 'Credit purchase', color: 'text-success' },
+  ORDER_CAPTURE: { label: 'Order payment', color: 'text-error' },
+  REFUND: { label: 'Refund', color: 'text-success' },
+  ADJUSTMENT: { label: 'Adjustment', color: 'text-info' },
 }
 
 export default function Credits() {
@@ -104,154 +105,154 @@ export default function Credits() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 pb-20 animate-in fade-in duration-200 px-4 relative">
-      {loading && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-bg-dark/20 backdrop-blur-sm transition-opacity duration-300">
-           <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
-      {/* Header & Balance Card */}
-      <div className="pt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-2">
-          <h1 className="text-4xl font-black text-white tracking-tight uppercase">
-            Resource <span className="text-primary italic">Pool</span>
+    <div className="max-w-7xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700 px-6 relative">
+      {/* Background Textures */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-10 relative z-10">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Your <span className="text-primary">Wallet</span>
           </h1>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            Manage your digital assets and billing history
-          </p>
+          <p className="text-text-dim/60 text-base">Manage your credits and view transaction history.</p>
         </div>
-
-        <div className="premium-card rounded-3xl p-8 border-primary/20 bg-gradient-to-br from-primary/10 via-transparent to-transparent">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-               <Wallet size={24} />
-            </div>
-            <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Available Balance</span>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-5xl font-black text-white tracking-tighter italic">
-              {wallet?.balance.toLocaleString() || 0}
-            </span>
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Credits</span>
-          </div>
+        
+        <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl px-8 py-4 flex items-center gap-6 shadow-xl">
+           <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg">
+              <Zap size={24} fill="currentColor" />
+           </div>
+           <div>
+              <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Available Credits</p>
+              <div className="flex items-baseline gap-2">
+                 <p className="text-3xl font-bold text-white">{wallet?.balance?.toLocaleString() || '0'}</p>
+                 <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Cr</span>
+              </div>
+           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 bg-white/[0.02] backdrop-blur-md rounded-2xl p-2 border border-white/5 shadow-inner">
+      {/* Tab Control */}
+      <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-1.5 flex gap-2 w-fit relative z-10">
         {[
-          { key: 'packs' as const, label: 'Add Credits', icon: CreditCard },
-          { key: 'history' as const, label: 'Transactions', icon: TrendingUp },
-          { key: 'invoices' as const, label: 'Receipts', icon: Receipt },
-        ].map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-3 px-6 py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest flex-1 justify-center transition-[background-color,color,box-shadow] duration-200 group transform-gpu ${
-              activeTab === key 
-                ? 'bg-white text-black shadow-lg' 
-                : 'text-gray-500 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Icon size={14} className={activeTab === key ? "text-black" : "text-gray-600 group-hover:text-primary transition-colors"} />
-            {label}
-          </button>
-        ))}
+          { id: 'packs', label: 'Buy Credits', icon: Zap },
+          { id: 'history', label: 'History', icon: TrendingUp },
+          { id: 'invoices', label: 'Invoices', icon: Receipt },
+        ].map((tab) => {
+          const Icon = tab.icon
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={cn(
+                "flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300",
+                activeTab === tab.id
+                  ? "bg-white text-black shadow-lg"
+                  : "bg-transparent text-text-dim/40 hover:text-white hover:bg-white/5"
+              )}
+            >
+              <Icon size={14} className={cn("transition-colors", activeTab === tab.id ? "text-primary" : "text-text-dim/40")} />
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Tab Content */}
-      <div className="min-h-[400px]">
-        {activeTab === 'packs' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-200">
-            {packs.map((pack) => (
-              <div
-                key={pack.id}
+      <div className="relative z-10 min-h-[400px]">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-40 gap-6 opacity-40">
+            <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+            <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Loading wallet data...</p>
+          </div>
+        ) : activeTab === 'packs' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {packs.map((pack, i) => (
+              <div 
+                key={pack.id} 
                 className={cn(
-                  "premium-card rounded-3xl p-8 group relative flex flex-col items-center text-center border-white/5 hover:border-primary/30 transition-all",
-                  pack.popular && "border-primary/40 ring-1 ring-primary/20 scale-105 z-10 bg-primary/[0.02]"
+                  "bg-bg-card/40 backdrop-blur-xl border rounded-2xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 shadow-xl group/pack relative",
+                  pack.popular ? "border-primary/40 ring-1 ring-primary/20" : "border-white/5"
                 )}
+                style={{ animationDelay: `${i * 100}ms` }}
               >
                 {pack.popular && (
-                  <div className="absolute -top-4 px-4 py-1.5 bg-primary rounded-full text-[10px] font-black text-white flex items-center gap-2 shadow-xl animate-pulse">
-                    <Star size={12} />
-                    MOST POPULAR
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-lg">
+                    Most Popular
                   </div>
                 )}
                 
-                <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-200">
-                  {pack.id === 'starter' && <Zap size={32} />}
-                  {pack.id === 'professional' && <Sparkles size={32} />}
-                  {pack.id === 'enterprise' && <Star size={32} />}
+                <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center mb-8 group-hover/pack:bg-primary group-hover/pack:text-white transition-all duration-300 border border-white/5 shadow-inner">
+                  {pack.id === 'starter' && <Zap size={28} />}
+                  {pack.id === 'professional' && <Sparkles size={28} />}
+                  {pack.id === 'enterprise' && <Star size={28} />}
                 </div>
 
-                <h3 className="text-xl font-bold text-white tracking-tight mb-1 uppercase">{pack.name}</h3>
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-6">{pack.description}</p>
+                <div className="space-y-1 mb-8">
+                   <h3 className="text-2xl font-bold text-white group-hover/pack:text-primary transition-colors">{pack.name}</h3>
+                   <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">{pack.description}</p>
+                </div>
                 
-                <div className="mb-8">
-                  <div className="text-5xl font-black text-white tracking-tighter italic mb-1">
+                <div className="mb-10">
+                  <div className="text-5xl font-bold text-white tracking-tight mb-2">
                     {pack.credits.toLocaleString()}
                   </div>
-                  <div className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] opacity-60">Credits Included</div>
+                  <div className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Credits included</div>
                 </div>
 
-                <div className="mt-auto w-full pt-8 border-t border-white/5 flex flex-col items-center gap-6">
-                   <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-black text-white italic">${(pack.priceCents / 100).toFixed(0)}</span>
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">{pack.pricePerCredit}/cr</span>
+                <div className="mt-auto pt-8 border-t border-white/5 flex flex-col items-center gap-8">
+                   <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-bold text-white">${(pack.priceCents / 100).toFixed(0)}</span>
+                      <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">{pack.pricePerCredit}/cr</span>
                    </div>
                    
-                   <button
+                   <Button
+                    fullWidth
+                    variant={pack.popular ? "primary" : "outline"}
                     onClick={() => handlePurchase(pack.id)}
                     disabled={purchasing !== null}
-                    className={cn(
-                      "w-full py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] transition-all active:scale-95",
-                      pack.popular 
-                        ? "bg-primary text-white shadow-xl shadow-primary/20 hover:brightness-110" 
-                        : "bg-white text-black hover:bg-gray-200"
-                    )}
+                    className="h-12 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg"
                   >
-                    {purchasing === pack.id ? 'Processing...' : 'Initiate Buy'}
-                  </button>
+                    {purchasing === pack.id ? 'Loading...' : 'Buy Pack'}
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
-        )}
-
-        {activeTab === 'history' && (
-          <div className="premium-card rounded-3xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        ) : activeTab === 'history' ? (
+          <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/5 shadow-xl">
             {ledger.length === 0 ? (
-              <div className="py-20 text-center opacity-30 flex flex-col items-center gap-4">
-                <TrendingUp size={40} />
-                <p className="text-[10px] font-black uppercase tracking-widest">No active records</p>
+              <div className="py-20 text-center opacity-20 flex flex-col items-center gap-6">
+                <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
+                   <TrendingUp size={40} />
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-widest">No transaction history</p>
               </div>
             ) : (
               <div className="divide-y divide-white/5">
                 {ledger.map((entry) => {
-                  const info = REASON_LABELS[entry.reason] || { label: entry.reason, color: 'text-gray-400' }
+                  const info = REASON_LABELS[entry.reason] || { label: entry.reason, color: 'text-text-dim' }
                   const isPositive = entry.delta > 0
                   return (
-                    <div key={entry._id} className="flex items-center justify-between p-6 hover:bg-white/[0.02] transition-colors">
-                      <div className="flex items-center gap-4">
+                    <div key={entry._id} className="flex flex-col md:flex-row md:items-center justify-between p-6 hover:bg-white/[0.03] transition-all duration-300 group/entry">
+                      <div className="flex items-center gap-6">
                         <div className={cn(
-                          "w-10 h-10 rounded-xl flex items-center justify-center border",
-                          isPositive ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                          "w-12 h-12 rounded-xl flex items-center justify-center border transition-all duration-300 group-hover/entry:scale-105",
+                          isPositive ? "bg-success/10 border-success/20 text-success" : "bg-error/10 border-error/20 text-error"
                         )}>
-                          {isPositive ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+                          {isPositive ? <ArrowUpRight size={24} /> : <ArrowDownRight size={24} />}
                         </div>
-                        <div>
-                          <div className="text-sm font-bold text-white tracking-tight uppercase">{info.label}</div>
-                          <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest font-mono">
+                        <div className="space-y-1">
+                          <div className="text-lg font-bold text-white group-hover/entry:text-primary transition-colors">{info.label}</div>
+                          <div className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
                             {new Date(entry.createdAt).toLocaleString()}
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className={cn("text-xl font-black italic tracking-tighter", info.color)}>
+                      <div className="text-right mt-4 md:mt-0 space-y-1">
+                        <div className={cn("text-3xl font-bold tracking-tight", info.color)}>
                           {isPositive ? '+' : ''}{entry.delta}
                         </div>
-                        <div className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Pool: {entry.balanceAfter}</div>
+                        <div className="text-[9px] font-bold text-text-dim/10 uppercase tracking-widest">Balance: {entry.balanceAfter} cr</div>
                       </div>
                     </div>
                   )
@@ -259,35 +260,35 @@ export default function Credits() {
               </div>
             )}
           </div>
-        )}
-
-        {activeTab === 'invoices' && (
-          <div className="premium-card rounded-3xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        ) : (
+          <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/5 shadow-xl">
             {invoices.length === 0 ? (
-              <div className="py-20 text-center opacity-30 flex flex-col items-center gap-4">
-                <Receipt size={40} />
-                <p className="text-[10px] font-black uppercase tracking-widest">No active records</p>
+              <div className="py-20 text-center opacity-20 flex flex-col items-center gap-6">
+                <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
+                   <Receipt size={40} />
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-widest">No invoices found</p>
               </div>
             ) : (
               <div className="divide-y divide-white/5">
                 {invoices.map((inv) => (
-                  <div key={inv._id} className="flex items-center justify-between p-6 hover:bg-white/[0.02] transition-colors group cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 border border-white/5 group-hover:text-primary group-hover:border-primary/20 transition-all">
-                          <Receipt size={18} />
+                  <div key={inv._id} className="flex flex-col md:flex-row md:items-center justify-between p-6 hover:bg-white/[0.03] transition-all duration-300 group/inv cursor-pointer">
+                    <div className="flex items-center gap-6">
+                       <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-text-dim/20 border border-white/5 group-hover/inv:text-primary group-hover/inv:border-primary/20 group-hover/inv:bg-primary/5 transition-all duration-300 shadow-lg">
+                          <Receipt size={24} />
                        </div>
-                       <div>
-                          <div className="text-sm font-bold text-white tracking-tight uppercase group-hover:text-primary transition-colors">{inv.invoiceNumber}</div>
-                          <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest font-mono">
+                       <div className="space-y-1">
+                          <div className="text-lg font-bold text-white group-hover/inv:text-primary transition-colors">{inv.invoiceNumber}</div>
+                          <div className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
                              {new Date(inv.createdAt).toLocaleDateString()}
                           </div>
                        </div>
                     </div>
-                    <div className="text-right">
-                       <div className="text-xl font-black text-white italic tracking-tighter">
+                    <div className="text-right mt-4 md:mt-0 space-y-1">
+                       <div className="text-3xl font-bold text-white tracking-tight">
                           ${(inv.totalCents / 100).toFixed(2)}
                        </div>
-                       <div className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{inv.currency}</div>
+                       <div className="text-[9px] font-bold text-text-dim/20 uppercase tracking-widest">{inv.currency}</div>
                     </div>
                   </div>
                 ))}

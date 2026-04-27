@@ -148,3 +148,13 @@ export async function resumeUpload(file: File, sessionId: string, onProgress?: (
   }
 }
 
+const uploadService = {
+  startUpload,
+  registerPart,
+  finalizeUpload,
+  getUploadStatus,
+  uploadFile,
+  resumeUpload
+}
+
+export default uploadService
