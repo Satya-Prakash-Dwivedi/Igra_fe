@@ -26,12 +26,14 @@ import {
   Clock,
   ChevronRight,
   Cpu,
-  Monitor
+  Monitor,
+  Check
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
 import { createLogger, serializeError } from '../services/logger'
 import { toast } from 'sonner'
 import * as uploadApi from '../services/uploadService'
+import ConfirmModal from '../components/modals/ConfirmModal'
 
 const logger = createLogger('OrderDetail')
 
@@ -70,6 +72,18 @@ export default function OrderDetail() {
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [uploadingItem, setUploadingItem] = useState<string | null>(null)
   const [previewAsset, setPreviewAsset] = useState<any | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'primary' | 'error' | 'success';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -207,15 +221,42 @@ export default function OrderDetail() {
     }
   }
 
+  async function handleCompleteReview() {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Complete Review',
+      message: 'Are you done with the review? The production team will be notified to finalize and archive the order.',
+      variant: 'primary',
+      onConfirm: async () => {
+        try {
+          await orderApi.completeReview(id!)
+          toast.success('Review marked as complete.')
+          loadOrder()
+          setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
+        } catch (err: any) {
+          toast.error(err?.response?.data?.error || err.message)
+        }
+      }
+    })
+  }
+
   async function handleCancelOrder() {
-    if (!confirm('Are you sure you want to cancel this order? Credits will be refunded.')) return
-    try {
-      await orderApi.cancelOrder(id!)
-      toast.info('Order cancelled.')
-      loadOrder()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || err.message)
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Cancel Order',
+      message: 'Are you sure you want to cancel this order? Credits will be refunded to your wallet.',
+      variant: 'error',
+      onConfirm: async () => {
+        try {
+          await orderApi.cancelOrder(id!)
+          toast.info('Order cancelled.')
+          loadOrder()
+          setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
+        } catch (err: any) {
+          toast.error(err?.response?.data?.error || err.message)
+        }
+      }
+    })
   }
 
   async function handleRemoveAsset(itemId: string, assetId: string) {
@@ -301,6 +342,16 @@ export default function OrderDetail() {
               className="h-10 px-6 rounded-xl text-xs"
             >
               Confirm & Pay
+            </Button>
+          )}
+          {order.status === 'AWAITING_APPROVAL' && (
+            <Button
+              variant="primary"
+              onClick={handleCompleteReview}
+              className="h-10 px-6 rounded-xl text-xs"
+            >
+              Review Complete
+              <Check size={14} className="ml-2" />
             </Button>
           )}
           {canCancel && (
@@ -537,6 +588,15 @@ export default function OrderDetail() {
             </div>
           </div>
         )}
+
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          variant={confirmModal.variant}
+          onConfirm={confirmModal.onConfirm}
+          onClose={() => setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))}
+        />
       </div>
     </div>
   )

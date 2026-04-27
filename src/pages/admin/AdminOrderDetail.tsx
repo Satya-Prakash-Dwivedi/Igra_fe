@@ -36,6 +36,8 @@ import { AuthContext } from '../../context/AuthContext'
 import adminService from '../../services/adminService'
 import * as uploadApi from '../../services/uploadService'
 import { resolveApiUrl } from '../../utils/urlUtils'
+import ConfirmModal from '../../components/modals/ConfirmModal'
+import { toast } from 'sonner'
 import type {
   AdminOrderDetailData, AdminOrderItem, AdminOrderEvent,
   AdminUser, ReviewAction, OrderItemStatus, Message
@@ -86,7 +88,8 @@ const ItemCard: React.FC<{
   onToggle: () => void
   onUpdated: (updated: AdminOrderItem) => void
   onPreview: (asset: any) => void
-}> = ({ item, orderId, isExpanded, onToggle, onUpdated, onPreview }) => {
+  setConfirmModal: (state: any) => void
+}> = ({ item, orderId, isExpanded, onToggle, onUpdated, onPreview, setConfirmModal }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -450,6 +453,18 @@ const AdminOrderDetail: React.FC = () => {
   const [sending, setSending] = useState(false)
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [previewAsset, setPreviewAsset] = useState<any | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'primary' | 'error' | 'success';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
 
   const [isReviewing, setIsReviewing] = useState(false)
   const [isAssigning, setIsAssigning] = useState(false)
@@ -735,6 +750,88 @@ const AdminOrderDetail: React.FC = () => {
         </div>
       )}
 
+      {/* Production Delivery Control */}
+      {order.status === 'IN_PROGRESS' && (
+        <div className="bg-primary/5 border border-primary/10 rounded-[3rem] p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10 animate-in slide-in-from-top-4 duration-700 shadow-2xl relative overflow-hidden group mb-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/10 to-transparent opacity-20" />
+          <div className="space-y-3 relative z-10 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-4">
+               <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 animate-pulse"><UploadCloud size={24} /></div>
+               <h2 className="text-2xl font-bold text-white tracking-tight italic">Production <span className="text-primary not-italic">active</span></h2>
+            </div>
+            <p className="text-text-dim/60 text-sm font-medium max-w-xl">Deliver final production assets to the client. The client will be notified to review the deliverables.</p>
+          </div>
+          <Button
+            onClick={() => {
+              setConfirmModal({
+                isOpen: true,
+                title: 'Deliver Production',
+                message: 'Deliver the final assets to the client and open the review window?',
+                variant: 'primary',
+                onConfirm: async () => {
+                  setIsLoading(true)
+                  try {
+                    await adminService.deliverOrder(id!)
+                    toast.success('Order delivered for review.')
+                    setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
+                    fetchAll()
+                  } catch (err: any) {
+                    toast.error(err?.response?.data?.error || err.message)
+                  } finally {
+                    setIsLoading(false)
+                  }
+                }
+              })
+            }}
+            isLoading={isLoading}
+            className="bg-white text-black hover:bg-primary hover:text-white px-10 py-5 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-2xl shadow-white/5 active:scale-95 border-none relative z-10"
+          >
+            Deliver Production
+          </Button>
+        </div>
+      )}
+
+      {/* Finalization Control */}
+      {order.status === 'FINALIZING' && (
+        <div className="bg-primary/5 border border-primary/10 rounded-[3rem] p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10 animate-in slide-in-from-top-4 duration-700 shadow-2xl relative overflow-hidden group mb-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/10 to-transparent opacity-20" />
+          <div className="space-y-3 relative z-10 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-4">
+               <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 animate-pulse"><Check size={24} /></div>
+               <h2 className="text-2xl font-bold text-white tracking-tight italic">Review <span className="text-primary not-italic">completed</span></h2>
+            </div>
+            <p className="text-text-dim/60 text-sm font-medium max-w-xl">The client has completed their review. Finalize the order to archive the transmission and close the unit.</p>
+          </div>
+          <Button
+            onClick={() => {
+              setConfirmModal({
+                isOpen: true,
+                title: 'Finalize Order',
+                message: 'Mark this order as complete? This will archive the unit and notify the client.',
+                variant: 'primary',
+                onConfirm: async () => {
+                  setIsLoading(true)
+                  try {
+                    await adminService.finalizeOrder(id!)
+                    toast.success('Order completed successfully.')
+                    setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
+                    fetchAll()
+                  } catch (err: any) {
+                    toast.error(err?.response?.data?.error || err.message)
+                  } finally {
+                    setIsLoading(false)
+                  }
+                }
+              })
+            }}
+            isLoading={isLoading}
+            className="bg-white text-black hover:bg-primary hover:text-white px-10 py-5 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-2xl shadow-white/5 active:scale-95 border-none relative z-10"
+          >
+            Mark as Order Complete
+          </Button>
+        </div>
+      )}
+
       {/* Navigation Matrix */}
       <div className="flex flex-wrap gap-3 bg-white/[0.02] backdrop-blur-3xl rounded-[2.5rem] p-3 border border-white/5 shadow-2xl">
         {[
@@ -778,6 +875,7 @@ const AdminOrderDetail: React.FC = () => {
                 onToggle={() => setExpandedItem(expandedItem === item._id ? null : item._id)}
                 onUpdated={handleItemUpdated}
                 onPreview={setPreviewAsset}
+                setConfirmModal={setConfirmModal}
               />
             ))}
             {items.length === 0 && (
@@ -975,6 +1073,15 @@ const AdminOrderDetail: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   )
 }

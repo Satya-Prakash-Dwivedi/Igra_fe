@@ -212,6 +212,16 @@ const adminService = {
   async removeAsset(oid: string, iid: string, assetId: string): Promise<void> {
     await api.delete(`/admin/orders/${oid}/items/${iid}/assets/${assetId}`)
   },
+  
+  async deliverOrder(id: string): Promise<AdminOrder> {
+    const { data } = await api.post(`/orders/${id}/deliver`)
+    return data.data
+  },
+
+  async finalizeOrder(id: string): Promise<AdminOrder> {
+    const { data } = await api.post(`/orders/${id}/finalize`)
+    return data.data
+  },
 
   // Messages
   async getMessages(orderId: string, page = 1, limit = 50) {

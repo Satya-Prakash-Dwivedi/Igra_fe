@@ -153,3 +153,18 @@ export async function sendMessage(orderId: string, content: string, itemId?: str
   const res = await api.post(`/orders/${orderId}/messages`, { content, itemId })
   return res.data.data as Message
 }
+
+export async function deliverOrder(orderId: string) {
+  const res = await api.post(`/orders/${orderId}/deliver`)
+  return res.data.data as Order
+}
+
+export async function completeReview(orderId: string) {
+  const res = await api.post(`/orders/${orderId}/complete-review`)
+  return res.data.data as Order
+}
+
+export async function finalizeOrder(orderId: string) {
+  const res = await api.post(`/orders/${orderId}/finalize`)
+  return res.data.data as Order
+}
