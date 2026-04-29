@@ -7,7 +7,6 @@ import type { OrderDetail as OrderDetailType, Message } from '../services/orderS
 import {
   ArrowLeft,
   Send,
-  CheckCircle,
   Package,
   MessageSquare,
   Activity,
@@ -15,19 +14,10 @@ import {
   UploadCloud,
   Loader2,
   Trash2,
-  ExternalLink,
-  Video,
-  File as FileIcon,
-  X,
   Maximize2,
   Download,
-  ShieldCheck,
-  Zap,
-  Clock,
-  ChevronRight,
-  Cpu,
-  Monitor,
-  Check
+  Check,
+  File as FileIcon
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
 import { createLogger, serializeError } from '../services/logger'
@@ -51,14 +41,6 @@ const STATUS_MAP: Record<string, { label: string, color: string }> = {
   PENDING_PAYMENT: { label: 'Pending payment', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
 }
 
-const ORDER_STEPS = [
-  { id: 'DRAFT', label: 'Draft' },
-  { id: 'PENDING_INPUT', label: 'Queued' },
-  { id: 'IN_PROGRESS', label: 'Production' },
-  { id: 'DELIVERED', label: 'Review' },
-  { id: 'COMPLETED', label: 'Final' }
-]
-
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -66,12 +48,12 @@ export default function OrderDetail() {
   const [detail, setDetail] = useState<OrderDetailType | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [activeTab, setActiveTab] = useState<'items' | 'chat' | 'timeline'>('items')
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [uploadingItem, setUploadingItem] = useState<string | null>(null)
-  const [previewAsset, setPreviewAsset] = useState<any | null>(null)
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -124,10 +106,13 @@ export default function OrderDetail() {
 
   async function loadOrder() {
     setLoading(true)
+    setError(null)
     try {
       const data = await orderApi.getOrderDetail(id!)
       setDetail(data)
-    } catch (err) {
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err.message
+      setError(msg)
       logger.error('order.load_failed', { orderId: id, error: serializeError(err) })
     } finally {
       setLoading(false)
@@ -289,11 +274,35 @@ export default function OrderDetail() {
     }
   }
 
-  if (loading || !detail) {
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4 animate-in fade-in duration-700">
         <Loader2 size={32} className="animate-spin text-primary" />
         <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Loading order details...</p>
+      </div>
+    )
+  }
+
+  if (error || !detail) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 gap-6 animate-in fade-in duration-700">
+        <div className="w-16 h-16 rounded-2xl bg-error/10 flex items-center justify-center text-error border border-error/20">
+          <Package size={32} className="opacity-40" />
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-xl font-bold text-white">Order not found</h2>
+          <p className="text-sm text-text-dim/60 max-w-xs mx-auto">
+            {error || "We couldn't retrieve the details for this order. It might have been deleted or moved."}
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/orders')}
+          className="h-10 px-6 rounded-xl text-[10px] font-bold uppercase tracking-widest"
+        >
+          <ArrowLeft size={14} className="mr-2" />
+          Back to Orders
+        </Button>
       </div>
     )
   }
@@ -531,7 +540,7 @@ export default function OrderDetail() {
                   <p className="text-xs font-bold uppercase tracking-widest">No messages yet</p>
                 </div>
               ) : (
-                messages.map((msg, i) => {
+                messages.map((msg) => {
                   if (!msg) return null;
                   const senderId = msg.senderId?._id || msg.senderId;
                   const currentUserId = auth?.user?._id || (auth?.user as any)?.id;

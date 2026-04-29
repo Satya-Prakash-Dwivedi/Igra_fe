@@ -63,7 +63,7 @@ const ReportBug = () => {
         setIsUploadingFiles(false)
       }
 
-      await supportApi.reportBug({
+      await supportApi.createBugReport({
         description,
         screenshotAssetIds,
         wantsFollowUp

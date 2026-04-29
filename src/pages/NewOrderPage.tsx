@@ -22,6 +22,18 @@ import processImg from '../assets/thumbnails/process.png'
 import noTextImg from '../assets/thumbnails/no_text.png'
 import otherImg from '../assets/thumbnails/other.png'
 
+const THUMBNAIL_STYLES = [
+  { id: 'Exaggerated', label: 'EXAGGERATED', img: exaggeratedImg },
+  { id: 'Headshot', label: 'HEADSHOT', img: headshotImg },
+  { id: 'Quote', label: 'QUOTE', img: quoteImg },
+  { id: 'Statement', label: 'STATEMENT', img: statementImg },
+  { id: 'Before_After', label: 'BEFORE & AFTER', img: beforeAfterImg },
+  { id: 'Versus', label: 'VERSUS', img: versusImg },
+  { id: 'Process', label: 'PROCESS', img: processImg },
+  { id: 'No_Text', label: 'NO TEXT', img: noTextImg },
+  { id: 'Other', label: 'OTHER', img: otherImg },
+]
+
 const SERVICE_CATALOG = [
   { kind: 'VIDEO_EDIT', label: 'Video editing', icon: PlaySquare, desc: 'Professional post-production for any format', minCredits: 0 },
   { kind: 'THUMBNAIL', label: 'Thumbnail design', icon: Image, desc: 'High-impact visuals for maximum click-through', minCredits: 50 },
@@ -401,12 +413,17 @@ export default function NewOrderPage() {
                     </div>
 
                       {item.kind === 'VIDEO_EDIT' ? (
-                        <div className="space-y-10">
+                        <div className="p-8 md:p-12 space-y-14">
+                          {/* Section: Core Config */}
+                          <div className="space-y-12">
                           {/* Top Row: Raw Footage & Aspect Ratio */}
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                             {/* Raw Footage */}
-                            <div className="space-y-4">
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Raw Footage</label>
+                            <div className="space-y-5">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-1 h-1 rounded-full bg-primary" />
+                                <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Raw Footage</label>
+                              </div>
                               <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5">
                                 <button 
                                   onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', true)}
@@ -430,9 +447,12 @@ export default function NewOrderPage() {
                             </div>
 
                             {/* Aspect Ratio */}
-                            <div className="space-y-4">
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Aspect Ratio</label>
-                              <div className="grid grid-cols-4 gap-3">
+                            <div className="space-y-5">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-1 h-1 rounded-full bg-primary" />
+                                <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Aspect Ratio</label>
+                              </div>
+                              <div className="grid grid-cols-4 gap-4">
                                 {[
                                   { id: '16:9', label: '16:9', icon: Monitor },
                                   { id: '9:16', label: '9:16', icon: Smartphone },
@@ -458,9 +478,12 @@ export default function NewOrderPage() {
                           </div>
 
                           {/* Middle Row: Lengths */}
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                            <div className="space-y-4">
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Raw Length (mins)</label>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <div className="space-y-5">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-1 h-1 rounded-full bg-primary" />
+                                <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Raw Length (mins)</label>
+                              </div>
                               <input 
                                 type="number" 
                                 value={item.params.rawFootageLength || 1}
@@ -468,8 +491,11 @@ export default function NewOrderPage() {
                                 className="w-full bg-black/20 border border-white/5 rounded-xl px-6 py-3 text-white font-bold outline-none focus:border-primary/40"
                               />
                             </div>
-                            <div className="space-y-4">
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Final Length (mins)</label>
+                            <div className="space-y-5">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-1 h-1 rounded-full bg-primary" />
+                                <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Final Length (mins)</label>
+                              </div>
                               <input 
                                 type="number" 
                                 value={item.params.desiredLength || 1}
@@ -480,10 +506,13 @@ export default function NewOrderPage() {
                           </div>
 
                           {/* Visual Tone & Edit Pace */}
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                            <div className="space-y-4">
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Visual Tone</label>
-                              <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <div className="space-y-5">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-1 h-1 rounded-full bg-primary" />
+                                <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Visual Tone</label>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4">
                                 {['Funny', 'Serious', 'Professional', 'Elegant', 'Casual', 'Informational'].map(t => (
                                   <button
                                     key={t}
@@ -501,9 +530,12 @@ export default function NewOrderPage() {
                               </div>
                             </div>
 
-                            <div className="space-y-4">
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Edit Pace</label>
-                              <div className="grid grid-cols-4 gap-3">
+                            <div className="space-y-5">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-1 h-1 rounded-full bg-primary" />
+                                <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Edit Pace</label>
+                              </div>
+                              <div className="grid grid-cols-4 gap-4">
                                 {[
                                   { id: 'Slow', icon: Turtle },
                                   { id: 'Medium', icon: Zap },
@@ -528,10 +560,12 @@ export default function NewOrderPage() {
                             </div>
                           </div>
 
-                          {/* Assets & Resources */}
-                          <div className="space-y-6 pt-6 border-t border-white/5">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Assets & Resources</label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-8 pt-12 border-t border-white/5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Assets & Resources</label>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                               {/* Upload Section */}
                               <label className="flex-1 flex flex-col items-center justify-center p-10 bg-white/[0.01] border-2 border-dashed border-white/5 rounded-2xl hover:border-primary/40 cursor-pointer transition-all group">
                                 <input type="file" multiple className="hidden" onChange={(e) => {
@@ -584,14 +618,121 @@ export default function NewOrderPage() {
                             )}
                           </div>
 
-                          {/* Special Instructions */}
-                          <div className="space-y-4 pt-6 border-t border-white/5">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Special Instructions</label>
+                          <div className="space-y-6 pt-12 border-t border-white/5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Special Instructions</label>
+                            </div>
                             <textarea
                               rows={4}
                               value={item.params.notes || ''}
                               onChange={(e) => updateDraftParam(item.tempId, 'notes', e.target.value)}
                               placeholder="Add any special instructions..."
+                              className="w-full bg-black/20 border border-white/5 rounded-xl px-6 py-4 text-white text-sm outline-none focus:border-primary/40 resize-none transition-all"
+                            />
+                          </div>
+                          </div>
+                        </div>
+                      ) : item.kind === 'THUMBNAIL' ? (
+                        <div className="p-8 md:p-12 space-y-12">
+                          {/* Design Style Section */}
+                          <div className="space-y-6">
+                            <div className="flex items-center gap-2 mb-4">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Design Style</label>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                              {THUMBNAIL_STYLES.map((style) => (
+                                <button
+                                  key={style.id}
+                                  onClick={() => updateDraftParam(item.tempId, 'style', style.id)}
+                                  className={cn(
+                                    "group relative aspect-[16/10] rounded-xl overflow-hidden border-2 transition-all duration-300",
+                                    item.params.style === style.id ? "border-primary shadow-[0_0_20px_rgba(225,29,72,0.3)] scale-[1.02]" : "border-white/5 hover:border-white/20"
+                                  )}
+                                >
+                                  <img src={style.img} alt={style.label} className="w-full h-full object-cover" />
+                                  <div className={cn(
+                                    "absolute inset-0 bg-black/60 flex flex-col items-center justify-end p-3 transition-opacity duration-300",
+                                    item.params.style === style.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                  )}>
+                                    <span className="text-[9px] font-bold text-white uppercase tracking-widest">{style.label}</span>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Assets & Resources */}
+                          <div className="space-y-8 pt-12 border-t border-white/5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Assets & Resources</label>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                              {/* Upload Section */}
+                              <label className="flex-1 flex flex-col items-center justify-center p-10 bg-white/[0.01] border-2 border-dashed border-white/5 rounded-2xl hover:border-primary/40 cursor-pointer transition-all group">
+                                <input type="file" multiple className="hidden" onChange={(e) => {
+                                  if (e.target.files) {
+                                    const newFiles = Array.from(e.target.files)
+                                    setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di))
+                                  }
+                                }} />
+                                <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-all">
+                                  <Plus size={20} className="text-primary" />
+                                </div>
+                                <span className="text-sm font-bold text-white mb-1">Upload Files</span>
+                                <span className="text-[10px] text-text-dim/40 font-medium">References, raw images</span>
+                              </label>
+
+                              {/* External Link Section */}
+                              <div className="flex-1 flex flex-col p-10 bg-white/[0.01] border border-white/5 rounded-2xl hover:border-white/20 transition-all relative group">
+                                <div className="flex flex-col items-center justify-center h-full gap-4">
+                                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center transition-all group-hover:bg-white/10">
+                                    <LinkIcon size={20} className="text-text-dim/40 group-hover:text-white" />
+                                  </div>
+                                  <div className="text-center">
+                                    <span className="text-sm font-bold text-white mb-1 block">External Link</span>
+                                    <span className="text-[10px] text-text-dim/40 font-medium">Drive, Dropbox, etc.</span>
+                                  </div>
+                                  <input 
+                                    type="url"
+                                    placeholder="Paste link here..."
+                                    value={item.params.externalLinks?.[0] || ''}
+                                    onChange={(e) => updateDraftParam(item.tempId, 'externalLinks', [e.target.value])}
+                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-primary/40 mt-2"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* File List */}
+                            {item.files.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {item.files.map((f, fi) => (
+                                  <div key={fi} className="bg-white/5 px-4 py-2 rounded-xl flex items-center gap-3 text-[10px] font-bold border border-white/5">
+                                    <FileText size={14} className="text-primary" />
+                                    <span className="max-w-[150px] truncate">{f.name}</span>
+                                    <button onClick={() => {
+                                      setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: di.files.filter((_, i) => i !== fi) } : di))
+                                    }} className="hover:text-error transition-colors"><X size={14} /></button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Special Instructions */}
+                          <div className="space-y-6 pt-12 border-t border-white/5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Special Instructions</label>
+                            </div>
+                            <textarea
+                              rows={4}
+                              value={item.params.notes || ''}
+                              onChange={(e) => updateDraftParam(item.tempId, 'notes', e.target.value)}
+                              placeholder="Add any special instructions (e.g. text to include)..."
                               className="w-full bg-black/20 border border-white/5 rounded-xl px-6 py-4 text-white text-sm outline-none focus:border-primary/40 resize-none transition-all"
                             />
                           </div>
