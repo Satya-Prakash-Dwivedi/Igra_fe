@@ -45,8 +45,8 @@ export async function getCreditPacks() {
   return res.data.data as CreditPack[]
 }
 
-export async function createPurchase(packId: string) {
-  const res = await api.post('/billing/purchase', { packId }, { headers: idempotencyHeaders() })
+export async function createPurchase(packId: string, amountDollars?: number) {
+  const res = await api.post('/billing/purchase', { packId, amountDollars }, { headers: idempotencyHeaders() })
   return res.data.data as { payment: Payment; approveLink: string }
 }
 

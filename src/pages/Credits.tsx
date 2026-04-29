@@ -12,7 +12,8 @@ import {
   Receipt,
   Star,
   Sparkles,
-  Zap
+  Zap,
+  Coins
 } from 'lucide-react'
 import { createLogger, serializeError } from '../services/logger'
 import { cn } from '../components/Button'
@@ -36,6 +37,7 @@ export default function Credits() {
   const [purchasing, setPurchasing] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'packs' | 'history' | 'invoices'>('packs')
+  const [customAmount, setCustomAmount] = useState<string>('5')
 
   useEffect(() => {
     loadData()
@@ -90,7 +92,13 @@ export default function Credits() {
   async function handlePurchase(packId: string) {
     setPurchasing(packId)
     try {
-      const { approveLink } = await billingApi.createPurchase(packId)
+      const amount = packId === 'custom' ? parseFloat(customAmount) : undefined
+      if (packId === 'custom' && (!amount || amount < 5)) {
+        toast.error('Minimum purchase is $5')
+        setPurchasing(null)
+        return
+      }
+      const { approveLink } = await billingApi.createPurchase(packId, amount)
       if (approveLink) {
         window.location.href = approveLink
       }
@@ -217,6 +225,60 @@ export default function Credits() {
                 </div>
               </div>
             ))}
+
+            {/* Custom Pack Card */}
+            <div 
+              className={cn(
+                "bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 shadow-xl group/pack relative"
+              )}
+              style={{ animationDelay: `${packs.length * 100}ms` }}
+            >
+              <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center mb-8 group-hover/pack:bg-primary group-hover/pack:text-white transition-all duration-300 border border-white/5 shadow-inner">
+                <Coins size={28} />
+              </div>
+
+              <div className="space-y-1 mb-8">
+                 <h3 className="text-2xl font-bold text-white group-hover/pack:text-primary transition-colors">Custom Pack</h3>
+                 <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Buy exactly what you need</p>
+              </div>
+              
+              <div className="mb-10 space-y-4">
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-white/20">$</span>
+                  <input 
+                    type="number"
+                    min="5"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-10 pr-4 text-2xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-white tracking-tight">
+                    {Math.floor((parseFloat(customAmount) || 0) * 7).toLocaleString()}
+                  </div>
+                  <div className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Credits included</div>
+                </div>
+              </div>
+
+              <div className="mt-auto pt-8 border-t border-white/5 flex flex-col items-center gap-8">
+                 <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold text-white">${parseFloat(customAmount || '0').toFixed(0)}</span>
+                    <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Promo Rate: ~35cr/$5</span>
+                 </div>
+                 
+                 <Button
+                  fullWidth
+                  variant="outline"
+                  onClick={() => handlePurchase('custom')}
+                  disabled={purchasing !== null}
+                  className="h-12 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg hover:bg-primary hover:text-white hover:border-primary transition-all"
+                >
+                  {purchasing === 'custom' ? 'Loading...' : 'Buy Credits'}
+                </Button>
+              </div>
+            </div>
           </div>
         ) : activeTab === 'history' ? (
           <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/5 shadow-xl">
