@@ -81,7 +81,9 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     fetchData()
     const interval = setInterval(fetchData, 30_000)
-    const onFocus = () => fetchData()
+    const onFocus = () => {
+      if (document.visibilityState === 'visible') fetchData()
+    }
     document.addEventListener('visibilitychange', onFocus)
     return () => {
       clearInterval(interval)
