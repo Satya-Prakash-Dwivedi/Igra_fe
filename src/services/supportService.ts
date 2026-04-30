@@ -59,6 +59,10 @@ const supportService = {
     )
     return data.data.bugReport
   },
+
+  async reportBug(payload: CreateBugReportData): Promise<BugReport> {
+    return this.createBugReport(payload)
+  },
 }
 
 export default supportService
