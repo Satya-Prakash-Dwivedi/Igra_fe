@@ -286,6 +286,8 @@ export default function OrderDetail() {
     )
   }
 
+  if (!detail) return null
+
   const { order, items, events } = detail
   const canCancel = ['DRAFT', 'UNDER_REVIEW', 'IN_PROGRESS'].includes(order.status)
   const statusInfo = STATUS_MAP[order.status] || { label: order.status, color: 'bg-white/5 text-text-dim border-white/5' }
@@ -378,7 +380,7 @@ export default function OrderDetail() {
       <div className="relative z-10">
         {activeTab === 'items' && (
           <div className="space-y-6">
-            {items.map((item) => (
+            {items.map((item: any) => (
               <div key={item._id} className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden shadow-xl">
                 <div
                   className="p-6 flex items-center justify-between cursor-pointer"
@@ -436,9 +438,9 @@ export default function OrderDetail() {
                         {/* Deliverables Section */}
                         <div className="space-y-3">
                           <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest">Deliverables</h4>
-                          {((item.assets ?? []).filter(a => a.role === 'OUTPUT').length > 0 || (item.deliveryLinks?.length || 0) > 0) ? (
+                          {((item.assets ?? []).filter((a: any) => a.role === 'OUTPUT').length > 0 || (item.deliveryLinks?.length || 0) > 0) ? (
                             <div className="grid grid-cols-2 gap-4">
-                              {(item.assets ?? []).filter(a => a.role === 'OUTPUT').map((asset: any) => (
+                              {(item.assets ?? []).filter((a: any) => a.role === 'OUTPUT').map((asset: any) => (
                                 <div key={asset._id} className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
                                   <div className="flex items-center justify-between">
                                     {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-primary/40" />}
@@ -479,9 +481,9 @@ export default function OrderDetail() {
                         {/* Client Uploads Section */}
                         <div className="space-y-3">
                           <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Your Uploads</h4>
-                          {(item.assets ?? []).filter(a => a.role !== 'OUTPUT').length > 0 ? (
+                          {(item.assets ?? []).filter((a: any) => a.role !== 'OUTPUT').length > 0 ? (
                             <div className="grid grid-cols-2 gap-4">
-                              {(item.assets ?? []).filter(a => a.role !== 'OUTPUT').map((asset: any) => (
+                              {(item.assets ?? []).filter((a: any) => a.role !== 'OUTPUT').map((asset: any) => (
                                 <div key={asset._id} className="group relative bg-black/20 border border-white/5 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
                                   <div className="flex items-center justify-between">
                                     {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-text-dim/40" />}
@@ -537,25 +539,24 @@ export default function OrderDetail() {
                 </div>
               ) : (
                 messages.map((msg) => {
-                  messages.map((msg) => {
-                    if (!msg) return null;
-                    const senderId = msg.senderId?._id || msg.senderId;
-                    const currentUserId = auth?.user?._id || (auth?.user as any)?.id;
-                    const isMine = senderId === currentUserId;
-                    return (
-                      <div key={msg._id} className={cn("flex flex-col", isMine ? "items-end" : "items-start")}>
-                        <div className={cn(
-                          "px-4 py-2.5 max-w-[80%] text-sm font-medium rounded-2xl shadow-lg",
-                          isMine ? "bg-primary text-white rounded-tr-none" : "bg-bg-dark border border-white/5 text-text-dim rounded-tl-none"
-                        )}>
-                          {msg.content}
-                        </div>
-                        <span className="text-[8px] font-bold text-text-dim/20 uppercase mt-1 px-1">
-                          {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                        </span>
+                  if (!msg) return null;
+                  const senderId = msg.senderId?._id || msg.senderId;
+                  const currentUserId = auth?.user?._id || (auth?.user as any)?.id;
+                  const isMine = senderId === currentUserId;
+                  return (
+                    <div key={msg._id} className={cn("flex flex-col", isMine ? "items-end" : "items-start")}>
+                      <div className={cn(
+                        "px-4 py-2.5 max-w-[80%] text-sm font-medium rounded-2xl shadow-lg",
+                        isMine ? "bg-primary text-white rounded-tr-none" : "bg-bg-dark border border-white/5 text-text-dim rounded-tl-none"
+                      )}>
+                        {msg.content}
                       </div>
-                    )
-                  })
+                      <span className="text-[8px] font-bold text-text-dim/20 uppercase mt-1 px-1">
+                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </span>
+                    </div>
+                  )
+                })
               )}
               <div ref={chatEndRef} />
             </div>
@@ -580,7 +581,7 @@ export default function OrderDetail() {
         {activeTab === 'timeline' && (
           <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 p-8 shadow-xl">
             <div className="space-y-8 border-l border-white/5 ml-4 pl-8">
-              {events.map((event) => (
+              {events.map((event: any) => (
                 <div key={event._id} className="relative">
                   <div className="absolute -left-[41px] top-1 w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(225,29,72,0.5)]" />
                   <div className="space-y-1">
