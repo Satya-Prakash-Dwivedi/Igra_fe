@@ -127,18 +127,26 @@ const ItemCard: React.FC<{
   }
 
   const handleRefund = async () => {
-    if (!confirm('Issue refund for this failed item?')) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      await adminService.refundItem(orderId, item._id)
-      setError(null)
-    } catch (err) {
-      logger.error('admin_item.refund_failed', { error: serializeError(err) })
-      setError('Refund failed.')
-    } finally {
-      setIsLoading(false)
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Issue Refund',
+      message: 'Are you sure you want to issue a full refund for this failed service? This will credit the client wallet.',
+      variant: 'error',
+      onConfirm: async () => {
+        setIsLoading(true)
+        setError(null)
+        try {
+          await adminService.refundItem(orderId, item._id)
+          setError(null)
+          setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
+        } catch (err) {
+          logger.error('admin_item.refund_failed', { error: serializeError(err) })
+          setError('Refund failed.')
+        } finally {
+          setIsLoading(false)
+        }
+      }
+    })
   }
 
   const handleFileUpload = async (files: FileList | null) => {
@@ -164,15 +172,23 @@ const ItemCard: React.FC<{
   }
 
   const handleRemoveAsset = async (assetId: string) => {
-    if (!confirm('Remove this asset?')) return
-    try {
-      await adminService.removeAsset(orderId, item._id, assetId)
-      const updated = { ...item, assets: (item.assets ?? []).filter(a => a._id !== assetId) }
-      onUpdated(updated)
-    } catch (err) {
-      logger.error('admin_item.asset_remove_failed', { error: serializeError(err) })
-      setError('Remove failed.')
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Remove Asset',
+      message: 'Are you sure you want to remove this asset? This action is permanent.',
+      variant: 'error',
+      onConfirm: async () => {
+        try {
+          await adminService.removeAsset(orderId, item._id, assetId)
+          const updated = { ...item, assets: (item.assets ?? []).filter(a => a._id !== assetId) }
+          onUpdated(updated)
+          setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
+        } catch (err) {
+          logger.error('admin_item.asset_remove_failed', { error: serializeError(err) })
+          setError('Remove failed.')
+        }
+      }
+    })
   }
 
   const handleAddLink = async () => {
@@ -520,7 +536,6 @@ const ItemCard: React.FC<{
 
 const AdminOrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const auth = React.useContext(AuthContext)
 
   const [detail, setDetail] = useState<AdminOrderDetailData | null>(null)
