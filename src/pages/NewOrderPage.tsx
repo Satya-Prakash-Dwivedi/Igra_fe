@@ -6,7 +6,7 @@ import * as uploadApi from '../services/uploadService'
 import {
   ArrowLeft, ArrowRight, PlaySquare, Image, PlayCircle, StopCircle, Mic,
   FileText, Search, Layout, PenTool, LayoutGrid, Phone, Eye, MessageSquare,
-  Plus, X, Info, Link as LinkIcon, Loader2, Check, ExternalLink, Calendar,
+  Plus, X, Info, Link as LinkIcon,
   Monitor, Smartphone, Square, HelpCircle, Turtle, Zap, Flame, Rocket
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
@@ -21,6 +21,18 @@ import versusImg from '../assets/thumbnails/versus.png'
 import processImg from '../assets/thumbnails/process.png'
 import noTextImg from '../assets/thumbnails/no_text.png'
 import otherImg from '../assets/thumbnails/other.png'
+
+const THUMBNAIL_STYLES = [
+  { id: 'Exaggerated', label: 'EXAGGERATED', img: exaggeratedImg },
+  { id: 'Headshot', label: 'HEADSHOT', img: headshotImg },
+  { id: 'Quote', label: 'QUOTE', img: quoteImg },
+  { id: 'Statement', label: 'STATEMENT', img: statementImg },
+  { id: 'BeforeAfter', label: 'BEFORE & AFTER', img: beforeAfterImg },
+  { id: 'Versus', label: 'VERSUS', img: versusImg },
+  { id: 'Process', label: 'PROCESS', img: processImg },
+  { id: 'NoText', label: 'NO TEXT', img: noTextImg },
+  { id: 'Other', label: 'OTHER', img: otherImg },
+]
 
 const SERVICE_CATALOG = [
   { kind: 'VIDEO_EDIT', label: 'Video editing', icon: PlaySquare, desc: 'Professional post-production for any format', minCredits: 0 },
@@ -188,20 +200,37 @@ export default function NewOrderPage() {
       initialParams.notes = ''
     } else if (kind === 'THUMBNAIL') {
       initialParams.style = 'Exaggerated'
+      initialParams.externalLinks = []
+      initialParams.notes = ''
+    } else if (['INTRO', 'OUTRO', 'CHANNEL_BANNER', 'LOGO_DESIGN', 'IMAGE_RETOUCHING'].includes(kind)) {
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'VOICEOVER') {
       initialParams.scriptLength = 5
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'SCRIPT') {
       initialParams.wordCount = 500
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'SEO') {
       initialParams.videoUrl = ''
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'CONSULTATION') {
       initialParams.duration = 15
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'FOOTAGE_REVIEW') {
       initialParams.footageLength = 10
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'CUSTOM') {
-      initialParams.description = 'Custom request...'
+      initialParams.description = 'Custom request description...'
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else {
-      initialParams.uploadType = 'file'
+      initialParams.externalLinks = []
       initialParams.notes = ''
     }
     
@@ -225,6 +254,112 @@ export default function NewOrderPage() {
       return item
     }))
   }
+
+  const renderAssetsAndInstructions = (item: DraftItem) => (
+    <>
+      {/* Assets & Resources */}
+      <div className="space-y-6 pt-10 border-t border-white/5">
+        <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Assets & Resources</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Upload Section */}
+          <label className="flex-1 flex flex-col items-center justify-center p-12 bg-white/[0.01] border-2 border-dashed border-white/5 rounded-3xl hover:border-primary/40 cursor-pointer transition-all group">
+            <input type="file" multiple className="hidden" onChange={(e) => {
+              if (e.target.files) {
+                const newFiles = Array.from(e.target.files)
+                setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di))
+              }
+            }} />
+            <div className="w-14 h-14 rounded-full bg-primary/5 flex items-center justify-center mb-5 group-hover:bg-primary/10 transition-all border border-primary/10">
+              <Plus size={24} className="text-primary" />
+            </div>
+            <span className="text-base font-bold text-white mb-1">Upload Files</span>
+            <span className="text-xs text-text-dim/40 font-medium">Raw, music, references</span>
+          </label>
+
+          {/* External Link Section */}
+          <div className="flex-1 flex flex-col p-12 bg-white/[0.01] border border-white/5 rounded-3xl hover:border-white/20 transition-all relative group h-full">
+            <div className="flex flex-col h-full gap-5">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center transition-all group-hover:bg-white/10">
+                  <LinkIcon size={18} className="text-text-dim/40 group-hover:text-white" />
+                </div>
+                <div>
+                  <span className="text-sm font-bold text-white block">External Links</span>
+                  <span className="text-[10px] text-text-dim/40 font-medium">Drive, Dropbox, etc.</span>
+                </div>
+              </div>
+              
+              <div className="space-y-3 overflow-y-auto max-h-[200px] pr-2 custom-scrollbar">
+                {(item.params.externalLinks || ['']).map((link: string, lIdx: number) => (
+                  <div key={lIdx} className="flex gap-2 animate-in slide-in-from-right-2" style={{ animationDelay: `${lIdx * 50}ms` }}>
+                    <input 
+                      type="url"
+                      placeholder={`Link #${lIdx + 1}`}
+                      value={link}
+                      onChange={(e) => {
+                        const newLinks = [...(item.params.externalLinks || [''])]
+                        newLinks[lIdx] = e.target.value
+                        updateDraftParam(item.tempId, 'externalLinks', newLinks)
+                      }}
+                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 transition-all"
+                    />
+                    {(item.params.externalLinks?.length > 1 || link) && (
+                      <button 
+                        onClick={() => {
+                          const newLinks = (item.params.externalLinks || ['']).filter((_: any, i: number) => i !== lIdx)
+                          updateDraftParam(item.tempId, 'externalLinks', newLinks.length ? newLinks : [''])
+                        }}
+                        className="w-10 h-10 rounded-xl bg-error/10 text-error flex items-center justify-center hover:bg-error hover:text-white transition-all shrink-0"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <button 
+                onClick={() => {
+                  const newLinks = [...(item.params.externalLinks || ['']), '']
+                  updateDraftParam(item.tempId, 'externalLinks', newLinks)
+                }}
+                className="w-full py-2.5 rounded-xl border border-dashed border-white/10 text-[10px] font-bold uppercase tracking-widest text-text-dim/40 hover:border-primary/40 hover:text-primary transition-all mt-auto"
+              >
+                + Add Another Link
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* File List */}
+        {item.files.length > 0 && (
+          <div className="flex flex-wrap gap-3">
+            {item.files.map((f, fi) => (
+              <div key={fi} className="bg-white/5 px-5 py-3 rounded-2xl flex items-center gap-4 text-[11px] font-bold border border-white/5 animate-in zoom-in-95">
+                <FileText size={16} className="text-primary" />
+                <span className="max-w-[180px] truncate">{f.name}</span>
+                <button onClick={() => {
+                  setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: di.files.filter((_, i) => i !== fi) } : di))
+                }} className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-error hover:text-white transition-all"><X size={14} /></button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Special Instructions */}
+      <div className="space-y-4 pt-10 border-t border-white/5">
+        <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Special Instructions</label>
+        <textarea
+          rows={5}
+          value={item.params.notes || ''}
+          onChange={(e) => updateDraftParam(item.tempId, 'notes', e.target.value)}
+          placeholder="Add any special instructions..."
+          className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-6 text-white text-base outline-none focus:border-primary/40 resize-none transition-all focus:ring-2 focus:ring-primary/5 shadow-inner"
+        />
+      </div>
+    </>
+  )
 
   const totalEstimatedCredits = draftItems.reduce((sum, item) => sum + estimateCredits(item), 0)
   const canAfford = balance >= (stepIndex === 3 ? confirmedTotal : totalEstimatedCredits)
@@ -528,73 +663,132 @@ export default function NewOrderPage() {
                             </div>
                           </div>
 
-                          {/* Assets & Resources */}
-                          <div className="space-y-6 pt-6 border-t border-white/5">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Assets & Resources</label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              {/* Upload Section */}
-                              <label className="flex-1 flex flex-col items-center justify-center p-10 bg-white/[0.01] border-2 border-dashed border-white/5 rounded-2xl hover:border-primary/40 cursor-pointer transition-all group">
-                                <input type="file" multiple className="hidden" onChange={(e) => {
-                                  if (e.target.files) {
-                                    const newFiles = Array.from(e.target.files)
-                                    setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di))
-                                  }
-                                }} />
-                                <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-all">
-                                  <Plus size={20} className="text-primary" />
-                                </div>
-                                <span className="text-sm font-bold text-white mb-1">Upload Files</span>
-                                <span className="text-[10px] text-text-dim/40 font-medium">Raw, music, references</span>
-                              </label>
-
-                              {/* External Link Section */}
-                              <div className="flex-1 flex flex-col p-10 bg-white/[0.01] border border-white/5 rounded-2xl hover:border-white/20 transition-all relative group">
-                                <div className="flex flex-col items-center justify-center h-full gap-4">
-                                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center transition-all group-hover:bg-white/10">
-                                    <LinkIcon size={20} className="text-text-dim/40 group-hover:text-white" />
+                          {renderAssetsAndInstructions(item)}
+                        </div>
+                      ) : item.kind === 'THUMBNAIL' ? (
+                        <div className="space-y-10 px-8 py-10">
+                          {/* Design Style */}
+                          <div className="space-y-6">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Design Style</label>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                              {THUMBNAIL_STYLES.map((s) => (
+                                <button
+                                  key={s.id}
+                                  onClick={() => updateDraftParam(item.tempId, 'style', s.id)}
+                                  className={cn(
+                                    "group relative flex flex-col items-center gap-4 bg-bg-card/40 border rounded-2xl p-3 transition-all duration-300 hover:border-primary/40",
+                                    item.params.style === s.id ? "border-primary ring-1 ring-primary/20 shadow-lg shadow-primary/5" : "border-white/5"
+                                  )}
+                                >
+                                  <div className="aspect-[16/10] w-full overflow-hidden rounded-xl bg-black/40">
+                                    <img 
+                                      src={s.img} 
+                                      alt={s.label} 
+                                      className={cn(
+                                        "w-full h-full object-cover transition-all duration-500",
+                                        item.params.style === s.id ? "scale-105" : "opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-105"
+                                      )} 
+                                    />
                                   </div>
-                                  <div className="text-center">
-                                    <span className="text-sm font-bold text-white mb-1 block">External Link</span>
-                                    <span className="text-[10px] text-text-dim/40 font-medium">Drive, Dropbox, etc.</span>
-                                  </div>
-                                  <input 
-                                    type="url"
-                                    placeholder="Paste link here..."
-                                    value={item.params.externalLinks?.[0] || ''}
-                                    onChange={(e) => updateDraftParam(item.tempId, 'externalLinks', [e.target.value])}
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-primary/40 mt-2"
-                                  />
-                                </div>
-                              </div>
+                                  <span className={cn(
+                                    "text-[9px] font-black uppercase tracking-widest transition-colors",
+                                    item.params.style === s.id ? "text-primary" : "text-text-dim/40 group-hover:text-white"
+                                  )}>
+                                    {s.label}
+                                  </span>
+                                </button>
+                              ))}
                             </div>
-
-                            {/* File List */}
-                            {item.files.length > 0 && (
-                              <div className="flex flex-wrap gap-2">
-                                {item.files.map((f, fi) => (
-                                  <div key={fi} className="bg-white/5 px-4 py-2 rounded-xl flex items-center gap-3 text-[10px] font-bold border border-white/5">
-                                    <FileText size={14} className="text-primary" />
-                                    <span className="max-w-[150px] truncate">{f.name}</span>
-                                    <button onClick={() => {
-                                      setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: di.files.filter((_, i) => i !== fi) } : di))
-                                    }} className="hover:text-error transition-colors"><X size={14} /></button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
                           </div>
 
-                          {/* Special Instructions */}
-                          <div className="space-y-4 pt-6 border-t border-white/5">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Special Instructions</label>
-                            <textarea
-                              rows={4}
-                              value={item.params.notes || ''}
-                              onChange={(e) => updateDraftParam(item.tempId, 'notes', e.target.value)}
-                              placeholder="Add any special instructions..."
-                              className="w-full bg-black/20 border border-white/5 rounded-xl px-6 py-4 text-white text-sm outline-none focus:border-primary/40 resize-none transition-all"
+                          {renderAssetsAndInstructions(item)}
+                        </div>
+                      ) : item.kind === 'VOICEOVER' ? (
+                        <div className="space-y-10 px-8 py-10">
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Script Length (Minutes)</label>
+                            <input 
+                              type="number" 
+                              value={item.params.scriptLength || 5}
+                              onChange={(e) => updateDraftParam(item.tempId, 'scriptLength', parseInt(e.target.value))}
+                              className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 text-lg"
                             />
                           </div>
+                          {renderAssetsAndInstructions(item)}
+                        </div>
+                      ) : item.kind === 'SCRIPT' ? (
+                        <div className="space-y-10 px-8 py-10">
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Estimated Word Count</label>
+                            <input 
+                              type="number" 
+                              value={item.params.wordCount || 500}
+                              onChange={(e) => updateDraftParam(item.tempId, 'wordCount', parseInt(e.target.value))}
+                              className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 text-lg"
+                            />
+                          </div>
+                          {renderAssetsAndInstructions(item)}
+                        </div>
+                      ) : item.kind === 'SEO' ? (
+                        <div className="space-y-10 px-8 py-10">
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Video URL</label>
+                            <input 
+                              type="url" 
+                              placeholder="https://youtube.com/watch?v=example"
+                              value={item.params.videoUrl || ''}
+                              onChange={(e) => updateDraftParam(item.tempId, 'videoUrl', e.target.value)}
+                              className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40"
+                            />
+                          </div>
+                          {renderAssetsAndInstructions(item)}
+                        </div>
+                      ) : item.kind === 'CONSULTATION' ? (
+                        <div className="space-y-10 px-8 py-10">
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Duration (Minutes)</label>
+                            <select 
+                              value={item.params.duration || 15}
+                              onChange={(e) => updateDraftParam(item.tempId, 'duration', parseInt(e.target.value))}
+                              className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 appearance-none cursor-pointer"
+                            >
+                              {[15, 30, 45, 60].map(m => (
+                                <option key={m} value={m} className="bg-bg-dark text-white">{m} Minutes</option>
+                              ))}
+                            </select>
+                          </div>
+                          {renderAssetsAndInstructions(item)}
+                        </div>
+                      ) : item.kind === 'FOOTAGE_REVIEW' ? (
+                        <div className="space-y-10 px-8 py-10">
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Raw Footage Length (Minutes)</label>
+                            <input 
+                              type="number" 
+                              value={item.params.footageLength || 10}
+                              onChange={(e) => updateDraftParam(item.tempId, 'footageLength', parseInt(e.target.value))}
+                              className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 text-lg"
+                            />
+                          </div>
+                          {renderAssetsAndInstructions(item)}
+                        </div>
+                      ) : item.kind === 'CUSTOM' ? (
+                        <div className="space-y-10 px-8 py-10">
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Description of Request</label>
+                            <textarea 
+                              rows={4}
+                              placeholder="Custom request description..."
+                              value={item.params.description || ''}
+                              onChange={(e) => updateDraftParam(item.tempId, 'description', e.target.value)}
+                              className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-6 text-white text-base outline-none focus:border-primary/40 resize-none transition-all focus:ring-2 focus:ring-primary/5 shadow-inner"
+                            />
+                          </div>
+                          {renderAssetsAndInstructions(item)}
+                        </div>
+                      ) : (['INTRO', 'OUTRO', 'CHANNEL_BANNER', 'LOGO_DESIGN', 'IMAGE_RETOUCHING'].includes(item.kind)) ? (
+                        <div className="space-y-10 px-8 py-10">
+                          {renderAssetsAndInstructions(item)}
                         </div>
                       ) : (
                         <div className="p-8 space-y-8">

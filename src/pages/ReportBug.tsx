@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
 import * as uploadApi from '../services/uploadService'
-import * as supportApi from '../services/supportService'
+import supportApi from '../services/supportService'
 import { createLogger, serializeError } from '../services/logger'
 import { toast } from 'sonner'
 

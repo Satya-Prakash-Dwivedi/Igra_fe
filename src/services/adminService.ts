@@ -81,6 +81,7 @@ export interface AdminOrderItem {
   allowedRevisions: number
   params: Record<string, unknown>
   assets?: AdminOrderAsset[]
+  deliveryLinks?: string[]
 }
 
 export interface AdminOrderEvent {
@@ -211,6 +212,16 @@ const adminService = {
 
   async removeAsset(oid: string, iid: string, assetId: string): Promise<void> {
     await api.delete(`/admin/orders/${oid}/items/${iid}/assets/${assetId}`)
+  },
+
+  async addDeliveryLink(oid: string, iid: string, link: string): Promise<AdminOrderItem> {
+    const { data } = await api.post(`/admin/orders/${oid}/items/${iid}/links`, { link })
+    return data.data.item
+  },
+
+  async removeDeliveryLink(oid: string, iid: string, link: string): Promise<AdminOrderItem> {
+    const { data } = await api.delete(`/admin/orders/${oid}/items/${iid}/links`, { data: { link } })
+    return data.data.item
   },
   
   async deliverOrder(id: string): Promise<AdminOrder> {

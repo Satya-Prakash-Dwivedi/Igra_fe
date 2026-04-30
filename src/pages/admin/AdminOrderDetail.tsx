@@ -93,6 +93,8 @@ const ItemCard: React.FC<{
   const [isLoading, setIsLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [newLink, setNewLink] = useState('')
+  const [isAddingLink, setIsAddingLink] = useState(false)
 
   const validTransitions = ITEM_TRANSITIONS[item.status] ?? []
 
@@ -169,6 +171,33 @@ const ItemCard: React.FC<{
       onUpdated(updated)
     } catch (err) {
       logger.error('admin_item.asset_remove_failed', { error: serializeError(err) })
+      setError('Remove failed.')
+    }
+  }
+
+  const handleAddLink = async () => {
+    if (!newLink.trim()) return
+    setIsAddingLink(true)
+    setError(null)
+    try {
+      const updated = await adminService.addDeliveryLink(orderId, item._id, newLink.trim())
+      onUpdated(updated)
+      setNewLink('')
+    } catch (err) {
+      logger.error('admin_item.add_link_failed', { error: serializeError(err) })
+      setError('Add link failed.')
+    } finally {
+      setIsAddingLink(false)
+    }
+  }
+
+  const handleRemoveLink = async (link: string) => {
+    if (!confirm('Remove this link?')) return
+    try {
+      const updated = await adminService.removeDeliveryLink(orderId, item._id, link)
+      onUpdated(updated)
+    } catch (err) {
+      logger.error('admin_item.link_remove_failed', { error: serializeError(err) })
       setError('Remove failed.')
     }
   }
@@ -315,9 +344,9 @@ const ItemCard: React.FC<{
                 <section className="space-y-6">
                   <div className="flex items-center gap-3">
                     <ImageIcon size={14} className="text-primary/40" />
-                    <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Output deliverables ({(item.assets ?? []).filter(a => a.role === 'OUTPUT').length})</h4>
+                    <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Output deliverables ({(item.assets ?? []).filter(a => a.role === 'OUTPUT').length + (item.deliveryLinks?.length || 0)})</h4>
                   </div>
-                  {(item.assets ?? []).filter(a => a.role === 'OUTPUT').length > 0 ? (
+                  {((item.assets ?? []).filter(a => a.role === 'OUTPUT').length > 0 || (item.deliveryLinks?.length || 0) > 0) ? (
                     <div className="grid grid-cols-2 gap-4">
                       {(item.assets ?? []).filter(a => a.role === 'OUTPUT').map((asset) => (
                         <div key={asset._id} className="group/asset relative bg-primary/5 border border-primary/10 rounded-3xl overflow-hidden hover:border-primary/40 transition-all duration-500 shadow-xl">
@@ -348,6 +377,33 @@ const ItemCard: React.FC<{
                             <div className="flex items-center justify-between opacity-40 text-[8px] font-bold uppercase tracking-widest mt-1.5">
                               <span>{(asset.sizeBytes / 1024 / 1024).toFixed(1)}MB</span>
                               <span className="text-primary">{asset.role}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {item.deliveryLinks?.map((link, idx) => (
+                        <div key={idx} className="group/link relative bg-primary/5 border border-primary/10 rounded-3xl overflow-hidden hover:border-primary/40 transition-all duration-500 shadow-xl">
+                          <div className="aspect-[4/3] w-full bg-black/60 flex items-center justify-center relative overflow-hidden p-6 text-center">
+                            <div className="space-y-3">
+                              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
+                                <ExternalLink size={24} />
+                              </div>
+                              <p className="text-[10px] font-bold text-white uppercase tracking-widest truncate max-w-full">{link}</p>
+                            </div>
+                            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/link:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 backdrop-blur-md">
+                              <a href={link} target="_blank" rel="noreferrer" className="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-xl transition-all shadow-xl shadow-primary/20 scale-110">
+                                <ExternalLink size={18} />
+                              </a>
+                              <button onClick={() => handleRemoveLink(link)} className="w-10 h-10 flex items-center justify-center bg-error/10 text-error rounded-xl hover:bg-error hover:text-white transition-all shadow-xl shadow-error/10">
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="p-4 bg-white/[0.02]">
+                            <p className="text-[10px] text-white font-bold truncate tracking-tight">External Delivery Link</p>
+                            <div className="flex items-center justify-between opacity-40 text-[8px] font-bold uppercase tracking-widest mt-1.5">
+                              <span>WEB LINK</span>
+                              <span className="text-primary">DELIVERY</span>
                             </div>
                           </div>
                         </div>
@@ -406,28 +462,54 @@ const ItemCard: React.FC<{
                 </section>
               </div>
 
-              <label className={cn(
-                "group/up relative flex flex-col items-center justify-center gap-4 border-2 border-dashed rounded-[2.5rem] py-14 transition-all duration-500 cursor-pointer overflow-hidden",
-                uploading ? "opacity-50 pointer-events-none border-primary/20" : "border-white/5 bg-black/20 hover:bg-primary/5 hover:border-primary/20"
-              )}>
-                <input type="file" multiple className="hidden" disabled={uploading} onChange={(e) => handleFileUpload(e.target.files)} />
-                {uploading ? (
-                  <div className="flex flex-col items-center gap-4">
-                    <Loader2 size={32} className="animate-spin text-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary animate-pulse">Uploading to studio...</span>
+              <div className="space-y-6">
+                <label className={cn(
+                  "group/up relative flex flex-col items-center justify-center gap-4 border-2 border-dashed rounded-[2.5rem] py-14 transition-all duration-500 cursor-pointer overflow-hidden",
+                  uploading ? "opacity-50 pointer-events-none border-primary/20" : "border-white/5 bg-black/20 hover:bg-primary/5 hover:border-primary/20"
+                )}>
+                  <input type="file" multiple className="hidden" disabled={uploading} onChange={(e) => handleFileUpload(e.target.files)} />
+                  {uploading ? (
+                    <div className="flex flex-col items-center gap-4">
+                      <Loader2 size={32} className="animate-spin text-primary" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary animate-pulse">Uploading to studio...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 rounded-[1.5rem] bg-white/5 flex items-center justify-center text-text-dim/40 group-hover/up:scale-110 group-hover/up:bg-primary group-hover/up:text-white group-hover/up:rotate-12 transition-all duration-500 shadow-2xl">
+                        <UploadCloud size={24} />
+                      </div>
+                      <div className="text-center space-y-1">
+                        <p className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Add production deliverables</p>
+                        <p className="text-[9px] font-medium text-text-dim/20 uppercase tracking-widest">Images, videos, or design assets</p>
+                      </div>
+                    </>
+                  )}
+                </label>
+
+                <div className="bg-bg-card/40 border border-white/5 rounded-[2.5rem] p-8 space-y-6">
+                  <div className="flex items-center gap-3">
+                    <ExternalLink size={14} className="text-primary/40" />
+                    <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">External Link Deliverable</h4>
                   </div>
-                ) : (
-                  <>
-                    <div className="w-16 h-16 rounded-[1.5rem] bg-white/5 flex items-center justify-center text-text-dim/40 group-hover/up:scale-110 group-hover/up:bg-primary group-hover/up:text-white group-hover/up:rotate-12 transition-all duration-500 shadow-2xl">
-                      <UploadCloud size={24} />
-                    </div>
-                    <div className="text-center space-y-1">
-                      <p className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Add production deliverables</p>
-                      <p className="text-[9px] font-medium text-text-dim/20 uppercase tracking-widest">Images, videos, or design assets</p>
-                    </div>
-                  </>
-                )}
-              </label>
+                  <div className="flex gap-3">
+                    <input 
+                      type="text" 
+                      value={newLink}
+                      onChange={(e) => setNewLink(e.target.value)}
+                      placeholder="https://google-drive.com/..."
+                      className="flex-1 bg-black/40 border border-white/5 rounded-xl px-5 py-3 text-sm text-white focus:outline-none focus:border-primary/40 transition-all"
+                    />
+                    <Button 
+                      onClick={handleAddLink}
+                      isLoading={isAddingLink}
+                      disabled={!newLink.trim()}
+                      className="rounded-xl px-6 bg-primary text-white border-none text-[10px] font-bold uppercase tracking-widest"
+                    >
+                      Add Link
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

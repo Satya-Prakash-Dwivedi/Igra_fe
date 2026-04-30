@@ -7,7 +7,6 @@ import type { OrderDetail as OrderDetailType, Message } from '../services/orderS
 import {
   ArrowLeft,
   Send,
-  CheckCircle,
   Package,
   MessageSquare,
   Activity,
@@ -16,17 +15,9 @@ import {
   Loader2,
   Trash2,
   ExternalLink,
-  Video,
-  File as FileIcon,
-  X,
   Maximize2,
   Download,
-  ShieldCheck,
-  Zap,
-  Clock,
-  ChevronRight,
-  Cpu,
-  Monitor,
+  File as FileIcon,
   Check
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
@@ -51,13 +42,7 @@ const STATUS_MAP: Record<string, { label: string, color: string }> = {
   PENDING_PAYMENT: { label: 'Pending payment', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
 }
 
-const ORDER_STEPS = [
-  { id: 'DRAFT', label: 'Draft' },
-  { id: 'PENDING_INPUT', label: 'Queued' },
-  { id: 'IN_PROGRESS', label: 'Production' },
-  { id: 'DELIVERED', label: 'Review' },
-  { id: 'COMPLETED', label: 'Final' }
-]
+
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>()
@@ -71,7 +56,6 @@ export default function OrderDetail() {
   const [activeTab, setActiveTab] = useState<'items' | 'chat' | 'timeline'>('items')
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [uploadingItem, setUploadingItem] = useState<string | null>(null)
-  const [previewAsset, setPreviewAsset] = useState<any | null>(null)
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -448,7 +432,7 @@ export default function OrderDetail() {
                           {/* Deliverables Section */}
                           <div className="space-y-3">
                             <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest">Deliverables</h4>
-                            {(item.assets ?? []).filter(a => a.role === 'OUTPUT').length > 0 ? (
+                            {((item.assets ?? []).filter(a => a.role === 'OUTPUT').length > 0 || (item.deliveryLinks?.length || 0) > 0) ? (
                               <div className="grid grid-cols-2 gap-4">
                                 {(item.assets ?? []).filter(a => a.role === 'OUTPUT').map((asset: any) => (
                                   <div key={asset._id} className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
@@ -463,6 +447,23 @@ export default function OrderDetail() {
                                     >
                                       <Download size={10} /> Download
                                     </button>
+                                  </div>
+                                ))}
+                                {item.deliveryLinks?.map((link: string, idx: number) => (
+                                  <div key={idx} className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
+                                    <div className="flex items-center justify-between">
+                                      <ExternalLink size={14} className="text-primary/40" />
+                                      <span className="text-[8px] font-bold text-primary uppercase tracking-widest">External Link</span>
+                                    </div>
+                                    <p className="text-[10px] text-white font-bold truncate">{link}</p>
+                                    <a 
+                                      href={link} 
+                                      target="_blank" 
+                                      rel="noreferrer"
+                                      className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                                    >
+                                      <ExternalLink size={10} /> Open Link
+                                    </a>
                                   </div>
                                 ))}
                               </div>
@@ -531,7 +532,7 @@ export default function OrderDetail() {
                   <p className="text-xs font-bold uppercase tracking-widest">No messages yet</p>
                 </div>
               ) : (
-                messages.map((msg, i) => {
+                messages.map((msg) => {
                   if (!msg) return null;
                   const senderId = msg.senderId?._id || msg.senderId;
                   const currentUserId = auth?.user?._id || (auth?.user as any)?.id;

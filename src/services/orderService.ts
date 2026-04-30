@@ -36,6 +36,7 @@ export interface OrderItem {
   allowedRevisions: number
   usedRevisions: number
   dependsOnItemIds: string[]
+  deliveryLinks?: string[]
   assets?: Array<{
     _id: string
     originalName: string

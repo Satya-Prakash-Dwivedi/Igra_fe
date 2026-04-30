@@ -238,7 +238,7 @@ const AdminDashboard: React.FC = () => {
                         recentMessages.map(msg => (
                             <div 
                                 key={msg._id}
-                                onClick={() => navigate(`/admin/orders/${msg.orderId?._id}`)}
+                                onClick={() => navigate(`/admin/orders/${typeof msg.orderId === 'object' ? msg.orderId?._id : msg.orderId}`)}
                                 className="group flex items-start gap-5 p-5 bg-black/40 border border-white/5 rounded-[2rem] hover:border-blue-500/40 hover:bg-blue-500/[0.02] transition-all duration-300 cursor-pointer"
                             >
                                 <div className="w-10 h-10 rounded-2xl bg-white/5 flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/5">

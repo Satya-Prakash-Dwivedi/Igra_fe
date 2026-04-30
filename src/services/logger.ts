@@ -38,6 +38,29 @@ function write(level: LogLevel, message: string, context?: LogContext) {
     return
   }
 
+  if (environment === 'development') {
+    const timestamp = new Date().toLocaleTimeString([], { hour12: false })
+    const icons = { debug: '🐞', info: 'ℹ️', warn: '⚠️', error: '🚨' }
+    const colors = { debug: '#7f8c8d', info: '#3498db', warn: '#f39c12', error: '#e74c3c' }
+    
+    const scope = (context?.scope as string) || 'global'
+    const cleanContext = { ...context }
+    delete cleanContext.scope
+
+    console.groupCollapsed(
+      `%c${icons[level]} ${timestamp} %c${level.toUpperCase()}%c [${scope}] %c${message}`,
+      'color: #95a5a6; font-weight: normal;',
+      `color: ${colors[level]}; font-weight: bold;`,
+      'color: #9b59b6; font-weight: bold;',
+      'color: #ecf0f1; font-weight: normal;'
+    )
+    if (Object.keys(cleanContext).length > 0) {
+      console.log('Context:', cleanContext)
+    }
+    console.groupEnd()
+    return
+  }
+
   const entry: BrowserLogEntry = {
     timestamp: new Date().toISOString(),
     level,
@@ -50,18 +73,10 @@ function write(level: LogLevel, message: string, context?: LogContext) {
   const payload = JSON.stringify(entry)
 
   switch (level) {
-    case 'debug':
-      console.debug(payload)
-      break
-    case 'info':
-      console.info(payload)
-      break
-    case 'warn':
-      console.warn(payload)
-      break
-    case 'error':
-      console.error(payload)
-      break
+    case 'debug': console.debug(payload); break
+    case 'info': console.info(payload); break
+    case 'warn': console.warn(payload); break
+    case 'error': console.error(payload); break
   }
 }
 
