@@ -44,7 +44,7 @@ const DashboardLayout: React.FC = () => {
           isSidebarCollapsed ? "md:pl-[72px]" : "md:pl-64"
         )}>
           <Navbar onMenuClick={() => setIsMobileMenuOpen(true)} />
-          <main className="flex-1 p-6 md:p-10 animate-in fade-in slide-in-up duration-200">
+          <main className="flex-1 p-6 md:p-8 animate-in fade-in slide-in-up duration-200">
             <Outlet />
           </main>
         </div>

@@ -36,6 +36,7 @@ export interface OrderItem {
   allowedRevisions: number
   usedRevisions: number
   dependsOnItemIds: string[]
+  deliveryLinks?: string[]
   assets?: Array<{
     _id: string
     originalName: string
@@ -152,4 +153,19 @@ export async function getMessages(orderId: string, page = 1, limit = 50) {
 export async function sendMessage(orderId: string, content: string, itemId?: string) {
   const res = await api.post(`/orders/${orderId}/messages`, { content, itemId })
   return res.data.data as Message
+}
+
+export async function deliverOrder(orderId: string) {
+  const res = await api.post(`/orders/${orderId}/deliver`)
+  return res.data.data as Order
+}
+
+export async function completeReview(orderId: string) {
+  const res = await api.post(`/orders/${orderId}/complete-review`)
+  return res.data.data as Order
+}
+
+export async function finalizeOrder(orderId: string) {
+  const res = await api.post(`/orders/${orderId}/finalize`)
+  return res.data.data as Order
 }

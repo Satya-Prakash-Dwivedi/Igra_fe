@@ -81,6 +81,7 @@ export interface AdminOrderItem {
   allowedRevisions: number
   params: Record<string, unknown>
   assets?: AdminOrderAsset[]
+  deliveryLinks?: string[]
 }
 
 export interface AdminOrderEvent {
@@ -110,7 +111,11 @@ export interface AdminTicket {
 
 export interface Message {
   _id: string
-  orderId: string
+  orderId: {
+    _id: string
+    orderNumber: string
+    title: string
+  } | string
   itemId?: string
   senderId: AdminUser
   content: string
@@ -158,6 +163,11 @@ const adminService = {
     const { data } = await api.get<{ success: boolean; data: DashboardStats }>('/admin/dashboard')
     return data.data
   },
+  
+  async getRecentMessages(limit = 10): Promise<Message[]> {
+    const { data } = await api.get('/admin/messages/recent', { params: { limit } })
+    return data.data
+  },
 
   // Orders
   async listOrders(params: { status?: string; assignedTo?: string; page?: number; limit?: number } = {}): Promise<Paginated<AdminOrder>> {
@@ -202,6 +212,26 @@ const adminService = {
 
   async removeAsset(oid: string, iid: string, assetId: string): Promise<void> {
     await api.delete(`/admin/orders/${oid}/items/${iid}/assets/${assetId}`)
+  },
+
+  async addDeliveryLink(oid: string, iid: string, link: string): Promise<AdminOrderItem> {
+    const { data } = await api.post(`/admin/orders/${oid}/items/${iid}/links`, { link })
+    return data.data.item
+  },
+
+  async removeDeliveryLink(oid: string, iid: string, link: string): Promise<AdminOrderItem> {
+    const { data } = await api.delete(`/admin/orders/${oid}/items/${iid}/links`, { data: { link } })
+    return data.data.item
+  },
+  
+  async deliverOrder(id: string): Promise<AdminOrder> {
+    const { data } = await api.post(`/orders/${id}/deliver`)
+    return data.data
+  },
+
+  async finalizeOrder(id: string): Promise<AdminOrder> {
+    const { data } = await api.post(`/orders/${id}/finalize`)
+    return data.data
   },
 
   // Messages

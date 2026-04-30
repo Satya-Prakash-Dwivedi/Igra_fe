@@ -12,6 +12,8 @@ import AdminLayout from './layouts/AdminLayout';
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 // Dashboard Pages
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -22,7 +24,7 @@ const Credits = lazy(() => import('./pages/Credits'));
 const Invoices = lazy(() => import('./pages/Invoices'));
 const Messages = lazy(() => import('./pages/Messages'));
 const Channels = lazy(() => import('./pages/Channels'));
-const Profile = lazy(() => import('./pages/Profile'));
+const Profile = lazy(() => import('./pages/UserProfile'));
 const Support = lazy(() => import('./pages/Support'));
 const ReportBug = lazy(() => import('./pages/ReportBug'));
 
@@ -60,6 +62,25 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Role-based Home Redirect
+const HomeRedirect = () => {
+  const context = useContext(AuthContext);
+  
+  if (context?.isLoading) {
+    return <LoadingSpinner />;
+  }
+  
+  if (!context?.isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (context.user?.role === 'admin' || context.user?.role === 'staff') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  
+  return <Navigate to="/dashboard" replace />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -71,6 +92,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             
             {/* Protected Dashboard Routes */}
             <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -102,8 +125,8 @@ function App() {
             </Route>
 
             {/* Fallback */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<HomeRedirect />} />
+            <Route path="*" element={<HomeRedirect />} />
           </Routes>
         </Suspense>
       </Router>

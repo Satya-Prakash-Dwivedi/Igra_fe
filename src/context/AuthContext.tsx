@@ -3,6 +3,7 @@ import type { User } from '../services/authService'
 import authService from '../services/authService'
 import api from '../services/api'
 import { createLogger, serializeError } from '../services/logger'
+import socketService from '../services/socketService'
 
 interface AuthContextType {
   user: User | null
@@ -102,6 +103,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.addEventListener('auth:logout', handleLogout)
     return () => window.removeEventListener('auth:logout', handleLogout)
   }, [])
+
+  // Manage Socket Rooms
+  useEffect(() => {
+    const userId = user?._id || user?.id
+    if (userId) {
+      const socket = socketService.getSocket()
+      
+      const setupSocket = () => {
+        socketService.joinUser(userId)
+      }
+
+      socket.on('connect', setupSocket)
+      
+      if (socket.connected) {
+        setupSocket()
+      }
+
+      return () => {
+        socket.off('connect', setupSocket)
+        socketService.leaveUser(userId)
+      }
+    }
+  }, [user?._id, user?.id]) // Re-run whenever the user ID changes
 
   const value = useMemo(
     () => ({

@@ -1,31 +1,47 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import * as orderApi from '../services/orderService'
 import type { Order } from '../services/orderService'
-import { Plus, Clock, CheckCircle, XCircle, Eye, ArrowRight, Package, ChevronRight } from 'lucide-react'
+import { 
+  Plus, 
+  Clock, 
+  CheckCircle, 
+  XCircle, 
+  Eye, 
+  ArrowRight, 
+  Package, 
+  ChevronRight,
+  Filter,
+  Layers,
+  Search,
+  Calendar,
+  CreditCard,
+  Activity
+} from 'lucide-react'
 import { createLogger, serializeError } from '../services/logger'
 import { cn } from '../components/Button'
 import { toast } from 'sonner'
+import Button from '../components/Button'
 
 const logger = createLogger('Orders')
 
 const STATUS_TABS = [
-  { key: '', label: 'All Projects', icon: Package },
-  { key: 'DRAFT', label: 'Drafts', icon: Clock },
-  { key: 'UNDER_REVIEW', label: 'Reviewing', icon: Eye },
-  { key: 'IN_PROGRESS', label: 'In Progress', icon: ArrowRight },
-  { key: 'COMPLETED', label: 'Completed', icon: CheckCircle },
-  { key: 'CANCELLED', label: 'Cancelled', icon: XCircle },
+  { key: '', label: 'All units', icon: Layers },
+  { key: 'DRAFT', label: 'Drafting', icon: Clock },
+  { key: 'UNDER_REVIEW', label: 'Assessing', icon: Eye },
+  { key: 'IN_PROGRESS', label: 'In production', icon: Activity },
+  { key: 'COMPLETED', label: 'Finalized', icon: CheckCircle },
+  { key: 'CANCELLED', label: 'Aborted', icon: XCircle },
 ] as const
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-white/5 text-gray-400 border-white/5',
-  PENDING_PAYMENT: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  UNDER_REVIEW: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  DRAFT: 'bg-white/5 text-text-dim/40 border-white/5',
+  PENDING_PAYMENT: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  UNDER_REVIEW: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
   IN_PROGRESS: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  DELIVERED: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-  COMPLETED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  CANCELLED: 'bg-red-500/10 text-red-400 border-red-500/20',
+  DELIVERED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  COMPLETED: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+  CANCELLED: 'bg-error/10 text-error border-error/20',
 }
 
 export default function Orders() {
@@ -58,87 +74,98 @@ export default function Orders() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 pb-20 animate-in fade-in duration-200 px-4">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-6">
+    <div className="max-w-7xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700 px-6 relative">
+      {/* Background Textures */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-10 relative z-10">
         <div className="space-y-1">
-          <h1 className="text-4xl font-black text-white tracking-tight uppercase">
-            Order <span className="text-primary italic">History</span>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Your <span className="text-primary">Orders</span>
           </h1>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            {total} Active Projects
+          <p className="text-text-dim/60 text-base">
+             You have <span className="text-white font-bold">{total}</span> orders in your history.
           </p>
         </div>
         
-        <button
+        <Button
           onClick={() => navigate('/orders/new')}
-          className="group relative px-6 py-4 bg-white text-black rounded-xl flex items-center gap-4 transition-all hover:brightness-90 active:scale-95 shadow-xl shadow-white/5"
+          className="h-12 px-8 rounded-xl text-base"
         >
-          <span className="text-xs font-bold uppercase tracking-widest">New Production</span>
-          <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white group-hover:rotate-90 transition-transform">
-             <Plus size={18} />
+          Create Order
+          <Plus size={18} className="ml-2" />
+        </Button>
+      </div>
+
+      {/* Control Matrix */}
+      <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl p-2 border border-white/5 shadow-xl relative z-10">
+        <div className="flex flex-col md:flex-row items-center gap-2">
+          <div className="flex items-center gap-3 px-6 py-2 text-text-dim/40 border-r border-white/5 hidden md:flex">
+             <Filter size={16} />
+             <span className="text-xs font-bold uppercase tracking-wider">Status</span>
           </div>
-        </button>
+          <div className="flex flex-1 gap-2 overflow-x-auto no-scrollbar w-full p-1">
+            {STATUS_TABS.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => {
+                  setStatusFilter(key)
+                  setPage(1)
+                }}
+                className={cn(
+                  "flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-300",
+                  statusFilter === key
+                    ? "bg-white text-black shadow-lg"
+                    : "bg-transparent text-text-dim/40 hover:text-white hover:bg-white/5"
+                )}
+              >
+                <Icon size={14} className={cn("transition-colors", statusFilter === key ? "text-primary" : "text-text-dim/40")} />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
-        {STATUS_TABS.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => {
-              setStatusFilter(key)
-              setPage(1)
-            }}
-            className={cn(
-              "flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border",
-              statusFilter === key
-                ? "bg-white text-black border-white shadow-lg"
-                : "bg-white/[0.02] text-gray-500 border-white/5 hover:bg-white/[0.05] hover:text-white"
-            )}
-          >
-            <Icon size={12} />
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Orders List */}
+      {/* Operational Stream */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-40 gap-4 opacity-50">
-          <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Loading Archive...</p>
+        <div className="flex flex-col items-center justify-center py-40 gap-6 opacity-40 relative z-10">
+          <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Loading orders...</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="border border-dashed border-white/5 rounded-3xl p-20 text-center bg-white/[0.01]">
-          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-inner">
-             <Package size={24} className="text-gray-600" />
+        <div className="bg-bg-card/20 border border-dashed border-white/10 rounded-2xl p-20 text-center backdrop-blur-xl shadow-xl relative z-10">
+          <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-8 border border-white/5 shadow-xl">
+             <Package size={40} className="text-text-dim/20" />
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tight mb-2 uppercase">No Orders Found</h2>
-          <p className="text-gray-500 mb-8 max-w-xs mx-auto text-sm">You haven't started any projects yet. Ready to build something great?</p>
-          <button
+          <h2 className="text-2xl font-bold text-white mb-4">No orders found</h2>
+          <p className="text-text-dim/40 mb-10 max-w-sm mx-auto text-base">You haven't placed any orders yet. Create your first order to get started.</p>
+          <Button
             onClick={() => navigate('/orders/new')}
-            className="px-10 py-4 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20"
+            className="px-8 h-12 rounded-xl text-base"
           >
-            Create New Order
-          </button>
+            Create Order
+          </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {orders.map((order) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+          {orders.map((order, i) => (
             <div
               key={order._id}
               onClick={() => navigate(`/orders/${order._id}`)}
-              className="premium-card rounded-3xl p-8 group cursor-pointer border border-white/5 hover:border-primary/20 hover:bg-white/[0.03] transition-all duration-200 hover:translate-y-[-4px] relative overflow-hidden"
+              className="bg-bg-card/40 backdrop-blur-xl rounded-2xl p-6 group cursor-pointer border border-white/5 hover:border-primary/40 hover:bg-bg-card/60 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden shadow-xl"
+              style={{ animationDelay: `${i * 100}ms` }}
             >
+              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-[60px] -mr-20 -mt-20 group-hover:bg-primary/10 transition-all duration-300" />
+              
               <div className="flex items-start justify-between mb-8 relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 border border-white/5 group-hover:text-primary transition-colors">
-                  <Package size={20} />
+                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-text-dim/20 border border-white/5 group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-lg">
+                  <Package size={24} />
                 </div>
                 <div className={cn(
-                  "px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border",
-                  STATUS_COLORS[order.status] || "bg-white/5 text-gray-400 border-white/5"
+                  "px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-md transition-all duration-300",
+                  STATUS_COLORS[order.status] || "bg-white/5 text-text-dim/40 border-white/5"
                 )}>
                   {order.status.replace(/_/g, ' ')}
                 </div>
@@ -148,30 +175,37 @@ export default function Orders() {
                 <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-primary transition-colors">
                   {order.title || `Order #${order.orderNumber.slice(-6)}`}
                 </h3>
-                <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                  <span className="font-mono text-gray-600">{order.orderNumber}</span>
-                  <span className="w-1 h-1 rounded-full bg-white/10" />
-                  <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+                  <div className="flex items-center gap-2">
+                     <Search size={12} className="text-primary/40" />
+                     <span>{order.orderNumber}</span>
+                  </div>
+                  <div className="w-1 h-1 rounded-full bg-white/5" />
+                  <div className="flex items-center gap-2">
+                     <Calendar size={12} className="text-primary/40" />
+                     <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/5 relative z-10 group-hover:border-primary/10">
+              <div className="grid grid-cols-2 gap-6 pt-6 border-t border-white/5 relative z-10 group-hover:border-primary/20 transition-all duration-300">
                 <div className="space-y-1">
-                  <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Units</p>
-                  <p className="text-xl font-black text-white">
-                    {order.itemCount || 1}
+                  <p className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Items</p>
+                  <p className="text-xl font-bold text-white">
+                    {order.itemCount || 1} <span className="text-[10px] font-normal text-text-dim/40 ml-1 uppercase">Assets</span>
                   </p>
                 </div>
                 <div className="space-y-1 text-right">
-                  <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Credits</p>
-                  <p className="text-xl font-black text-primary">
-                     {order.totalCreditsQuoted}
+                  <p className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Budget</p>
+                  <p className="text-xl font-bold text-primary">
+                     {order.totalCreditsQuoted.toLocaleString()} <span className="text-[10px] font-normal text-primary/40 ml-1 uppercase">Cr</span>
                   </p>
                 </div>
               </div>
               
               {order.status === 'DRAFT' && (
-                <button
+                <Button
+                  fullWidth
                   onClick={async (e) => {
                     e.stopPropagation()
                     try {
@@ -181,41 +215,42 @@ export default function Orders() {
                       toast.error(err?.response?.data?.error || err.message)
                     }
                   }}
-                  className="mt-6 w-full py-3 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-[0_10px_20px_rgba(59,130,246,0.2)]"
+                  className="mt-6 h-10 rounded-xl bg-white text-black hover:bg-primary hover:text-white border-none shadow-lg transition-all duration-300 text-xs font-bold uppercase tracking-wider"
                 >
-                  Pay Now
-                </button>
+                  Submit Order
+                </Button>
               )}
               
-              <div className="mt-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-200">
-                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">View Details</span>
-                 <ArrowRight size={14} className="text-primary group-hover:translate-x-1 transition-transform" />
+              <div className="mt-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-300">
+                 <span className="text-[10px] font-bold uppercase tracking-wider text-primary">View Details</span>
+                 <ArrowRight size={16} className="text-primary group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Pagination */}
+      {/* Pagination Matrix */}
       {total > 0 && (
-        <div className="flex justify-center items-center gap-6 pt-10">
+        <div className="flex justify-center items-center gap-6 pt-10 relative z-10">
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="w-12 h-12 bg-white/5 text-white rounded-xl flex items-center justify-center hover:bg-white/10 disabled:opacity-20 transition-[background-color,opacity] duration-200 border border-white/5 transform-gpu"
+            className="w-10 h-10 bg-bg-card/40 text-white rounded-xl flex items-center justify-center hover:bg-primary disabled:opacity-30 transition-all duration-300 border border-white/5"
           >
             <ChevronRight size={20} className="rotate-180" />
           </button>
-          <div className="text-center min-w-[100px]">
-             <p className="text-[10px] font-bold text-text-dim uppercase tracking-widest mb-1">Page</p>
-            <span className="text-base font-black text-white italic">
-              {page} <span className="text-text-dim/40 mx-2 text-sm">/</span> {Math.max(1, Math.ceil(total / 20))}
+          
+          <div className="text-center min-w-[120px] bg-bg-card/20 px-4 py-2 rounded-xl border border-white/5 backdrop-blur-xl shadow-inner relative">
+            <span className="text-lg font-bold text-white tracking-tight">
+              {page} <span className="text-text-dim/20 mx-2">/</span> {Math.max(1, Math.ceil(total / 20))}
             </span>
           </div>
+
           <button
             disabled={page * 20 >= total}
             onClick={() => setPage((p) => p + 1)}
-            className="w-12 h-12 bg-white/5 text-white rounded-xl flex items-center justify-center hover:bg-white/10 disabled:opacity-20 transition-[background-color,opacity] duration-200 border border-white/5 transform-gpu"
+            className="w-10 h-10 bg-bg-card/40 text-white rounded-xl flex items-center justify-center hover:bg-primary disabled:opacity-30 transition-all duration-300 border border-white/5"
           >
             <ChevronRight size={20} />
           </button>

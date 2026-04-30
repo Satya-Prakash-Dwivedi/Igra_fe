@@ -6,9 +6,10 @@ import * as uploadApi from '../services/uploadService'
 import {
   ArrowLeft, ArrowRight, PlaySquare, Image, PlayCircle, StopCircle, Mic,
   FileText, Search, Layout, PenTool, LayoutGrid, Phone, Eye, MessageSquare,
-  Plus, X, Info, Link as LinkIcon, Loader2
+  Plus, X, Info, Link as LinkIcon,
+  Monitor, Smartphone, Square, HelpCircle, Turtle, Zap, Flame, Rocket
 } from 'lucide-react'
-import { cn } from '../components/Button'
+import Button, { cn } from '../components/Button'
 
 // Thumbnail Style Images
 import exaggeratedImg from '../assets/thumbnails/exaggerated.png'
@@ -21,23 +22,32 @@ import processImg from '../assets/thumbnails/process.png'
 import noTextImg from '../assets/thumbnails/no_text.png'
 import otherImg from '../assets/thumbnails/other.png'
 
-
-// ─── Constants & Types ──────────────────────────────────────────
+const THUMBNAIL_STYLES = [
+  { id: 'Exaggerated', label: 'EXAGGERATED', img: exaggeratedImg },
+  { id: 'Headshot', label: 'HEADSHOT', img: headshotImg },
+  { id: 'Quote', label: 'QUOTE', img: quoteImg },
+  { id: 'Statement', label: 'STATEMENT', img: statementImg },
+  { id: 'BeforeAfter', label: 'BEFORE & AFTER', img: beforeAfterImg },
+  { id: 'Versus', label: 'VERSUS', img: versusImg },
+  { id: 'Process', label: 'PROCESS', img: processImg },
+  { id: 'NoText', label: 'NO TEXT', img: noTextImg },
+  { id: 'Other', label: 'OTHER', img: otherImg },
+]
 
 const SERVICE_CATALOG = [
-  { kind: 'VIDEO_EDIT', label: 'Video', icon: PlaySquare, desc: '20 credits per minute of raw footage', minCredits: 0 },
-  { kind: 'THUMBNAIL', label: 'Thumbnail Design', icon: Image, desc: '50 credits per thumbnail', minCredits: 50 },
-  { kind: 'INTRO', label: 'Custom Intro', icon: PlayCircle, desc: '100 credits', minCredits: 100 },
-  { kind: 'OUTRO', label: 'Custom Outro', icon: StopCircle, desc: '100 credits', minCredits: 100 },
-  { kind: 'VOICEOVER', label: 'AI Voiceover', icon: Mic, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
-  { kind: 'SCRIPT', label: 'Script Writing', icon: FileText, desc: '0.2 credits per word', minCredits: 0 },
-  { kind: 'SEO', label: 'Video SEO', icon: Search, desc: '100 credits per video', minCredits: 100 },
-  { kind: 'CHANNEL_BANNER', label: 'Channel Banner', icon: Layout, desc: '150 credits', minCredits: 150 },
-  { kind: 'LOGO_DESIGN', label: 'Logo Design', icon: PenTool, desc: '100 credits', minCredits: 100 },
-  { kind: 'IMAGE_RETOUCHING', label: 'Image Retouching', icon: LayoutGrid, desc: '100 credits', minCredits: 100 },
-  { kind: 'CONSULTATION', label: 'Consultation Call', icon: Phone, desc: '100 credits per 15 minutes', minCredits: 0 },
-  { kind: 'FOOTAGE_REVIEW', label: 'Footage Review', icon: Eye, desc: '10 credits per minute (min. 50 credits)', minCredits: 50 },
-  { kind: 'CUSTOM', label: 'Custom Request', icon: MessageSquare, desc: '50 credits (base price)', minCredits: 50 },
+  { kind: 'VIDEO_EDIT', label: 'Video editing', icon: PlaySquare, desc: 'Professional post-production for any format', minCredits: 0 },
+  { kind: 'THUMBNAIL', label: 'Thumbnail design', icon: Image, desc: 'High-impact visuals for maximum click-through', minCredits: 50 },
+  { kind: 'INTRO', label: 'Custom intro', icon: PlayCircle, desc: 'Cinematic brand identifiers for your content', minCredits: 100 },
+  { kind: 'OUTRO', label: 'Custom outro', icon: StopCircle, desc: 'Strategic call-to-actions and end screens', minCredits: 100 },
+  { kind: 'VOICEOVER', label: 'AI Voiceover', icon: Mic, desc: 'Studio-quality synthetic voice synthesis', minCredits: 50 },
+  { kind: 'SCRIPT', label: 'Script writing', icon: FileText, desc: 'Compelling narrative structuring and research', minCredits: 0 },
+  { kind: 'SEO', label: 'Video SEO', icon: Search, desc: 'Metatag optimization and visibility ranking', minCredits: 100 },
+  { kind: 'CHANNEL_BANNER', label: 'Channel banner', icon: Layout, desc: 'Cohesive brand identity for your profile', minCredits: 150 },
+  { kind: 'LOGO_DESIGN', label: 'Logo design', icon: PenTool, desc: 'Iconic visual representation of your brand', minCredits: 100 },
+  { kind: 'IMAGE_RETOUCHING', label: 'Image retouching', icon: LayoutGrid, desc: 'Professional grading and imperfection removal', minCredits: 100 },
+  { kind: 'CONSULTATION', label: 'Consultation call', icon: Phone, desc: 'Direct strategy session with our specialists', minCredits: 0 },
+  { kind: 'FOOTAGE_REVIEW', label: 'Footage review', icon: Eye, desc: 'Detailed analysis and directorial feedback', minCredits: 50 },
+  { kind: 'CUSTOM', label: 'Custom request', icon: MessageSquare, desc: 'Tailored solutions for unique production needs', minCredits: 50 },
 ]
 
 type DraftItem = {
@@ -48,13 +58,11 @@ type DraftItem = {
 }
 
 const STEPS = [
-  { id: 'start', label: 'Start your order' },
-  { id: 'packages', label: 'Select packages' },
-  { id: 'details', label: 'Finalize details' },
-  { id: 'confirm', label: 'Confirm order' },
+  { id: 'start', label: 'Basic Info' },
+  { id: 'packages', label: 'Services' },
+  { id: 'details', label: 'Configure' },
+  { id: 'confirm', label: 'Review & Pay' },
 ]
-
-// ─── Frontend Pricing Estimator ────────────────────────────────
 
 function estimateCredits(item: DraftItem): number {
   const params = item.params || {}
@@ -64,7 +72,6 @@ function estimateCredits(item: DraftItem): number {
   if (item.kind === 'VIDEO_EDIT') {
     base = (params.rawFootageLength || 0) * 20
     if (params.hasRawFootage === false) base += 100
-    if (params.addBroll === true) base += 100
   } else if (item.kind === 'VOICEOVER') {
     base = Math.max(50, (params.scriptLength || 0) * 10)
   } else if (item.kind === 'SCRIPT') {
@@ -79,27 +86,16 @@ function estimateCredits(item: DraftItem): number {
   return base
 }
 
-// ─── Main Component ──────────────────────────────────────────────
-
 export default function NewOrderPage() {
   const navigate = useNavigate()
-  
-  // View State
   const [stepIndex, setStepIndex] = useState(0)
-
-  // Order State
   const [title, setTitle] = useState('')
   const [orderId, setOrderId] = useState<string | null>(null)
   const [draftItems, setDraftItems] = useState<DraftItem[]>([])
-  
-  // Wallet / Server State
   const [balance, setBalance] = useState(0)
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [, setUploadProgress] = useState<Record<string, number>>({})
   const [error, setError] = useState<string | null>(null)
-  
-  // After API creation
   const [confirmedTotal, setConfirmedTotal] = useState(0)
 
   useEffect(() => {
@@ -112,11 +108,10 @@ export default function NewOrderPage() {
 
   const handleNext = async () => {
     setError(null)
-    
-    // Step 0 -> 1 (Create Order)
+
     if (stepIndex === 0) {
       if (!title.trim()) {
-        setError('Please enter an order title')
+        setError('Please enter a project title')
         return
       }
       if (!orderId) {
@@ -136,17 +131,15 @@ export default function NewOrderPage() {
       return
     }
 
-    // Step 1 -> 2 (Select -> Finalize)
     if (stepIndex === 1) {
       if (draftItems.length === 0) {
-        setError('Please select at least one package.')
+        setError('Please select at least one service.')
         return
       }
       setStepIndex(2)
       return
     }
 
-    // Step 2 -> 3 (Finalize -> Create Items on Server -> Confirm)
     if (stepIndex === 2) {
       if (!orderId) return
       setLoading(true)
@@ -154,28 +147,21 @@ export default function NewOrderPage() {
         let cumulativeCredits = 0
         for (const draft of draftItems) {
           const assetIds: string[] = []
-          
-          // Upload files if any
           if (draft.files.length > 0) {
             setUploading(true)
             for (const file of draft.files) {
-              const { assetId } = await uploadApi.uploadFile(file, (pct) => {
-                setUploadProgress(prev => ({ ...prev, [file.name]: pct }))
-              })
+              const { assetId } = await uploadApi.uploadFile(file)
               assetIds.push(assetId)
             }
             setUploading(false)
           }
-
           const added = await orderApi.addItem(orderId, draft.kind, draft.params, [], assetIds)
           cumulativeCredits += added.creditsQuoted
         }
         setConfirmedTotal(cumulativeCredits)
         setStepIndex(3)
       } catch (err: any) {
-        let msg = err?.response?.data?.error || err.message
-        if (typeof msg === 'object') msg = JSON.stringify(msg)
-        setError(`Failed to save items or upload files: ${msg}`)
+        setError(`Failed to save configuration: ${err?.response?.data?.error || err.message}`)
       } finally {
         setLoading(false)
         setUploading(false)
@@ -183,12 +169,10 @@ export default function NewOrderPage() {
       return
     }
 
-    // Step 3 (Confirm -> Submit)
     if (stepIndex === 3) {
       if (!orderId) return
-      if (!canAfford) {
-        setError('Insufficient credits. Redirecting to top-up page...')
-        setTimeout(() => navigate('/credits'), 2000)
+      if (balance < confirmedTotal) {
+        setError('Insufficient credits. Please recharge your wallet.')
         return
       }
       setLoading(true)
@@ -205,37 +189,51 @@ export default function NewOrderPage() {
 
   const handleAddPackage = (kind: string) => {
     const initialParams: any = {}
-    
-    // Default form values based on design to satisfy backend validation
     if (kind === 'VIDEO_EDIT') {
       initialParams.hasRawFootage = true
       initialParams.outputRatio = '16:9'
       initialParams.rawFootageLength = 1
       initialParams.desiredLength = 1
-      initialParams.addBroll = false
       initialParams.tone = 'Professional'
-      initialParams.pace = 'Normal'
+      initialParams.pace = 'Medium'
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'THUMBNAIL') {
       initialParams.style = 'Exaggerated'
+      initialParams.externalLinks = []
+      initialParams.notes = ''
+    } else if (['INTRO', 'OUTRO', 'CHANNEL_BANNER', 'LOGO_DESIGN', 'IMAGE_RETOUCHING'].includes(kind)) {
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'VOICEOVER') {
       initialParams.scriptLength = 5
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'SCRIPT') {
       initialParams.wordCount = 500
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'SEO') {
-      initialParams.videoUrl = 'https://youtube.com/watch?v=example'
+      initialParams.videoUrl = ''
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'CONSULTATION') {
       initialParams.duration = 15
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'FOOTAGE_REVIEW') {
       initialParams.footageLength = 10
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else if (kind === 'CUSTOM') {
       initialParams.description = 'Custom request description...'
+      initialParams.externalLinks = []
+      initialParams.notes = ''
     } else {
-      // For INTRO, OUTRO, CHANNEL_BANNER, LOGO_DESIGN, IMAGE_RETOUCHING
-      // We still initialize with generic params to be safe
-      initialParams.uploadType = 'file'
+      initialParams.externalLinks = []
       initialParams.notes = ''
     }
-    
+
     setDraftItems([...draftItems, {
       tempId: Math.random().toString(36).substr(2, 9),
       kind,
@@ -257,142 +255,250 @@ export default function NewOrderPage() {
     }))
   }
 
+  const renderAssetsAndInstructions = (item: DraftItem) => (
+    <>
+      {/* Assets & Resources */}
+      <div className="space-y-6 pt-10 border-t border-white/5">
+        <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Assets & Resources</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Upload Section */}
+          <label className="flex-1 flex flex-col items-center justify-center p-12 bg-white/[0.01] border-2 border-dashed border-white/5 rounded-3xl hover:border-primary/40 cursor-pointer transition-all group">
+            <input type="file" multiple className="hidden" onChange={(e) => {
+              if (e.target.files) {
+                const newFiles = Array.from(e.target.files)
+                setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di))
+              }
+            }} />
+            <div className="w-14 h-14 rounded-full bg-primary/5 flex items-center justify-center mb-5 group-hover:bg-primary/10 transition-all border border-primary/10">
+              <Plus size={24} className="text-primary" />
+            </div>
+            <span className="text-base font-bold text-white mb-1">Upload Files</span>
+            <span className="text-xs text-text-dim/40 font-medium">Raw, music, references</span>
+          </label>
+
+          {/* External Link Section */}
+          <div className="flex-1 flex flex-col p-12 bg-white/[0.01] border border-white/5 rounded-3xl hover:border-white/20 transition-all relative group h-full">
+            <div className="flex flex-col h-full gap-5">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center transition-all group-hover:bg-white/10">
+                  <LinkIcon size={18} className="text-text-dim/40 group-hover:text-white" />
+                </div>
+                <div>
+                  <span className="text-sm font-bold text-white block">External Links</span>
+                  <span className="text-[10px] text-text-dim/40 font-medium">Drive, Dropbox, etc.</span>
+                </div>
+              </div>
+
+              <div className="space-y-3 overflow-y-auto max-h-[200px] pr-2 custom-scrollbar">
+                {(item.params.externalLinks || ['']).map((link: string, lIdx: number) => (
+                  <div key={lIdx} className="flex gap-2 animate-in slide-in-from-right-2" style={{ animationDelay: `${lIdx * 50}ms` }}>
+                    <input
+                      type="url"
+                      placeholder={`Link #${lIdx + 1}`}
+                      value={link}
+                      onChange={(e) => {
+                        const newLinks = [...(item.params.externalLinks || [''])]
+                        newLinks[lIdx] = e.target.value
+                        updateDraftParam(item.tempId, 'externalLinks', newLinks)
+                      }}
+                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 transition-all"
+                    />
+                    {(item.params.externalLinks?.length > 1 || link) && (
+                      <button
+                        onClick={() => {
+                          const newLinks = (item.params.externalLinks || ['']).filter((_: any, i: number) => i !== lIdx)
+                          updateDraftParam(item.tempId, 'externalLinks', newLinks.length ? newLinks : [''])
+                        }}
+                        className="w-10 h-10 rounded-xl bg-error/10 text-error flex items-center justify-center hover:bg-error hover:text-white transition-all shrink-0"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => {
+                  const newLinks = [...(item.params.externalLinks || ['']), '']
+                  updateDraftParam(item.tempId, 'externalLinks', newLinks)
+                }}
+                className="w-full py-2.5 rounded-xl border border-dashed border-white/10 text-[10px] font-bold uppercase tracking-widest text-text-dim/40 hover:border-primary/40 hover:text-primary transition-all mt-auto"
+              >
+                + Add Another Link
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* File List */}
+        {item.files.length > 0 && (
+          <div className="flex flex-wrap gap-3">
+            {item.files.map((f, fi) => (
+              <div key={fi} className="bg-white/5 px-5 py-3 rounded-2xl flex items-center gap-4 text-[11px] font-bold border border-white/5 animate-in zoom-in-95">
+                <FileText size={16} className="text-primary" />
+                <span className="max-w-[180px] truncate">{f.name}</span>
+                <button onClick={() => {
+                  setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: di.files.filter((_, i) => i !== fi) } : di))
+                }} className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-error hover:text-white transition-all"><X size={14} /></button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Special Instructions */}
+      <div className="space-y-4 pt-10 border-t border-white/5">
+        <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Special Instructions</label>
+        <textarea
+          rows={5}
+          value={item.params.notes || ''}
+          onChange={(e) => updateDraftParam(item.tempId, 'notes', e.target.value)}
+          placeholder="Add any special instructions..."
+          className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-6 text-white text-base outline-none focus:border-primary/40 resize-none transition-all focus:ring-2 focus:ring-primary/5 shadow-inner"
+        />
+      </div>
+    </>
+  )
+
   const totalEstimatedCredits = draftItems.reduce((sum, item) => sum + estimateCredits(item), 0)
   const canAfford = balance >= (stepIndex === 3 ? confirmedTotal : totalEstimatedCredits)
 
   return (
-    <div className="bg-bg-dark min-h-screen -m-6 p-6 text-white relative overflow-hidden">
-      {/* Premium Background Textures */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none" />
+    <div className="max-w-5xl mx-auto space-y-10 pb-24 animate-in fade-in duration-700 px-6 relative">
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="max-w-5xl mx-auto space-y-6 relative z-10">
-        
-        {/* Top Header / Back Button */}
-        <div className="flex items-center gap-2 mb-8 animate-in fade-in slide-in-from-top-4 duration-200">
-          <button onClick={() => {
-            if (stepIndex > 0 && stepIndex < 3) setStepIndex(stepIndex - 1)
-            else navigate('/orders')
-          }} className="p-2.5 bg-bg-card/40 border border-white/5 hover:bg-white/5 rounded-xl text-primary transition-all">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-10 relative z-10">
+        <div className="flex items-center gap-6">
+          <button
+            onClick={() => {
+              if (stepIndex > 0) setStepIndex(stepIndex - 1)
+              else navigate('/orders')
+            }}
+            className="w-10 h-10 bg-bg-card/40 border border-white/5 hover:bg-white/5 rounded-xl flex items-center justify-center text-primary transition-all"
+          >
             <ArrowLeft size={20} />
           </button>
-          <div className="ml-2">
-            <h1 className="text-2xl font-bold tracking-tight">New Order</h1>
-            <p className="text-sm text-gray-400">Step {stepIndex + 1} of {STEPS.length}</p>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-white tracking-tight">New Order</h1>
+            <p className="text-text-dim/60 text-xs font-bold uppercase tracking-widest">
+              Step {stepIndex + 1} of 4: {STEPS[stepIndex].label}
+            </p>
           </div>
         </div>
 
-        {/* Wizard Progress Bar */}
-        <div className="bg-bg-card/40 backdrop-blur-lg rounded-2xl border border-white/5 p-5 shadow-2xl">
-          <div className="flex justify-between items-center relative">
-            <div className="absolute left-8 right-8 top-1 h-[1px] bg-white/5 -z-10"></div>
-            {STEPS.map((s, idx) => (
-              <div key={s.id} className="flex-1 text-center relative z-10">
-                <div className={`mx-auto w-12 h-1.5 rounded-full transition-all duration-200 ${stepIndex >= idx ? 'bg-primary shadow-[0_0_12px_rgba(59,130,246,0.5)]' : 'bg-white/10'}`}></div>
-                <div className={`mt-3 text-xs font-semibold uppercase tracking-wider transition-colors duration-200 ${stepIndex >= idx ? 'text-white' : 'text-gray-500'}`}>
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Progress Dots */}
+        <div className="flex gap-2">
+          {STEPS.map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-500",
+                stepIndex === i ? "w-8 bg-primary" : "w-3 bg-white/10"
+              )}
+            />
+          ))}
         </div>
+      </div>
 
-        {/* Error Banner */}
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 flex items-center gap-3 animate-in shake duration-200">
-            <Info size={20} />
-            <span className="text-sm font-medium">{error}</span>
-          </div>
-        )}
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-error/10 border border-error/20 text-error rounded-xl p-4 flex items-center gap-3 animate-in shake duration-500 relative z-10">
+          <Info size={18} />
+          <span className="text-sm font-bold">{error}</span>
+        </div>
+      )}
 
-        {/* ─── STEP 0: START ──────────────────────────────────────────── */}
+      {/* Step Content */}
+      <div className="relative z-10">
+        {/* STEP 0: START */}
         {stepIndex === 0 && (
-          <div className="bg-bg-card/40 backdrop-blur-lg rounded-2xl border border-white/5 p-10 space-y-8 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 p-8 md:p-12 space-y-8 shadow-xl">
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold tracking-tight">What should we call this order?</h2>
-              <p className="text-gray-400">Give your project a name to keep things organized.</p>
+              <h2 className="text-2xl font-bold text-white">Give your project a title</h2>
+              <p className="text-text-dim/60 text-sm">This helps you and our editors identify your project easily.</p>
             </div>
-            <div className="relative group">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Spring Campaign Video, MrBeast Style Edit..."
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder:text-gray-500"
-                autoFocus
-              />
-            </div>
-            <div className="flex justify-end pt-4">
-              <button
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Summer Vlog 2024"
+              className="w-full bg-black/20 border border-white/5 rounded-xl px-6 py-4 text-white text-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all placeholder:text-text-dim/10 font-bold"
+              autoFocus
+            />
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
                 onClick={handleNext}
-                disabled={loading || !title.trim()}
-                className="bg-primary hover:bg-blue-600 active:scale-95 text-white disabled:opacity-50 disabled:active:scale-100 px-10 py-4 rounded-xl font-bold flex items-center gap-3 transition-all shadow-lg shadow-primary/20"
+                isLoading={loading}
+                disabled={!title.trim()}
+                className="h-12 px-10 rounded-xl font-bold"
               >
-                {loading ? 'Creating...' : <>Continue <ArrowRight size={20} /></>}
-              </button>
+                Continue
+                <ArrowRight size={18} className="ml-2" />
+              </Button>
             </div>
           </div>
         )}
 
-        {/* ─── STEP 1: SELECT PACKAGES ─────────────────────────────────── */}
+        {/* STEP 1: SELECT SERVICES */}
         {stepIndex === 1 && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="flex justify-between items-end">
-              <div className="space-y-1">
-                <h2 className="text-3xl font-bold tracking-tight">Choose your services</h2>
-                <p className="text-gray-400">Select one or more packages to add to your order.</p>
-              </div>
+          <div className="space-y-8">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-white">Select Services</h2>
+              <p className="text-text-dim/60 text-sm">Choose what you need for this project.</p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {SERVICE_CATALOG.map((pkg, i) => {
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {SERVICE_CATALOG.map((pkg) => {
                 const Icon = pkg.icon
                 const count = getItemCountByKind(pkg.kind)
                 return (
-                  <div 
-                    key={pkg.kind} 
-                    className="premium-card bg-bg-card/40 group relative overflow-hidden flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-200"
-                    style={{ animationDelay: `${i * 50}ms` }}
+                  <div
+                    key={pkg.kind}
+                    className={cn(
+                      "bg-bg-card/40 backdrop-blur-xl border rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:border-primary/20 hover:-translate-y-1 shadow-xl",
+                      count > 0 ? "border-primary/40 ring-1 ring-primary/20" : "border-white/5"
+                    )}
                   >
-                    <div className="p-6 flex flex-col flex-1">
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-200">
-                          <Icon size={24} />
+                    <div className="flex justify-between items-start">
+                      <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-all", count > 0 ? "bg-primary text-white" : "bg-white/5 text-text-dim/40")}>
+                        <Icon size={24} />
+                      </div>
+                      {count > 0 && (
+                        <div className="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1 rounded-lg border border-primary/20">
+                          {count} Added
                         </div>
-                        {count > 0 && (
-                          <div className="bg-primary/20 text-primary text-xs font-bold px-2 py-1 rounded-full border border-primary/30 animate-pulse">
-                            {count} {count === 1 ? 'Item' : 'Items'}
-                          </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="font-bold text-lg text-white">{pkg.label}</h3>
+                      <p className="text-xs text-text-dim/60 leading-relaxed line-clamp-2">{pkg.desc}</p>
+                    </div>
+
+                    <div className="flex gap-3 mt-auto">
+                      <button
+                        onClick={() => handleAddPackage(pkg.kind)}
+                        className={cn(
+                          "flex-1 h-10 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all",
+                          count > 0 ? "bg-primary text-white" : "bg-white/5 text-white hover:bg-white/10"
                         )}
-                      </div>
-                      
-                      <h3 className="font-bold text-lg mb-2">{pkg.label}</h3>
-                      <p className="text-sm text-gray-400 mb-8 line-clamp-2">{pkg.desc}</p>
-                      
-                      <div className="mt-auto flex gap-2">
+                      >
+                        <Plus size={14} /> Add Service
+                      </button>
+                      {count > 0 && (
                         <button
-                          onClick={() => handleAddPackage(pkg.kind)}
-                          className={cn(
-                            "flex-1 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-primary hover:border-primary hover:text-white text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95",
-                            count > 0 && "bg-primary/10 border-primary/20 text-primary"
-                          )}
+                          onClick={() => {
+                            const itemsOfKind = draftItems.filter(i => i.kind === pkg.kind);
+                            handleRemovePackage(itemsOfKind[itemsOfKind.length - 1].tempId);
+                          }}
+                          className="w-10 h-10 rounded-lg bg-error/10 text-error flex items-center justify-center hover:bg-error hover:text-white transition-all"
                         >
-                          <Plus size={18} /> {count > 0 ? `Add (${count})` : `Add ${pkg.label}`}
+                          <X size={16} />
                         </button>
-                        {count > 0 && (
-                          <button
-                            onClick={() => {
-                              const itemsOfKind = draftItems.filter(i => i.kind === pkg.kind);
-                              const lastItem = itemsOfKind[itemsOfKind.length - 1];
-                              if (lastItem) handleRemovePackage(lastItem.tempId);
-                            }}
-                            className="w-12 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-red-500 hover:border-red-500 text-white flex items-center justify-center transition-all active:scale-95"
-                            title="Remove last added"
-                          >
-                            <X size={18} />
-                          </button>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 )
@@ -401,479 +507,406 @@ export default function NewOrderPage() {
           </div>
         )}
 
-        {/* ─── STEP 2: FINALIZE DETAILS ────────────────────────────────── */}
+        {/* STEP 2: CONFIGURE */}
         {stepIndex === 2 && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <h2 className="text-3xl font-bold tracking-tight">Configure details</h2>
-            
-            {draftItems.map((item, idx) => {
-              const cat = SERVICE_CATALOG.find(c => c.kind === item.kind)!
-              return (
-                <div key={item.tempId} className="bg-bg-card/40 backdrop-blur-lg rounded-2xl border border-white/5 overflow-hidden shadow-2xl animate-in slide-in-from-bottom-6 duration-200" style={{ animationDelay: `${idx * 100}ms` }}>
-                  
-                  {/* Card Header */}
-                  <div className="px-8 py-5 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                        <cat.icon size={20} />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold">{cat.label}</h3>
-                        <p className="text-xs text-gray-400 font-medium">#{item.tempId.toUpperCase()}</p>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => handleRemovePackage(item.tempId)}
-                      className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
+          <div className="space-y-8">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-white">Configure Services</h2>
+              <p className="text-text-dim/60 text-sm">Provide specific details for each service.</p>
+            </div>
 
-                  {/* Card Body */}
-                  <div className="p-8 space-y-10">
-                    
-                    {/* VIDEO EDIT SPECIFIC FORM */}
-                    {item.kind === 'VIDEO_EDIT' && (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="space-y-6">
+              {draftItems.map((item, idx) => {
+                const cat = SERVICE_CATALOG.find(c => c.kind === item.kind)!
+                return (
+                  <div key={item.tempId} className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden shadow-xl animate-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 100}ms` }}>
+                    <div className="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                          <cat.icon size={20} />
+                        </div>
+                        <h3 className="text-lg font-bold text-white">{cat.label}</h3>
+                      </div>
+                      <button
+                        onClick={() => handleRemovePackage(item.tempId)}
+                        className="text-text-dim/40 hover:text-error transition-colors"
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+
+                    {item.kind === 'VIDEO_EDIT' ? (
+                      <div className="space-y-10">
+                        {/* Top Row: Raw Footage & Aspect Ratio */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                           {/* Raw Footage */}
-                          <div className="space-y-4">
-                            <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Raw Footage</label>
-                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                          <div className="space-y-5">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Raw Footage</label>
+                            </div>
+                            <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5">
                               <button
                                 onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', true)}
-                                className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${item.params.hasRawFootage ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:text-white'}`}
+                                className={cn(
+                                  "flex-1 py-3 px-6 rounded-xl text-xs font-bold transition-all",
+                                  item.params.hasRawFootage ? "bg-primary text-white shadow-lg" : "text-text-dim hover:text-white"
+                                )}
                               >
                                 I have it
                               </button>
                               <button
                                 onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', false)}
-                                className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${item.params.hasRawFootage === false ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:text-white'}`}
+                                className={cn(
+                                  "flex-1 py-3 px-6 rounded-xl text-xs font-bold transition-all",
+                                  !item.params.hasRawFootage ? "bg-primary text-white shadow-lg" : "text-text-dim hover:text-white"
+                                )}
                               >
                                 Need it (+100)
                               </button>
                             </div>
                           </div>
 
-                          {/* Output Ratio */}
-                          <div className="space-y-4">
-                            <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Aspect Ratio</label>
-                            <div className="grid grid-cols-4 gap-2">
+                          {/* Aspect Ratio */}
+                          <div className="space-y-5">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Aspect Ratio</label>
+                            </div>
+                            <div className="grid grid-cols-4 gap-4">
                               {[
-                                { id: '16:9', label: '16:9', icon: PlaySquare },
-                                { id: '9:16', label: '9:16', icon: Layout },
-                                { id: '1:1', label: '1:1', icon: LayoutGrid },
-                                { id: 'Other', label: '??', icon: Plus },
+                                { id: '16:9', label: '16:9', icon: Monitor },
+                                { id: '9:16', label: '9:16', icon: Smartphone },
+                                { id: '1:1', label: '1:1', icon: Square },
+                                { id: 'Other', label: '??', icon: HelpCircle },
                               ].map(ratio => (
                                 <button
                                   key={ratio.id}
                                   onClick={() => updateDraftParam(item.tempId, 'outputRatio', ratio.id)}
-                                  className={`py-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${item.params.outputRatio === ratio.id ? 'bg-primary/20 border-primary text-white' : 'bg-black/20 border-white/10 text-gray-500 hover:bg-white/5 hover:border-white/20'}`}
+                                  className={cn(
+                                    "flex flex-col items-center justify-center p-3 rounded-xl border transition-all",
+                                    item.params.outputRatio === ratio.id
+                                      ? "bg-primary/10 border-primary/40 text-primary"
+                                      : "bg-white/[0.02] border-white/5 text-text-dim/40 hover:border-white/20"
+                                  )}
                                 >
-                                  <ratio.icon size={18} />
-                                  <span className="text-[10px] font-bold">{ratio.label}</span>
+                                  <ratio.icon size={16} className="mb-2" />
+                                  <span className="text-[9px] font-bold">{ratio.label}</span>
                                 </button>
                               ))}
                             </div>
                           </div>
                         </div>
 
-                        {/* Lengths */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Raw Length (mins)</label>
+                        {/* Middle Row: Lengths */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Raw Length (mins)</label>
                             <input
-                              type="number" min={1}
-                              value={item.params.rawFootageLength || ''}
-                              onChange={e => updateDraftParam(item.tempId, 'rawFootageLength', Number(e.target.value))}
-                              className="w-full bg-transparent border-b border-white/10 py-3 text-xl font-bold focus:border-primary focus:outline-none transition-colors"
+                              type="number"
+                              value={item.params.rawFootageLength || 1}
+                              onChange={(e) => updateDraftParam(item.tempId, 'rawFootageLength', parseInt(e.target.value))}
+                              className="w-full bg-black/20 border border-white/5 rounded-xl px-6 py-3 text-white font-bold outline-none focus:border-primary/40"
                             />
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Final Length (mins)</label>
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Final Length (mins)</label>
                             <input
-                              type="number" min={1}
-                              value={item.params.desiredLength || ''}
-                              onChange={e => updateDraftParam(item.tempId, 'desiredLength', Number(e.target.value))}
-                              className="w-full bg-transparent border-b border-white/10 py-3 text-xl font-bold focus:border-primary focus:outline-none transition-colors"
+                              type="number"
+                              value={item.params.desiredLength || 1}
+                              onChange={(e) => updateDraftParam(item.tempId, 'desiredLength', parseInt(e.target.value))}
+                              className="w-full bg-black/20 border border-white/5 rounded-xl px-6 py-3 text-white font-bold outline-none focus:border-primary/40"
                             />
                           </div>
                         </div>
 
-                        {/* Tone & Pace Selection */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                           {/* Visual Tone */}
-                           <div className="space-y-4">
-                              <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Visual Tone</label>
-                              <div className="grid grid-cols-3 gap-2">
-                                {['Funny', 'Serious', 'Professional', 'Elegant', 'Casual', 'Informational'].map(t => (
-                                  <button 
-                                    key={t} 
-                                    onClick={() => updateDraftParam(item.tempId, 'tone', t)}
-                                    className={`px-2 py-3 rounded-xl text-[11px] font-bold border transition-all ${item.params.tone === t ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/5 text-gray-500 hover:border-white/10'}`}
-                                  >
-                                    {t}
-                                  </button>
-                                ))}
-                              </div>
-                           </div>
-
-                           {/* Edit Pace */}
-                           <div className="space-y-4">
-                              <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Edit Pace</label>
-                              <div className="grid grid-cols-4 gap-2">
-                                {[
-                                  { id: 'Slow', label: 'Slow', icon: '🐢' },
-                                  { id: 'Normal', label: 'Medium', icon: '⚡️' },
-                                  { id: 'Fast', label: 'Fast', icon: '🔥' },
-                                  { id: 'Super', label: 'Super', icon: '🚀' },
-                                ].map(p => (
-                                  <button 
-                                    key={p.id} 
-                                    onClick={() => updateDraftParam(item.tempId, 'pace', p.id)}
-                                    className={`py-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${item.params.pace === p.id ? 'bg-primary/20 border-primary text-white' : 'bg-black/20 border-white/10 text-gray-500 hover:bg-white/5 hover:border-white/20'}`}
-                                  >
-                                    <span className="text-lg">{p.icon}</span>
-                                    <span className="text-[10px] font-bold uppercase">{p.label}</span>
-                                  </button>
-                                ))}
-                              </div>
-                           </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* THUMBNAIL DESIGN */}
-                    {item.kind === 'THUMBNAIL' && (
-                      <div className="space-y-6">
-                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Design Style</label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
-                          {[
-                            { id: 'Exaggerated', label: 'Exaggerated', img: exaggeratedImg },
-                            { id: 'Headshot', label: 'Headshot', img: headshotImg },
-                            { id: 'Quote', label: 'Quote', img: quoteImg },
-                            { id: 'Statement', label: 'Statement', img: statementImg },
-                            { id: 'Before & After', label: 'Before & After', img: beforeAfterImg },
-                            { id: 'Versus', label: 'Versus', img: versusImg },
-                            { id: 'Process', label: 'Process', img: processImg },
-                            { id: 'No Text', label: 'No Text', img: noTextImg },
-                            { id: 'Other', label: 'Other', img: otherImg },
-                          ].map(style => (
-                            <button key={style.id} onClick={() => updateDraftParam(item.tempId, 'style', style.id)}
-                              className={`p-1.5 rounded-xl border flex flex-col gap-2 transition-all group ${item.params.style === style.id ? 'bg-primary/20 border-primary' : 'bg-black/40 border-white/5 hover:border-white/20'}`}>
-                              <div className="aspect-video bg-white/5 rounded-lg overflow-hidden flex items-center justify-center transition-colors">
-                                <img src={style.img} alt={style.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                              </div>
-                              <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-wider text-center">{style.label}</div>
-                            </button>
-                          ))}
-                        </div>
-
-                      </div>
-                    )}
-
-                    {/* SCRIPT WRITING */}
-                    {item.kind === 'SCRIPT' && (
-                      <div className="space-y-4">
-                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Estimated Word Count</label>
-                        <input
-                          type="number" step={100} min={50}
-                          value={item.params.wordCount || ''}
-                          onChange={e => updateDraftParam(item.tempId, 'wordCount', Number(e.target.value))}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                        />
-                      </div>
-                    )}
-
-                    {/* VOICEOVER */}
-                    {item.kind === 'VOICEOVER' && (
-                      <div className="space-y-4">
-                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Script Length (minutes)</label>
-                        <input
-                          type="number" min={1}
-                          value={item.params.scriptLength || ''}
-                          onChange={e => updateDraftParam(item.tempId, 'scriptLength', Number(e.target.value))}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                        />
-                      </div>
-                    )}
-
-                    {/* SEO */}
-                    {item.kind === 'SEO' && (
-                      <div className="space-y-4">
-                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Video URL</label>
-                        <input
-                          type="url"
-                          placeholder="https://youtube.com/watch?v=..."
-                          value={item.params.videoUrl || ''}
-                          onChange={e => updateDraftParam(item.tempId, 'videoUrl', e.target.value)}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                        />
-                      </div>
-                    )}
-
-                    {/* CONSULTATION */}
-                    {item.kind === 'CONSULTATION' && (
-                      <div className="space-y-4">
-                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Duration (minutes)</label>
-                        <select
-                          value={item.params.duration || 15}
-                          onChange={e => updateDraftParam(item.tempId, 'duration', Number(e.target.value))}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                        >
-                          <option value={15}>15 Minutes</option>
-                          <option value={30}>30 Minutes</option>
-                          <option value={45}>45 Minutes</option>
-                          <option value={60}>60 Minutes</option>
-                        </select>
-                      </div>
-                    )}
-
-                    {/* CUSTOM */}
-                    {item.kind === 'CUSTOM' && (
-                      <div className="space-y-4">
-                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Description of Request</label>
-                        <textarea
-                          rows={4}
-                          value={item.params.description || ''}
-                          onChange={e => updateDraftParam(item.tempId, 'description', e.target.value)}
-                          placeholder="Tell us exactly what you need..."
-                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white focus:ring-2 focus:ring-primary outline-none transition resize-none"
-                        />
-                      </div>
-                    )}
-
-                    {/* FOOTAGE REVIEW */}
-                    {item.kind === 'FOOTAGE_REVIEW' && (
-                      <div className="space-y-4">
-                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Raw Footage Length (minutes)</label>
-                        <input
-                          type="number" min={1}
-                          value={item.params.footageLength || ''}
-                          onChange={e => updateDraftParam(item.tempId, 'footageLength', Number(e.target.value))}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white text-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                        />
-                      </div>
-                    )}
-
-                    {/* SHARED UPLOAD SECTION */}
-                    <div className="space-y-6 pt-4 border-t border-white/5">
-                      <div className="space-y-3">
-                        <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider block">Assets & Resources</label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <label className="relative flex flex-col items-center justify-center p-8 bg-black/40 border-2 border-dashed border-white/5 rounded-2xl hover:bg-white/[0.02] hover:border-primary/50 transition-all cursor-pointer group">
-                             <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => {
-                               const selectedFiles = e.target.files;
-                               if (selectedFiles) {
-                                 const newFiles = Array.from(selectedFiles)
-                                 setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di))
-                               }
-                             }} />
-                             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 transition-transform">
-                               <Plus size={24} />
-                             </div>
-                             <span className="font-bold text-sm">Upload Files</span>
-                             <span className="text-xs text-gray-500 mt-1">Raw, music, references</span>
-                           </label>
-
-                           <button onClick={() => updateDraftParam(item.tempId, 'showLinkInput', !item.params.showLinkInput)} 
-                             className={`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl transition-all ${item.params.showLinkInput ? 'bg-primary/10 border-primary/50 text-white' : 'bg-black/40 border-white/5 text-gray-500 hover:border-white/10'}`}>
-                             <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-3">
-                               <LinkIcon size={24} />
-                             </div>
-                             <span className="font-bold text-sm">External Link</span>
-                             <span className="text-xs opacity-70 mt-1">Drive, Dropbox, etc.</span>
-                           </button>
-                        </div>
-                      </div>
-
-                      {item.params.showLinkInput && (
-                        <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
-                          <div className="flex gap-2">
-                            <input 
-                              type="url" 
-                              placeholder="https://..." 
-                              id={`link-input-${item.tempId}`}
-                              className="flex-1 bg-black/40 border border-white/10 rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary focus:outline-none placeholder:text-gray-500" 
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  const val = (e.target as HTMLInputElement).value;
-                                  if (val) {
-                                    const currentLinks = item.params.externalLinks || [];
-                                    updateDraftParam(item.tempId, 'externalLinks', [...currentLinks, val]);
-                                    (e.target as HTMLInputElement).value = '';
-                                  }
-                                }
-                              }}
-                            />
-                            <button 
-                              onClick={() => {
-                                const el = document.getElementById(`link-input-${item.tempId}`) as HTMLInputElement;
-                                if (el && el.value) {
-                                  const currentLinks = item.params.externalLinks || [];
-                                  updateDraftParam(item.tempId, 'externalLinks', [...currentLinks, el.value]);
-                                  el.value = '';
-                                }
-                              }}
-                              className="px-6 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-all active:scale-95 shadow-lg"
-                            >
-                              Add
-                            </button>
+                        {/* Visual Tone & Edit Pace */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                          <div className="space-y-5">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Visual Tone</label>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              {['Funny', 'Serious', 'Professional', 'Elegant', 'Casual', 'Informational'].map(t => (
+                                <button
+                                  key={t}
+                                  onClick={() => updateDraftParam(item.tempId, 'tone', t)}
+                                  className={cn(
+                                    "py-2.5 px-4 rounded-xl text-[10px] font-bold border transition-all",
+                                    item.params.tone === t
+                                      ? "bg-primary text-white border-primary shadow-lg"
+                                      : "bg-white/[0.02] border-white/5 text-text-dim/40 hover:border-white/20"
+                                  )}
+                                >
+                                  {t}
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                          
-                          {item.params.externalLinks?.length > 0 && (
-                            <div className="space-y-2">
-                              {item.params.externalLinks.map((link: string, i: number) => (
-                                <div key={i} className="flex items-center justify-between bg-white/[0.03] border border-white/5 px-4 py-3 rounded-xl animate-in fade-in slide-in-from-left-2">
-                                  <div className="flex items-center gap-3 min-w-0">
-                                    <span className="text-[10px] font-black text-primary uppercase">Link {i + 1}</span>
-                                    <span className="text-sm text-gray-300 truncate font-medium">{link}</span>
-                                  </div>
-                                  <button 
-                                    onClick={() => {
-                                      const filtered = item.params.externalLinks.filter((_: any, idx: number) => idx !== i);
-                                      updateDraftParam(item.tempId, 'externalLinks', filtered);
-                                    }}
-                                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
-                                  >
-                                    <X size={14} />
-                                  </button>
+
+                          <div className="space-y-5">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Edit Pace</label>
+                            </div>
+                            <div className="grid grid-cols-4 gap-4">
+                              {[
+                                { id: 'Slow', icon: Turtle },
+                                { id: 'Medium', icon: Zap },
+                                { id: 'Fast', icon: Flame },
+                                { id: 'Super', icon: Rocket },
+                              ].map(p => (
+                                <button
+                                  key={p.id}
+                                  onClick={() => updateDraftParam(item.tempId, 'pace', p.id)}
+                                  className={cn(
+                                    "flex flex-col items-center justify-center p-3 rounded-xl border transition-all",
+                                    item.params.pace === p.id
+                                      ? "bg-primary/10 border-primary/40 text-primary shadow-lg shadow-primary/5"
+                                      : "bg-white/[0.02] border-white/5 text-text-dim/40 hover:border-white/20"
+                                  )}
+                                >
+                                  <p.icon size={16} className="mb-2" />
+                                  <span className="text-[9px] font-bold uppercase tracking-widest">{p.id}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {renderAssetsAndInstructions(item)}
+                      </div>
+                    ) : item.kind === 'THUMBNAIL' ? (
+                      <div className="space-y-10 px-8 py-10">
+                        {/* Design Style */}
+                        <div className="space-y-6">
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Design Style</label>
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                            {THUMBNAIL_STYLES.map((s) => (
+                              <button
+                                key={s.id}
+                                onClick={() => updateDraftParam(item.tempId, 'style', s.id)}
+                                className={cn(
+                                  "group relative flex flex-col items-center gap-4 bg-bg-card/40 border rounded-2xl p-3 transition-all duration-300 hover:border-primary/40",
+                                  item.params.style === s.id ? "border-primary ring-1 ring-primary/20 shadow-lg shadow-primary/5" : "border-white/5"
+                                )}
+                              >
+                                <div className="aspect-[16/10] w-full overflow-hidden rounded-xl bg-black/40">
+                                  <img
+                                    src={s.img}
+                                    alt={s.label}
+                                    className={cn(
+                                      "w-full h-full object-cover transition-all duration-500",
+                                      item.params.style === s.id ? "scale-105" : "opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-105"
+                                    )}
+                                  />
+                                </div>
+                                <span className={cn(
+                                  "text-[9px] font-black uppercase tracking-widest transition-colors",
+                                  item.params.style === s.id ? "text-primary" : "text-text-dim/40 group-hover:text-white"
+                                )}>
+                                  {s.label}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {renderAssetsAndInstructions(item)}
+                      </div>
+                    ) : item.kind === 'VOICEOVER' ? (
+                      <div className="space-y-10 px-8 py-10">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Script Length (Minutes)</label>
+                          <input
+                            type="number"
+                            value={item.params.scriptLength || 5}
+                            onChange={(e) => updateDraftParam(item.tempId, 'scriptLength', parseInt(e.target.value))}
+                            className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 text-lg"
+                          />
+                        </div>
+                        {renderAssetsAndInstructions(item)}
+                      </div>
+                    ) : item.kind === 'SCRIPT' ? (
+                      <div className="space-y-10 px-8 py-10">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Estimated Word Count</label>
+                          <input
+                            type="number"
+                            value={item.params.wordCount || 500}
+                            onChange={(e) => updateDraftParam(item.tempId, 'wordCount', parseInt(e.target.value))}
+                            className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 text-lg"
+                          />
+                        </div>
+                        {renderAssetsAndInstructions(item)}
+                      </div>
+                    ) : item.kind === 'SEO' ? (
+                      <div className="space-y-10 px-8 py-10">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Video URL</label>
+                          <input
+                            type="url"
+                            placeholder="https://youtube.com/watch?v=example"
+                            value={item.params.videoUrl || ''}
+                            onChange={(e) => updateDraftParam(item.tempId, 'videoUrl', e.target.value)}
+                            className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40"
+                          />
+                        </div>
+                        {renderAssetsAndInstructions(item)}
+                      </div>
+                    ) : item.kind === 'CONSULTATION' ? (
+                      <div className="space-y-10 px-8 py-10">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Duration (Minutes)</label>
+                          <select
+                            value={item.params.duration || 15}
+                            onChange={(e) => updateDraftParam(item.tempId, 'duration', parseInt(e.target.value))}
+                            className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 appearance-none cursor-pointer"
+                          >
+                            {[15, 30, 45, 60].map(m => (
+                              <option key={m} value={m} className="bg-bg-dark text-white">{m} Minutes</option>
+                            ))}
+                          </select>
+                        </div>
+                        {renderAssetsAndInstructions(item)}
+                      </div>
+                    ) : item.kind === 'FOOTAGE_REVIEW' ? (
+                      <div className="space-y-10 px-8 py-10">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Raw Footage Length (Minutes)</label>
+                          <input
+                            type="number"
+                            value={item.params.footageLength || 10}
+                            onChange={(e) => updateDraftParam(item.tempId, 'footageLength', parseInt(e.target.value))}
+                            className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 text-lg"
+                          />
+                        </div>
+                        {renderAssetsAndInstructions(item)}
+                      </div>
+                    ) : item.kind === 'CUSTOM' ? (
+                      <div className="space-y-10 px-8 py-10">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Description of Request</label>
+                          <textarea
+                            rows={4}
+                            placeholder="Custom request description..."
+                            value={item.params.description || ''}
+                            onChange={(e) => updateDraftParam(item.tempId, 'description', e.target.value)}
+                            className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-6 text-white text-base outline-none focus:border-primary/40 resize-none transition-all focus:ring-2 focus:ring-primary/5 shadow-inner"
+                          />
+                        </div>
+                        {renderAssetsAndInstructions(item)}
+                      </div>
+                    ) : (['INTRO', 'OUTRO', 'CHANNEL_BANNER', 'LOGO_DESIGN', 'IMAGE_RETOUCHING'].includes(item.kind)) ? (
+                      <div className="space-y-10 px-8 py-10">
+                        {renderAssetsAndInstructions(item)}
+                      </div>
+                    ) : (
+                      <div className="p-8 space-y-8">
+                        <p className="text-text-dim/40 text-xs italic">Configuration options for {cat.label} are being loaded...</p>
+
+                        {/* Fallback Asset Section */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Upload Files</label>
+                          <div className="flex flex-col md:flex-row gap-4">
+                            <label className="flex-1 flex flex-col items-center justify-center p-8 bg-white/[0.01] border-2 border-dashed border-white/5 rounded-xl hover:border-primary/40 cursor-pointer transition-all group">
+                              <input type="file" multiple className="hidden" onChange={(e) => {
+                                if (e.target.files) {
+                                  const newFiles = Array.from(e.target.files)
+                                  setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di))
+                                }
+                              }} />
+                              <Plus size={24} className="text-primary/40 group-hover:text-primary transition-colors mb-2" />
+                              <span className="text-sm font-bold text-white">Add Files</span>
+                            </label>
+                          </div>
+                          {item.files.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {item.files.map((f, fi) => (
+                                <div key={fi} className="bg-white/5 px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold">
+                                  <FileText size={12} className="text-text-dim/40" />
+                                  {f.name}
+                                  <button onClick={() => {
+                                    setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: di.files.filter((_, i) => i !== fi) } : di))
+                                  }} className="hover:text-error"><X size={12} /></button>
                                 </div>
                               ))}
                             </div>
                           )}
                         </div>
-                      )}
-
-                      {/* File Queue */}
-                      {item.files?.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                           {item.files.map((file, i) => (
-                             <div key={i} className="flex items-center gap-3 bg-white/[0.03] border border-white/5 p-3 rounded-xl animate-in fade-in zoom-in-95">
-                               <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-gray-500">
-                                 <FileText size={18} />
-                               </div>
-                               <div className="flex-1 min-w-0">
-                                 <div className="text-[13px] font-bold truncate">{file.name}</div>
-                                 <div className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">{(file.size / 1024 / 1024).toFixed(1)} MB</div>
-                               </div>
-                               <button onClick={() => setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: di.files.filter((_, idx) => idx !== i) } : di))}
-                                 className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
-                                 <X size={14} />
-                               </button>
-                             </div>
-                           ))}
-                        </div>
-                      )}
-
-                      <textarea rows={3} placeholder="Add any special instructions..." value={item.params.notes || ''} onChange={e => updateDraftParam(item.tempId, 'notes', e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-sm focus:ring-2 focus:ring-primary outline-none transition resize-none placeholder:text-gray-600" />
-                    </div>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Pricing Footer */}
-                  <div className="bg-bg-dark/40 border-t border-white/5 p-8 flex items-center justify-between">
-                     <div className="space-y-1">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Subtotal</span>
-                        <div className="text-2xl font-bold text-white flex items-center gap-2">
-                           {estimateCredits(item)} <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">Credits</span>
-                        </div>
-                     </div>
-                     <div className="text-xs text-gray-500 max-w-[200px] text-right">
-                        This is an automated estimate. Final credit total will be confirmed in the next step.
-                     </div>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-        )}
+        )
+        }
 
-        {/* ─── STEP 3: CONFIRM ──────────────────────────────────────────── */}
+        {/* STEP 3: REVIEW & PAY */}
         {stepIndex === 3 && (
-          <div className="bg-bg-card/40 backdrop-blur-lg rounded-2xl border border-white/10 p-10 space-y-10 animate-in zoom-in-95 duration-200">
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(59,130,246,0.15)] animate-bounce">
-                <Plus size={40} />
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight">Review & Submit</h2>
-              <p className="text-gray-400 font-medium">Almost there! Your project is ready for lift-off.</p>
+          <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 p-8 md:p-12 space-y-10 shadow-xl">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-white">Review & Pay</h2>
+              <p className="text-text-dim/60 text-sm">Confirm your order details and submit.</p>
             </div>
 
-            <div className="bg-black/20 rounded-2xl border border-white/5 p-6 space-y-4">
+            <div className="bg-black/20 rounded-xl border border-white/5 p-6 space-y-4">
               {draftItems.map(item => (
-                <div key={item.tempId} className="flex justify-between items-center py-3 border-b border-white/[0.02] last:border-0 uppercase tracking-widest text-[11px] font-bold">
-                  <span className="text-gray-400">{SERVICE_CATALOG.find(c => c.kind === item.kind)?.label}</span>
-                  <span className="text-white">{estimateCredits(item)} Credits</span>
+                <div key={item.tempId} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                  <span className="text-sm font-bold text-white">{SERVICE_CATALOG.find(c => c.kind === item.kind)?.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-white">{estimateCredits(item)}</span>
+                    <span className="text-[10px] font-bold text-text-dim/40 uppercase">Credits</span>
+                  </div>
                 </div>
               ))}
               <div className="pt-4 flex justify-between items-center border-t border-white/10">
-                 <span className="text-sm font-bold">TO PAY</span>
-                 <span className="text-3xl font-black text-primary">{confirmedTotal} <span className="text-xs font-bold opacity-50">CREDITS</span></span>
+                <span className="text-xs font-bold text-text-dim/60 uppercase">Total Amount</span>
+                <div className="text-3xl font-bold text-primary">
+                  {confirmedTotal} <span className="text-xs font-bold text-text-dim/40">Credits</span>
+                </div>
               </div>
             </div>
 
-            <div className={`p-5 rounded-2xl flex items-center gap-4 border transition-all ${canAfford ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${canAfford ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                 <Info size={20} />
-              </div>
+            <div className={cn(
+              "p-6 rounded-xl flex items-center gap-4 border transition-all",
+              canAfford ? 'bg-success/5 border-success/20 text-success' : 'bg-error/5 border-error/20 text-error'
+            )}>
+              <Info size={24} />
               <div className="flex-1">
-                <p className="text-sm font-black uppercase">{canAfford ? 'Balance Sufficient' : 'Insufficient Balance'}</p>
-                <p className="text-[11px] font-bold opacity-70 tracking-widest uppercase">Wallet: {balance} • Required: {confirmedTotal}</p>
+                <p className="font-bold text-sm">{canAfford ? 'Your balance is sufficient' : 'Insufficient balance'}</p>
+                <p className="text-[10px] uppercase tracking-widest opacity-60">Wallet: {balance} Cr | Required: {confirmedTotal} Cr</p>
               </div>
               {!canAfford && (
-                <button onClick={() => navigate('/credits')} className="bg-white/10 hover:bg-white/20 text-white text-[10px] font-black uppercase px-4 py-2 rounded-lg transition-all">Top Up</button>
+                <Button variant="outline" onClick={() => navigate('/credits')} className="h-10 px-6 rounded-lg text-[10px]">Recharge</Button>
               )}
             </div>
           </div>
         )}
 
-
-        {/* ─── FLOATING BOTTOM BAR ────────────────────────────────────── */}
-        {stepIndex > 0 && (
-          <div className="sticky bottom-6 mt-8 bg-bg-card/40 backdrop-blur-lg border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] rounded-2xl p-4 pl-8 flex items-center justify-between animate-in slide-in-from-bottom-10 duration-200">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Estimated Total</span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-white">
-                  {stepIndex === 3 ? confirmedTotal : totalEstimatedCredits}
-                </span>
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Credits</span>
-              </div>
-            </div>
-            
-            <button
-              onClick={handleNext}
-              disabled={loading || uploading || (stepIndex === 1 && draftItems.length === 0)}
-              className="group relative bg-primary hover:bg-blue-600 text-white disabled:opacity-20 disabled:grayscale disabled:scale-100 px-10 py-4 rounded-xl font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 shadow-xl shadow-primary/20"
-            >
-              <div className="absolute inset-0 bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-xl" />
-              <span className="relative">
-                {uploading ? (
-                  <div className="flex items-center gap-3">
-                    <Loader2 size={18} className="animate-spin" />
-                    <span>Syncing Assets</span>
-                  </div>
-                ) : loading ? (
-                   <div className="flex items-center gap-3">
-                    <Loader2 size={18} className="animate-spin" />
-                    <span>Processing</span>
-                  </div>
-                ) : stepIndex === 3 ? (
-                  `Submit Order`
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span>Next Step</span>
-                    <ArrowRight size={18} />
-                  </div>
-                )}
-              </span>
-            </button>
+        {/* Bottom Navigation */}
+        <div className="mt-12 flex justify-between items-center bg-bg-card/60 backdrop-blur-3xl border border-white/5 rounded-[2rem] p-8 shadow-2xl sticky bottom-6 group">
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Total Estimate</p>
+            <p className="text-3xl font-bold text-white tracking-tight italic">
+              {stepIndex === 3 ? confirmedTotal : totalEstimatedCredits} <span className="text-sm font-bold text-text-dim/40 not-italic">Credits</span>
+            </p>
           </div>
-        )}
 
+          <Button
+            variant="primary"
+            onClick={handleNext}
+            isLoading={loading}
+            disabled={uploading || (stepIndex === 1 && draftItems.length === 0)}
+            className="h-14 px-12 rounded-2xl font-bold text-sm shadow-2xl shadow-primary/20"
+          >
+            {stepIndex === 3 ? 'Initiate Production' : 'Advance Protocol'}
+            <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </div>
       </div>
     </div>
   )

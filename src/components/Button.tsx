@@ -20,12 +20,12 @@ const Button: React.FC<ButtonProps> = ({
   isLoading = false,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center rounded-xl px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-[background-color,color,box-shadow,transform,opacity] duration-200 active:scale-95 disabled:pointer-events-none disabled:opacity-50 overflow-hidden relative group italic transform-gpu';
+  const baseStyles = 'inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-bold tracking-tight transition-all duration-300 active:scale-95 disabled:pointer-events-none disabled:opacity-50 overflow-hidden relative group transform-gpu';
   
   const variants = {
-    primary: 'bg-primary text-white shadow-lg hover:shadow-primary/20 hover:scale-[1.02]',
-    outline: 'border border-white/10 bg-transparent text-text-muted hover:text-white hover:bg-white/[0.03] hover:border-white/20',
-    ghost: 'bg-transparent text-text-dim hover:text-white transition-colors duration-200',
+    primary: 'bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary-hover hover:shadow-primary/40 hover:-translate-y-0.5',
+    outline: 'border border-white/10 bg-white/5 text-text-muted hover:text-white hover:bg-white/10 hover:border-white/20',
+    ghost: 'bg-transparent text-text-dim hover:text-text-main transition-colors duration-200',
     glass: 'bg-white/[0.03] backdrop-blur-md border border-white/10 text-white hover:bg-white/[0.06] shadow-xl',
   };
 
@@ -47,7 +47,9 @@ const Button: React.FC<ButtonProps> = ({
           <span className="tracking-[0.4em]">Processing</span>
         </div>
       ) : (
-        <span className="relative z-10">{children}</span>
+        <div className="relative z-10 flex items-center justify-center gap-2.5">
+          {children}
+        </div>
       )}
     </button>
   );
