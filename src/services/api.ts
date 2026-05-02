@@ -96,6 +96,15 @@ api.interceptors.response.use(
       }
     }
 
+    if (error.response?.status === 429) {
+      logger.error('api.rate_limited', {
+        url: requestUrl,
+        method: originalRequest?.method,
+        message: 'Aggressive request frequency detected'
+      })
+      // Optionally dispatch a global event or show a toast here
+    }
+
     logger.error('api.request_failed', {
       url: requestUrl,
       method: originalRequest?.method,
