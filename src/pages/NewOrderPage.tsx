@@ -145,6 +145,7 @@ export default function NewOrderPage() {
       setLoading(true)
       try {
         let cumulativeCredits = 0
+        // Sequential processing to avoid overwhelming the server and hitting rate limits
         for (const draft of draftItems) {
           const assetIds: string[] = []
           if (draft.files.length > 0) {
@@ -161,7 +162,12 @@ export default function NewOrderPage() {
         setConfirmedTotal(cumulativeCredits)
         setStepIndex(3)
       } catch (err: any) {
-        setError(`Failed to save configuration: ${err?.response?.data?.error || err.message}`)
+        const errorMsg = err?.response?.data?.error || err?.response?.data?.message || err.message
+        setError(`Failed to save configuration: ${errorMsg}`)
+        // If we hit a 429, we should definitely stop
+        if (err?.response?.status === 429) {
+           setError('Rate limit exceeded. Please wait a few moments before trying again.')
+        }
       } finally {
         setLoading(false)
         setUploading(false)
