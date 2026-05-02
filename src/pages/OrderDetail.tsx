@@ -7,7 +7,6 @@ import type { OrderDetail as OrderDetailType, Message } from '../services/orderS
 import {
   ArrowLeft,
   Send,
-  CheckCircle,
   Package,
   MessageSquare,
   Activity,
@@ -16,17 +15,9 @@ import {
   Loader2,
   Trash2,
   ExternalLink,
-  Video,
-  File as FileIcon,
-  X,
   Maximize2,
   Download,
-  ShieldCheck,
-  Zap,
-  Clock,
-  ChevronRight,
-  Cpu,
-  Monitor,
+  File as FileIcon,
   Check
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
@@ -51,13 +42,7 @@ const STATUS_MAP: Record<string, { label: string, color: string }> = {
   PENDING_PAYMENT: { label: 'Pending payment', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
 }
 
-const ORDER_STEPS = [
-  { id: 'DRAFT', label: 'Draft' },
-  { id: 'PENDING_INPUT', label: 'Queued' },
-  { id: 'IN_PROGRESS', label: 'Production' },
-  { id: 'DELIVERED', label: 'Review' },
-  { id: 'COMPLETED', label: 'Final' }
-]
+
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>()
@@ -66,12 +51,12 @@ export default function OrderDetail() {
   const [detail, setDetail] = useState<OrderDetailType | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [activeTab, setActiveTab] = useState<'items' | 'chat' | 'timeline'>('items')
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [uploadingItem, setUploadingItem] = useState<string | null>(null)
-  const [previewAsset, setPreviewAsset] = useState<any | null>(null)
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -82,7 +67,7 @@ export default function OrderDetail() {
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
   })
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -90,9 +75,9 @@ export default function OrderDetail() {
     if (id) {
       loadOrder()
       loadMessages()
-      
+
       const socket = socketService.getSocket()
-      
+
       const setupSocket = () => {
         socketService.joinOrder(id)
       }
@@ -106,7 +91,7 @@ export default function OrderDetail() {
 
       socket.on('connect', setupSocket)
       socket.on('new-message', handleNewMessage)
-      
+
       if (socket.connected) {
         setupSocket()
       }
@@ -124,10 +109,13 @@ export default function OrderDetail() {
 
   async function loadOrder() {
     setLoading(true)
+    setError(null)
     try {
       const data = await orderApi.getOrderDetail(id!)
       setDetail(data)
-    } catch (err) {
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err.message
+      setError(msg)
       logger.error('order.load_failed', { orderId: id, error: serializeError(err) })
     } finally {
       setLoading(false)
@@ -289,7 +277,7 @@ export default function OrderDetail() {
     }
   }
 
-  if (loading || !detail) {
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4 animate-in fade-in duration-700">
         <Loader2 size={32} className="animate-spin text-primary" />
@@ -297,6 +285,8 @@ export default function OrderDetail() {
       </div>
     )
   }
+
+  if (!detail) return null
 
   const { order, items, events } = detail
   const canCancel = ['DRAFT', 'UNDER_REVIEW', 'IN_PROGRESS'].includes(order.status)
@@ -390,9 +380,9 @@ export default function OrderDetail() {
       <div className="relative z-10">
         {activeTab === 'items' && (
           <div className="space-y-6">
-            {items.map((item) => (
+            {items.map((item: any) => (
               <div key={item._id} className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden shadow-xl">
-                <div 
+                <div
                   className="p-6 flex items-center justify-between cursor-pointer"
                   onClick={() => setExpandedItem(expandedItem === item._id ? null : item._id)}
                 >
@@ -405,7 +395,7 @@ export default function OrderDetail() {
                       <p className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">{item.creditsQuoted} Credits</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-6">
                     <div className={cn(
                       "px-3 py-1 rounded-full text-[9px] font-bold border uppercase tracking-widest",
@@ -444,70 +434,87 @@ export default function OrderDetail() {
                         </div>
                       </div>
 
-                        <div className="space-y-6">
-                          {/* Deliverables Section */}
-                          <div className="space-y-3">
-                            <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest">Deliverables</h4>
-                            {(item.assets ?? []).filter(a => a.role === 'OUTPUT').length > 0 ? (
-                              <div className="grid grid-cols-2 gap-4">
-                                {(item.assets ?? []).filter(a => a.role === 'OUTPUT').map((asset: any) => (
-                                  <div key={asset._id} className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
-                                    <div className="flex items-center justify-between">
-                                      {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-primary/40" />}
-                                      <span className="text-[8px] font-bold text-primary uppercase tracking-widest">Studio Output</span>
-                                    </div>
-                                    <p className="text-[10px] text-white font-bold truncate">{asset.originalName}</p>
-                                    <button 
-                                      onClick={() => handleDownload(asset.url, asset.originalName)}
-                                      className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
-                                    >
-                                      <Download size={10} /> Download
-                                    </button>
+                      <div className="space-y-6">
+                        {/* Deliverables Section */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest">Deliverables</h4>
+                          {((item.assets ?? []).filter((a: any) => a.role === 'OUTPUT').length > 0 || (item.deliveryLinks?.length || 0) > 0) ? (
+                            <div className="grid grid-cols-2 gap-4">
+                              {(item.assets ?? []).filter((a: any) => a.role === 'OUTPUT').map((asset: any) => (
+                                <div key={asset._id} className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
+                                  <div className="flex items-center justify-between">
+                                    {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-primary/40" />}
+                                    <span className="text-[8px] font-bold text-primary uppercase tracking-widest">Studio Output</span>
                                   </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-[10px] text-text-dim/20 italic">No deliverables yet.</p>
-                            )}
-                          </div>
-
-                          {/* Client Uploads Section */}
-                          <div className="space-y-3">
-                            <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Your Uploads</h4>
-                            {(item.assets ?? []).filter(a => a.role !== 'OUTPUT').length > 0 ? (
-                              <div className="grid grid-cols-2 gap-4">
-                                {(item.assets ?? []).filter(a => a.role !== 'OUTPUT').map((asset: any) => (
-                                  <div key={asset._id} className="group relative bg-black/20 border border-white/5 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
-                                    <div className="flex items-center justify-between">
-                                      {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-text-dim/40" />}
-                                      <button onClick={() => handleRemoveAsset(item._id, asset._id)} className="text-text-dim/20 hover:text-error transition-colors"><Trash2 size={14} /></button>
-                                    </div>
-                                    <p className="text-[10px] text-white font-bold truncate">{asset.originalName}</p>
-                                    <button 
-                                      onClick={() => handleDownload(asset.url, asset.originalName)}
-                                      className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
-                                    >
-                                      <Download size={10} /> Download
-                                    </button>
+                                  <p className="text-[10px] text-white font-bold truncate">{asset.originalName}</p>
+                                  <button
+                                    onClick={() => handleDownload(asset.url, asset.originalName)}
+                                    className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                                  >
+                                    <Download size={10} /> Download
+                                  </button>
+                                </div>
+                              ))}
+                              {item.deliveryLinks?.map((link: string, idx: number) => (
+                                <div key={idx} className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
+                                  <div className="flex items-center justify-between">
+                                    <ExternalLink size={14} className="text-primary/40" />
+                                    <span className="text-[8px] font-bold text-primary uppercase tracking-widest">External Link</span>
                                   </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-[10px] text-text-dim/20 italic">No uploads.</p>
-                            )}
-                          </div>
+                                  <p className="text-[10px] text-white font-bold truncate">{link}</p>
+                                  <a
+                                    href={link}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                                  >
+                                    <ExternalLink size={10} /> Open Link
+                                  </a>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[10px] text-text-dim/20 italic">No deliverables yet.</p>
+                          )}
                         </div>
 
-                        <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/5 rounded-xl py-10 hover:border-primary/40 cursor-pointer transition-all">
-                          <input type="file" multiple className="hidden" onChange={(e) => handleFileUpload(item._id, e.target.files)} disabled={uploadingItem === item._id} />
-                          {uploadingItem === item._id ? <Loader2 size={24} className="animate-spin text-primary" /> : (
-                            <>
-                              <UploadCloud size={24} className="text-text-dim/40" />
-                              <span className="text-[10px] font-bold text-text-dim/40 uppercase">Upload Files</span>
-                            </>
+                        {/* Client Uploads Section */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Your Uploads</h4>
+                          {(item.assets ?? []).filter((a: any) => a.role !== 'OUTPUT').length > 0 ? (
+                            <div className="grid grid-cols-2 gap-4">
+                              {(item.assets ?? []).filter((a: any) => a.role !== 'OUTPUT').map((asset: any) => (
+                                <div key={asset._id} className="group relative bg-black/20 border border-white/5 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
+                                  <div className="flex items-center justify-between">
+                                    {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-text-dim/40" />}
+                                    <button onClick={() => handleRemoveAsset(item._id, asset._id)} className="text-text-dim/20 hover:text-error transition-colors"><Trash2 size={14} /></button>
+                                  </div>
+                                  <p className="text-[10px] text-white font-bold truncate">{asset.originalName}</p>
+                                  <button
+                                    onClick={() => handleDownload(asset.url, asset.originalName)}
+                                    className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                                  >
+                                    <Download size={10} /> Download
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[10px] text-text-dim/20 italic">No uploads.</p>
                           )}
-                        </label>
+                        </div>
                       </div>
+
+                      <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/5 rounded-xl py-10 hover:border-primary/40 cursor-pointer transition-all">
+                        <input type="file" multiple className="hidden" onChange={(e) => handleFileUpload(item._id, e.target.files)} disabled={uploadingItem === item._id} />
+                        {uploadingItem === item._id ? <Loader2 size={24} className="animate-spin text-primary" /> : (
+                          <>
+                            <UploadCloud size={24} className="text-text-dim/40" />
+                            <span className="text-[10px] font-bold text-text-dim/40 uppercase">Upload Files</span>
+                          </>
+                        )}
+                      </label>
+                    </div>
 
                     {item.status === 'DELIVERED' && (
                       <div className="mt-8 flex gap-3 border-t border-white/5 pt-6">
@@ -531,7 +538,7 @@ export default function OrderDetail() {
                   <p className="text-xs font-bold uppercase tracking-widest">No messages yet</p>
                 </div>
               ) : (
-                messages.map((msg, i) => {
+                messages.map((msg) => {
                   if (!msg) return null;
                   const senderId = msg.senderId?._id || msg.senderId;
                   const currentUserId = auth?.user?._id || (auth?.user as any)?.id;
@@ -553,7 +560,7 @@ export default function OrderDetail() {
               )}
               <div ref={chatEndRef} />
             </div>
-            
+
             <div className="p-4 bg-black/20 border-t border-white/5">
               <form onSubmit={handleSendMessage} className="flex gap-3">
                 <input
@@ -574,7 +581,7 @@ export default function OrderDetail() {
         {activeTab === 'timeline' && (
           <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 p-8 shadow-xl">
             <div className="space-y-8 border-l border-white/5 ml-4 pl-8">
-              {events.map((event) => (
+              {events.map((event: any) => (
                 <div key={event._id} className="relative">
                   <div className="absolute -left-[41px] top-1 w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(225,29,72,0.5)]" />
                   <div className="space-y-1">
