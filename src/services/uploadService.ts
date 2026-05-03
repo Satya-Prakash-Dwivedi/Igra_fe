@@ -62,11 +62,15 @@ export async function uploadFile(
   if (isDirect) {
     if (onProgress) onProgress(10)
     
-    await fetch(presignedUrls[0], {
+    const uploadRes = await fetch(presignedUrls[0], {
       method: 'PUT',
       body: file,
       headers: { 'Content-Type': file.type || 'application/octet-stream' },
     })
+
+    if (!uploadRes.ok) {
+      throw new Error(`Failed to upload file: ${uploadRes.statusText}`)
+    }
 
     if (onProgress) onProgress(90)
     const finalizeRes = await finalizeUpload(uploadSessionId)
@@ -89,6 +93,10 @@ export async function uploadFile(
       method: 'PUT',
       body: blob,
     })
+    
+    if (!uploadRes.ok) {
+      throw new Error(`Failed to upload part ${i + 1}: ${uploadRes.statusText}`)
+    }
 
     const etag = uploadRes.headers.get('etag') || `part-${i + 1}`
 
@@ -133,6 +141,10 @@ export async function resumeUpload(file: File, sessionId: string, onProgress?: (
       method: 'PUT',
       body: blob,
     })
+
+    if (!uploadRes.ok) {
+      throw new Error(`Failed to upload part ${partNumber}: ${uploadRes.statusText}`)
+    }
 
     const etag = uploadRes.headers.get('etag') || `part-${partNumber}`
     await registerPart(uploadSessionId, partNumber, etag, end - start)
