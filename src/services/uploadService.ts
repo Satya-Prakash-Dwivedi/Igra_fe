@@ -65,7 +65,6 @@ export async function uploadFile(
     await fetch(presignedUrls[0], {
       method: 'PUT',
       body: file,
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
     })
 
     if (onProgress) onProgress(90)
