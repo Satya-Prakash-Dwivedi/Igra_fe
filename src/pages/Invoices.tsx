@@ -17,9 +17,13 @@ import type { Invoice } from '../services/billingService'
 import { createLogger, serializeError } from '../services/logger'
 import Button from '../components/Button'
 
+import { useNavigate } from 'react-router-dom'
+import { generateInvoicePDF } from '../utils/invoiceUtils'
+
 const logger = createLogger('Invoices')
 
 export default function Invoices() {
+  const navigate = useNavigate()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -40,6 +44,16 @@ export default function Invoices() {
     }
     load()
   }, [page])
+
+  const handleDownload = (e: React.MouseEvent, inv: Invoice) => {
+    e.stopPropagation();
+    generateInvoicePDF(inv, 'download');
+  };
+
+  const handleView = (e: React.MouseEvent, inv: Invoice) => {
+    e.stopPropagation();
+    generateInvoicePDF(inv, 'view');
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700 px-6 relative">
@@ -99,7 +113,11 @@ export default function Invoices() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {invoices.map((inv) => (
-                  <tr key={inv._id} className="hover:bg-white/[0.02] transition-all duration-300 group">
+                  <tr 
+                    key={inv._id} 
+                    onClick={() => navigate(`/invoices/${inv._id}`)}
+                    className="hover:bg-white/[0.02] transition-all duration-300 group cursor-pointer"
+                  >
                     <td className="px-6 py-5">
                       <span className="text-sm font-bold text-white">
                         {new Date(inv.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
@@ -131,10 +149,18 @@ export default function Invoices() {
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-2">
-                        <button className="p-2 rounded-lg bg-white/5 text-text-dim/40 hover:text-white hover:bg-primary transition-all shadow-inner" title="Download">
+                        <button 
+                          onClick={(e) => handleDownload(e, inv)}
+                          className="p-2 rounded-lg bg-white/5 text-text-dim/40 hover:text-white hover:bg-primary transition-all shadow-inner" 
+                          title="Download"
+                        >
                           <FileDown size={16} />
                         </button>
-                        <button className="p-2 rounded-lg bg-white/5 text-text-dim/40 hover:text-white hover:bg-white/10 transition-all shadow-inner" title="View">
+                        <button 
+                          onClick={(e) => handleView(e, inv)}
+                          className="p-2 rounded-lg bg-white/5 text-text-dim/40 hover:text-white hover:bg-white/10 transition-all shadow-inner" 
+                          title="View"
+                        >
                           <ExternalLink size={16} />
                         </button>
                       </div>
