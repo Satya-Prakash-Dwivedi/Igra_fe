@@ -15,6 +15,7 @@ import {
   Zap,
   Coins
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { createLogger, serializeError } from '../services/logger'
 import { cn } from '../components/Button'
 import { toast } from 'sonner'
@@ -30,6 +31,7 @@ const REASON_LABELS: Record<string, { label: string; color: string }> = {
 }
 
 export default function Credits() {
+  const navigate = useNavigate()
   const [wallet, setWallet] = useState<CreditWallet | null>(null)
   const [packs, setPacks] = useState<CreditPack[]>([])
   const [ledger, setLedger] = useState<LedgerEntry[]>([])
@@ -334,7 +336,11 @@ export default function Credits() {
             ) : (
               <div className="divide-y divide-white/5">
                 {invoices.map((inv) => (
-                  <div key={inv._id} className="flex flex-col md:flex-row md:items-center justify-between p-6 hover:bg-white/[0.03] transition-all duration-300 group/inv cursor-pointer">
+                  <div 
+                    key={inv._id} 
+                    onClick={() => navigate(`/invoices/${inv._id}`)}
+                    className="flex flex-col md:flex-row md:items-center justify-between p-6 hover:bg-white/[0.03] transition-all duration-300 group/inv cursor-pointer"
+                  >
                     <div className="flex items-center gap-6">
                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-text-dim/20 border border-white/5 group-hover/inv:text-primary group-hover/inv:border-primary/20 group-hover/inv:bg-primary/5 transition-all duration-300 shadow-lg">
                           <Receipt size={24} />
