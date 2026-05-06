@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Search, Bell, Menu, User, LogOut } from 'lucide-react'
+import { Menu, User, LogOut } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { resolveApiUrl } from '../../utils/urlUtils'
 import { createLogger, serializeError } from '../../services/logger'
@@ -10,6 +10,8 @@ const logger = createLogger('Navbar')
 interface NavbarProps {
   onMenuClick: () => void
 }
+
+import NotificationBell from '../NotificationBell'
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const location = useLocation()
@@ -28,6 +30,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   // Map route to Title
   const getTitle = () => {
     const path = location.pathname
+    // Admin Routes
+    if (path.startsWith('/admin')) {
+      if (path === '/admin/dashboard') return 'Admin Dashboard'
+      if (path.includes('/admin/orders')) return 'Order Management'
+      if (path === '/admin/users') return 'User Management'
+      if (path === '/admin/staff') return 'Staff Settings'
+      if (path === '/admin/messages') return 'System Messages'
+      if (path.includes('/admin/support/tickets')) return 'Support Tickets'
+      if (path.includes('/admin/support/bugs')) return 'Bug Reports'
+      return 'Admin Portal'
+    }
+
+    // Client Routes
     if (path === '/dashboard') return 'Dashboard'
     if (path === '/orders' || path.startsWith('/orders/')) return 'Orders'
     if (path === '/credits') return 'Credits'
@@ -67,24 +82,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         </div>
       </div>
 
-      {/* Center: Search */}
-      <div className="hidden md:flex items-center relative group z-10">
-        <Search size={14} className="absolute left-4 text-text-dim group-focus-within:text-primary transition-colors duration-200" />
-        <input
-          type="text"
-          placeholder="Search..."
-          className="bg-white/[0.02] border border-white/5 rounded-xl pl-12 pr-6 py-2.5 text-xs font-bold tracking-widest text-white w-80 focus:outline-none focus:border-primary/40 focus:bg-white/[0.04] transition-[border-color,background-color] duration-200 placeholder:text-gray-600 uppercase transform-gpu"
-        />
-      </div>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-6 relative z-10">
-        <button className="relative group">
-          <div className="p-2.5 text-text-dim group-hover:text-white transition-all duration-200 bg-white/[0.02] border border-white/5 rounded-xl group-hover:bg-white/[0.05] transform-gpu">
-            <Bell size={18} />
-          </div>
-          <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
-        </button>
+        <NotificationBell variant="navbar" />
 
         <div className="hidden lg:flex flex-col items-end text-right">
            <p className="text-white font-bold text-xs tracking-tight">{user?.name || 'User'}</p>
