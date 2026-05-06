@@ -174,11 +174,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           </button>
         </div>
 
-        {/* Notifications */}
-        <div className="px-4 mb-6">
-           <NotificationBell isCollapsed={isCollapsed} />
-        </div>
-
         {/* Global Search Button Placeholder */}
         <div className="px-4 mb-6">
            <div className={cn(
