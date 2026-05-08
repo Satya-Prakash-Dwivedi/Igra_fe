@@ -11,9 +11,9 @@ export async function generateInvoicePDF(invoice: Invoice, action: 'download' | 
     const doc = new jsPDF();
 
     // Colors
-    const primaryColor = [225, 29, 72]; // Igra primary (pinkish/red)
-    const darkColor = [15, 15, 15];
-    const grayColor = [100, 100, 100];
+    const primaryColor: [number, number, number] = [225, 29, 72]; // Igra primary (pinkish/red)
+    const darkColor: [number, number, number] = [15, 15, 15];
+    const grayColor: [number, number, number] = [100, 100, 100];
 
     // Fonts
     doc.setFont('helvetica', 'bold');
