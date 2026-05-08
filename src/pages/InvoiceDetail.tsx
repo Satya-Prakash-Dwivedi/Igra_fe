@@ -126,7 +126,7 @@ export default function InvoiceDetail() {
               </div>
               <div className="space-y-1">
                 <p className="text-lg font-bold text-white">Customer Account</p>
-                <p className="text-sm text-text-dim/60">User ID: {invoice.userId.slice(-8).toUpperCase()}</p>
+                <p className="text-sm text-text-dim/60">User ID: {String(invoice.userId || '').slice(-8).toUpperCase()}</p>
               </div>
             </div>
 
