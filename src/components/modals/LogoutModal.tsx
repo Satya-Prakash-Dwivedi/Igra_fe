@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { LogOut, X, ShieldAlert } from 'lucide-react';
 import Button from '../Button';
 
@@ -12,7 +13,7 @@ interface LogoutModalProps {
 const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirm, isLoading }) => {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
       {/* Backdrop */}
       <div 
@@ -68,7 +69,8 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirm, i
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

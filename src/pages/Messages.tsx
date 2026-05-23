@@ -95,11 +95,11 @@ const Messages: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-120px)] flex flex-col p-6 animate-in fade-in duration-500 relative">
+    <div className="w-full max-w-5xl mx-auto h-[calc(100dvh-120px)] md:h-[calc(100vh-120px)] flex flex-col p-2 sm:p-6 animate-in fade-in duration-500 relative">
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 relative z-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 relative z-10">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-white">Messages</h1>
           <p className="text-text-dim/60 text-sm flex items-center gap-2">
@@ -122,7 +122,7 @@ const Messages: React.FC = () => {
 
       {/* Chat Container */}
       <div className="flex-1 bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl flex flex-col overflow-hidden shadow-2xl relative z-10">
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 size={32} className="animate-spin text-primary/40" />
@@ -144,7 +144,7 @@ const Messages: React.FC = () => {
               const senderName = msg.senderId && typeof msg.senderId === 'object' ? msg.senderId.name : (isMe ? 'You' : 'Editor');
               
               return (
-                <div key={msg._id} className={cn("flex items-start gap-4 max-w-[85%] animate-in duration-300", isMe ? "ml-auto flex-row-reverse" : "slide-in-from-left-2")}>
+                <div key={msg._id} className={cn("flex items-start gap-2 sm:gap-4 max-w-[90%] sm:max-w-[85%] animate-in duration-300", isMe ? "ml-auto flex-row-reverse" : "slide-in-from-left-2")}>
                   <div className="w-10 h-10 rounded-xl border border-white/5 flex items-center justify-center bg-bg-dark text-white font-bold text-xs flex-shrink-0 overflow-hidden shadow-lg">
                     {senderAvatar ? (
                       <img src={resolveApiUrl(senderAvatar)} className="w-full h-full object-cover" />
@@ -160,7 +160,7 @@ const Messages: React.FC = () => {
                       </span>
                     </div>
                     <div className={cn(
-                      "px-4 py-3 text-sm font-medium leading-relaxed shadow-xl",
+                      "px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium leading-relaxed shadow-xl",
                       isMe 
                         ? "bg-primary text-white rounded-2xl rounded-tr-none" 
                         : "bg-bg-dark border border-white/5 text-text-dim rounded-2xl rounded-tl-none"
@@ -177,8 +177,8 @@ const Messages: React.FC = () => {
 
         {/* Input Bar */}
         <div className="p-4 bg-black/40 border-t border-white/5">
-          <form onSubmit={handleSend} className="flex items-center gap-3 bg-bg-dark/60 border border-white/5 rounded-xl px-4 py-2 focus-within:border-primary/40 transition-all shadow-inner">
-            <button type="button" className="text-text-dim/40 hover:text-white transition-colors p-2" title="Attach file">
+          <form onSubmit={handleSend} className="flex items-center gap-2 sm:gap-3 bg-bg-dark/60 border border-white/5 rounded-xl px-2 sm:px-4 py-1.5 sm:py-2 focus-within:border-primary/40 transition-all shadow-inner">
+            <button type="button" className="text-text-dim/40 hover:text-white transition-colors p-1 sm:p-2" title="Attach file">
               <Paperclip size={18} />
             </button>
             <input 
@@ -186,12 +186,12 @@ const Messages: React.FC = () => {
               placeholder="Type your message..."
               value={content}
               onChange={e => setContent(e.target.value)}
-              className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-text-dim/20 py-2 text-sm"
+              className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-text-dim/20 py-2 text-sm w-full min-w-0"
             />
             <Button 
               type="submit"
               disabled={!content.trim()}
-              className="h-10 w-10 p-0 flex items-center justify-center rounded-lg"
+              className="h-10 w-10 p-0 flex items-center justify-center rounded-lg flex-shrink-0"
             >
               <Send size={18} />
             </Button>

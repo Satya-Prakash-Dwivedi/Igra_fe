@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { ArrowLeft, Upload, AlertCircle, CheckCircle2, Trash2, File as FileIcon, Loader2 } from 'lucide-react'
 import Button from '../Button'
 import supportService from '../../services/supportService'
@@ -84,8 +85,8 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/75 backdrop-blur-sm animate-in fade-in duration-300"
@@ -93,8 +94,8 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
       />
 
       {/* Modal Content */}
-      <div className="relative bg-bg-card border border-border rounded-2xl w-full max-w-lg overflow-hidden animate-in zoom-in slide-in-from-bottom-4 duration-300 shadow-2xl">
-        <div className="p-8">
+      <div className="relative bg-bg-card border border-border rounded-2xl w-full max-w-lg overflow-hidden animate-in zoom-in slide-in-from-bottom-4 duration-300 shadow-2xl max-h-[90dvh] flex flex-col">
+        <div className="p-6 sm:p-8 overflow-y-auto">
           {/* Success State */}
           {isSuccess ? (
             <div className="flex flex-col items-center text-center gap-4 py-6">
@@ -112,7 +113,7 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
           ) : (
             <>
               {/* Header */}
-              <div className="flex items-start gap-4 mb-6">
+              <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <button
                   onClick={handleClose}
                   className="mt-1 text-primary hover:text-primary-hover transition-colors"
@@ -129,7 +130,7 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              <form className="space-y-6" onSubmit={handleSubmit}>
+              <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
                 {/* Description */}
                 <div className="space-y-2">
                   <label className="text-text-main font-semibold block text-sm">
@@ -153,7 +154,7 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
                   </label>
                   <div
                     onClick={() => screenshotInputRef.current?.click()}
-                    className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary transition-all group"
+                    className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary transition-all group"
                   >
                     <Upload size={24} className="text-text-muted group-hover:text-primary transition-colors" />
                     <p className="text-text-muted text-sm">
@@ -237,7 +238,8 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

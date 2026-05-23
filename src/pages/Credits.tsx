@@ -115,12 +115,12 @@ export default function Credits() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700 px-6 relative">
+    <div className="max-w-7xl mx-auto space-y-6 md:space-y-10 pb-16 md:pb-20 animate-in fade-in duration-700 px-4 md:px-6 relative">
       {/* Background Textures */}
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-10 relative z-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 pt-6 sm:pt-10 relative z-10">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Your <span className="text-primary">Wallet</span>
@@ -128,7 +128,7 @@ export default function Credits() {
           <p className="text-text-dim/60 text-base">Manage your credits and view transaction history.</p>
         </div>
         
-        <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl px-8 py-4 flex items-center gap-6 shadow-xl">
+        <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl px-4 sm:px-8 py-4 flex flex-row items-center justify-between gap-4 shadow-xl w-full md:w-auto text-left">
            <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg">
               <Zap size={24} fill="currentColor" />
            </div>
@@ -143,7 +143,7 @@ export default function Credits() {
       </div>
 
       {/* Tab Control */}
-      <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-1.5 flex gap-2 w-fit relative z-10">
+      <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-1.5 flex overflow-x-auto no-scrollbar gap-2 w-full sm:w-fit max-w-full relative z-10 pb-2">
         {[
           { id: 'packs', label: 'Buy Credits', icon: Zap },
           { id: 'history', label: 'History', icon: TrendingUp },
@@ -155,7 +155,7 @@ export default function Credits() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                "flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300",
+                "flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap flex-shrink-0",
                 activeTab === tab.id
                   ? "bg-white text-black shadow-lg"
                   : "bg-transparent text-text-dim/40 hover:text-white hover:bg-white/5"
@@ -175,7 +175,7 @@ export default function Credits() {
             <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Loading wallet data...</p>
           </div>
         ) : activeTab === 'packs' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
             {packs.map((pack, i) => (
               <div 
                 key={pack.id} 
@@ -297,22 +297,22 @@ export default function Credits() {
                   const info = REASON_LABELS[entry.reason] || { label: entry.reason, color: 'text-text-dim' }
                   const isPositive = entry.delta > 0
                   return (
-                    <div key={entry._id} className="flex flex-col md:flex-row md:items-center justify-between p-6 hover:bg-white/[0.03] transition-all duration-300 group/entry">
-                      <div className="flex items-center gap-6">
+                    <div key={entry._id} className="flex flex-row items-center justify-between p-4 sm:p-6 hover:bg-white/[0.03] transition-all duration-300 group/entry">
+                      <div className="flex items-center gap-4 sm:gap-6">
                         <div className={cn(
                           "w-12 h-12 rounded-xl flex items-center justify-center border transition-all duration-300 group-hover/entry:scale-105",
                           isPositive ? "bg-success/10 border-success/20 text-success" : "bg-error/10 border-error/20 text-error"
                         )}>
                           {isPositive ? <ArrowUpRight size={24} /> : <ArrowDownRight size={24} />}
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-0.5 sm:space-y-1">
                           <div className="text-lg font-bold text-white group-hover/entry:text-primary transition-colors">{info.label}</div>
                           <div className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
                             {new Date(entry.createdAt).toLocaleString()}
                           </div>
                         </div>
                       </div>
-                      <div className="text-right mt-4 md:mt-0 space-y-1">
+                      <div className="text-right mt-0 space-y-0.5 sm:space-y-1">
                         <div className={cn("text-3xl font-bold tracking-tight", info.color)}>
                           {isPositive ? '+' : ''}{entry.delta}
                         </div>
@@ -339,20 +339,20 @@ export default function Credits() {
                   <div 
                     key={inv._id} 
                     onClick={() => navigate(`/invoices/${inv._id}`)}
-                    className="flex flex-col md:flex-row md:items-center justify-between p-6 hover:bg-white/[0.03] transition-all duration-300 group/inv cursor-pointer"
+                    className="flex flex-row items-center justify-between p-4 sm:p-6 hover:bg-white/[0.03] transition-all duration-300 group/inv cursor-pointer"
                   >
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4 sm:gap-6">
                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-text-dim/20 border border-white/5 group-hover/inv:text-primary group-hover/inv:border-primary/20 group-hover/inv:bg-primary/5 transition-all duration-300 shadow-lg">
                           <Receipt size={24} />
                        </div>
-                       <div className="space-y-1">
+                       <div className="space-y-0.5 sm:space-y-1">
                           <div className="text-lg font-bold text-white group-hover/inv:text-primary transition-colors">{inv.invoiceNumber}</div>
                           <div className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
                              {new Date(inv.createdAt).toLocaleDateString()}
                           </div>
                        </div>
                     </div>
-                    <div className="text-right mt-4 md:mt-0 space-y-1">
+                    <div className="text-right mt-0 space-y-0.5 sm:space-y-1">
                        <div className="text-3xl font-bold text-white tracking-tight">
                           ${(inv.totalCents / 100).toFixed(2)}
                        </div>
