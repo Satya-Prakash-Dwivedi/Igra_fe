@@ -258,7 +258,7 @@ export default function Credits() {
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-white tracking-tight">
-                    {Math.floor((parseFloat(customAmount) || 0) * 7).toLocaleString()}
+                    {Math.floor(parseFloat(customAmount) || 0).toLocaleString()}
                   </div>
                   <div className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Credits included</div>
                 </div>
@@ -267,7 +267,7 @@ export default function Credits() {
               <div className="mt-auto pt-8 border-t border-white/5 flex flex-col items-center gap-8">
                  <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold text-white">${parseFloat(customAmount || '0').toFixed(0)}</span>
-                    <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Promo Rate: ~35cr/$5</span>
+                    <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Rate: $1 / Credit</span>
                  </div>
                  
                  <Button

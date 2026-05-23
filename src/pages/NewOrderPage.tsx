@@ -35,19 +35,11 @@ const THUMBNAIL_STYLES = [
 ]
 
 const SERVICE_CATALOG = [
-  { kind: 'VIDEO_EDIT', label: 'Video editing', icon: PlaySquare, desc: 'Professional post-production for any format', minCredits: 0 },
-  { kind: 'THUMBNAIL', label: 'Thumbnail design', icon: Image, desc: 'High-impact visuals for maximum click-through', minCredits: 50 },
-  { kind: 'INTRO', label: 'Custom intro', icon: PlayCircle, desc: 'Cinematic brand identifiers for your content', minCredits: 100 },
-  { kind: 'OUTRO', label: 'Custom outro', icon: StopCircle, desc: 'Strategic call-to-actions and end screens', minCredits: 100 },
-  { kind: 'VOICEOVER', label: 'AI Voiceover', icon: Mic, desc: 'Studio-quality synthetic voice synthesis', minCredits: 50 },
-  { kind: 'SCRIPT', label: 'Script writing', icon: FileText, desc: 'Compelling narrative structuring and research', minCredits: 0 },
-  { kind: 'SEO', label: 'Video SEO', icon: Search, desc: 'Metatag optimization and visibility ranking', minCredits: 100 },
-  { kind: 'CHANNEL_BANNER', label: 'Channel banner', icon: Layout, desc: 'Cohesive brand identity for your profile', minCredits: 150 },
-  { kind: 'LOGO_DESIGN', label: 'Logo design', icon: PenTool, desc: 'Iconic visual representation of your brand', minCredits: 100 },
-  { kind: 'IMAGE_RETOUCHING', label: 'Image retouching', icon: LayoutGrid, desc: 'Professional grading and imperfection removal', minCredits: 100 },
-  { kind: 'CONSULTATION', label: 'Consultation call', icon: Phone, desc: 'Direct strategy session with our specialists', minCredits: 0 },
-  { kind: 'FOOTAGE_REVIEW', label: 'Footage review', icon: Eye, desc: 'Detailed analysis and directorial feedback', minCredits: 50 },
-  { kind: 'CUSTOM', label: 'Custom request', icon: MessageSquare, desc: 'Tailored solutions for unique production needs', minCredits: 50 },
+  { kind: 'VIDEO_EDIT', label: 'Video editing', icon: PlaySquare, desc: 'Professional post-production with premium tiered packages', minCredits: 30 },
+  { kind: 'THUMBNAIL', label: 'Thumbnail design', icon: Image, desc: 'High-impact visuals for maximum click-through', minCredits: 10 },
+  { kind: 'INTRO', label: 'Custom intro', icon: PlayCircle, desc: 'Cinematic brand identifiers for your content', minCredits: 20 },
+  { kind: 'CHANNEL_BANNER', label: 'Channel banner', icon: Layout, desc: 'Cohesive brand identity for your profile', minCredits: 15 },
+  { kind: 'CONSULTATION', label: 'Consultation call', icon: Phone, desc: 'Direct strategy session with our specialists', minCredits: 40 },
 ]
 
 type DraftItem = {
@@ -55,6 +47,7 @@ type DraftItem = {
   kind: string
   params: any
   files: File[]
+  assets?: any[]
 }
 
 const STEPS = [
@@ -70,18 +63,23 @@ function estimateCredits(item: DraftItem): number {
   let base = cat?.minCredits || 0
 
   if (item.kind === 'VIDEO_EDIT') {
-    base = (params.rawFootageLength || 0) * 20
-    if (params.hasRawFootage === false) base += 100
-  } else if (item.kind === 'VOICEOVER') {
-    base = Math.max(50, (params.scriptLength || 0) * 10)
-  } else if (item.kind === 'SCRIPT') {
-    const words = params.wordCount || 0
-    base = Math.ceil(words * 0.2)
-  } else if (item.kind === 'CONSULTATION') {
-    const mins = params.duration || 15
-    base = Math.ceil(mins / 15) * 100
-  } else if (item.kind === 'FOOTAGE_REVIEW') {
-    base = Math.max(50, (params.footageLength || 0) * 10)
+    const tier = params.packageTier || 'BASIC'
+    if (tier === 'BASIC') {
+      base = 30
+    } else if (tier === 'STANDARD') {
+      base = 60
+    } else if (tier === 'PREMIUM') {
+      base = 100
+    } else {
+      base = 30
+    }
+
+    if (params.deliverySpeed === 'EXPRESS') {
+      let delta = 10
+      if (tier === 'STANDARD') delta = 20
+      if (tier === 'PREMIUM') delta = 30
+      base += delta
+    }
   }
   return base
 }
@@ -100,6 +98,40 @@ export default function NewOrderPage() {
 
   useEffect(() => {
     creditApi.getWallet().then((w) => setBalance(w.balance))
+
+    const queryParams = new URLSearchParams(window.location.search)
+    const queryOrderId = queryParams.get('orderId')
+    if (queryOrderId) {
+      setLoading(true)
+      orderApi.getOrderDetail(queryOrderId)
+        .then((detail) => {
+          if (detail && detail.order) {
+            setOrderId(detail.order._id)
+            setTitle(detail.order.title || '')
+            
+            const reconstructed = detail.items.map((item: any) => ({
+              tempId: item._id,
+              kind: item.kind,
+              params: item.params || {},
+              files: [],
+              assets: item.assets || []
+            }))
+            setDraftItems(reconstructed)
+            if (reconstructed.length > 0) {
+              setStepIndex(2)
+            } else {
+              setStepIndex(1)
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load draft order:", err)
+          setError("Failed to load draft order. Please try again.")
+        })
+        .finally(() => {
+          setLoading(false)
+        })
+    }
   }, [])
 
   const getItemCountByKind = (kind: string) => {
@@ -136,7 +168,24 @@ export default function NewOrderPage() {
         setError('Please select at least one service.')
         return
       }
-      setStepIndex(2)
+      setLoading(true)
+      try {
+        const existing = await orderApi.getOrderDetail(orderId!)
+        for (const extItem of existing.items) {
+          await orderApi.removeItem(orderId!, extItem._id)
+        }
+        const newDrafts = []
+        for (const draft of draftItems) {
+          const added = await orderApi.addItem(orderId!, draft.kind, draft.params, [], [])
+          newDrafts.push({ ...draft, tempId: added._id })
+        }
+        setDraftItems(newDrafts)
+        setStepIndex(2)
+      } catch (err: any) {
+        setError(err?.response?.data?.error || err?.response?.data?.message || err.message)
+      } finally {
+        setLoading(false)
+      }
       return
     }
 
@@ -144,10 +193,15 @@ export default function NewOrderPage() {
       if (!orderId) return
       setLoading(true)
       try {
+        const existing = await orderApi.getOrderDetail(orderId)
+        for (const extItem of existing.items) {
+          await orderApi.removeItem(orderId, extItem._id)
+        }
+
         let cumulativeCredits = 0
         // Sequential processing to avoid overwhelming the server and hitting rate limits
         for (const draft of draftItems) {
-          const assetIds: string[] = []
+          const assetIds: string[] = draft.assets ? draft.assets.map((a: any) => a._id) : []
           if (draft.files.length > 0) {
             setUploading(true)
             for (const file of draft.files) {
@@ -196,43 +250,12 @@ export default function NewOrderPage() {
   const handleAddPackage = (kind: string) => {
     const initialParams: any = {}
     if (kind === 'VIDEO_EDIT') {
-      initialParams.hasRawFootage = true
-      initialParams.outputRatio = '16:9'
-      initialParams.rawFootageLength = 1
-      initialParams.desiredLength = 1
-      initialParams.tone = 'Professional'
-      initialParams.pace = 'Medium'
+      initialParams.packageTier = 'BASIC'
+      initialParams.deliverySpeed = 'STANDARD'
       initialParams.externalLinks = []
       initialParams.notes = ''
     } else if (kind === 'THUMBNAIL') {
       initialParams.style = 'Exaggerated'
-      initialParams.externalLinks = []
-      initialParams.notes = ''
-    } else if (['INTRO', 'OUTRO', 'CHANNEL_BANNER', 'LOGO_DESIGN', 'IMAGE_RETOUCHING'].includes(kind)) {
-      initialParams.externalLinks = []
-      initialParams.notes = ''
-    } else if (kind === 'VOICEOVER') {
-      initialParams.scriptLength = 5
-      initialParams.externalLinks = []
-      initialParams.notes = ''
-    } else if (kind === 'SCRIPT') {
-      initialParams.wordCount = 500
-      initialParams.externalLinks = []
-      initialParams.notes = ''
-    } else if (kind === 'SEO') {
-      initialParams.videoUrl = ''
-      initialParams.externalLinks = []
-      initialParams.notes = ''
-    } else if (kind === 'CONSULTATION') {
-      initialParams.duration = 15
-      initialParams.externalLinks = []
-      initialParams.notes = ''
-    } else if (kind === 'FOOTAGE_REVIEW') {
-      initialParams.footageLength = 10
-      initialParams.externalLinks = []
-      initialParams.notes = ''
-    } else if (kind === 'CUSTOM') {
-      initialParams.description = 'Custom request description...'
       initialParams.externalLinks = []
       initialParams.notes = ''
     } else {
@@ -338,8 +361,17 @@ export default function NewOrderPage() {
         </div>
 
         {/* File List */}
-        {item.files.length > 0 && (
+        {(item.files.length > 0 || (item.assets && item.assets.length > 0)) && (
           <div className="flex flex-wrap gap-3">
+            {item.assets && item.assets.map((a: any, ai: number) => (
+              <div key={a._id} className="bg-white/5 px-5 py-3 rounded-2xl flex items-center gap-4 text-[11px] font-bold border border-white/5 animate-in zoom-in-95">
+                <FileText size={16} className="text-primary" />
+                <span className="max-w-[180px] truncate">{a.originalName}</span>
+                <button onClick={() => {
+                  setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, assets: di.assets?.filter((_, i) => i !== ai) } : di))
+                }} className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-error hover:text-white transition-all"><X size={14} /></button>
+              </div>
+            ))}
             {item.files.map((f, fi) => (
               <div key={fi} className="bg-white/5 px-5 py-3 rounded-2xl flex items-center gap-4 text-[11px] font-bold border border-white/5 animate-in zoom-in-95">
                 <FileText size={16} className="text-primary" />
@@ -479,8 +511,13 @@ export default function NewOrderPage() {
                       )}
                     </div>
 
-                    <div className="space-y-1">
-                      <h3 className="font-bold text-lg text-white">{pkg.label}</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-baseline">
+                        <h3 className="font-bold text-lg text-white">{pkg.label}</h3>
+                        <span className="text-[10px] font-black text-primary uppercase tracking-wider bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-md shadow-sm">
+                          {pkg.kind === 'VIDEO_EDIT' ? 'From 30' : pkg.minCredits} Cr
+                        </span>
+                      </div>
                       <p className="text-xs text-text-dim/60 leading-relaxed line-clamp-2">{pkg.desc}</p>
                     </div>
 
@@ -542,142 +579,76 @@ export default function NewOrderPage() {
                     </div>
 
                     {item.kind === 'VIDEO_EDIT' ? (
-                      <div className="space-y-10">
-                        {/* Top Row: Raw Footage & Aspect Ratio */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                          {/* Raw Footage */}
-                          <div className="space-y-5">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-1 h-1 rounded-full bg-primary" />
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Raw Footage</label>
-                            </div>
-                            <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5">
-                              <button
-                                onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', true)}
-                                className={cn(
-                                  "flex-1 py-3 px-6 rounded-xl text-xs font-bold transition-all",
-                                  item.params.hasRawFootage ? "bg-primary text-white shadow-lg" : "text-text-dim hover:text-white"
-                                )}
-                              >
-                                I have it
-                              </button>
-                              <button
-                                onClick={() => updateDraftParam(item.tempId, 'hasRawFootage', false)}
-                                className={cn(
-                                  "flex-1 py-3 px-6 rounded-xl text-xs font-bold transition-all",
-                                  !item.params.hasRawFootage ? "bg-primary text-white shadow-lg" : "text-text-dim hover:text-white"
-                                )}
-                              >
-                                Need it (+100)
-                              </button>
-                            </div>
+                      <div className="space-y-10 px-8 py-10">
+                        {/* Package Tier Selection */}
+                        <div className="space-y-6">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-1 h-1 rounded-full bg-primary" />
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Select Package Tier</label>
                           </div>
-
-                          {/* Aspect Ratio */}
-                          <div className="space-y-5">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-1 h-1 rounded-full bg-primary" />
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Aspect Ratio</label>
-                            </div>
-                            <div className="grid grid-cols-4 gap-4">
-                              {[
-                                { id: '16:9', label: '16:9', icon: Monitor },
-                                { id: '9:16', label: '9:16', icon: Smartphone },
-                                { id: '1:1', label: '1:1', icon: Square },
-                                { id: 'Other', label: '??', icon: HelpCircle },
-                              ].map(ratio => (
-                                <button
-                                  key={ratio.id}
-                                  onClick={() => updateDraftParam(item.tempId, 'outputRatio', ratio.id)}
-                                  className={cn(
-                                    "flex flex-col items-center justify-center p-3 rounded-xl border transition-all",
-                                    item.params.outputRatio === ratio.id
-                                      ? "bg-primary/10 border-primary/40 text-primary"
-                                      : "bg-white/[0.02] border-white/5 text-text-dim/40 hover:border-white/20"
-                                  )}
-                                >
-                                  <ratio.icon size={16} className="mb-2" />
-                                  <span className="text-[9px] font-bold">{ratio.label}</span>
-                                </button>
-                              ))}
-                            </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {[
+                              { id: 'BASIC', label: 'BASIC', credits: 30, desc: 'Basic cuts, transitions, and background music' },
+                              { id: 'STANDARD', label: 'STANDARD', credits: 60, desc: 'Zoom cuts, text subtitles, sound effects, basic B-roll' },
+                              { id: 'PREMIUM', label: 'PREMIUM', credits: 100, desc: 'Advanced sound design, motion graphics, color grading, premium B-roll' },
+                            ].map((tier) => (
+                              <button
+                                key={tier.id}
+                                onClick={() => {
+                                  updateDraftParam(item.tempId, 'packageTier', tier.id)
+                                  if (!item.params.deliverySpeed) {
+                                    updateDraftParam(item.tempId, 'deliverySpeed', 'STANDARD')
+                                  }
+                                }}
+                                className={cn(
+                                  "text-left p-6 rounded-2xl border transition-all flex flex-col justify-between h-40",
+                                  item.params.packageTier === tier.id || (!item.params.packageTier && tier.id === 'BASIC')
+                                    ? "bg-primary/10 border-primary text-white shadow-lg shadow-primary/5"
+                                    : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20"
+                                )}
+                              >
+                                <div className="space-y-1">
+                                  <span className="text-xs font-bold uppercase tracking-widest">{tier.label}</span>
+                                  <p className="text-[10px] opacity-60 leading-normal line-clamp-2">{tier.desc}</p>
+                                </div>
+                                <div className="text-2xl font-bold mt-auto pt-4 text-primary">
+                                  {tier.credits} Credits
+                                </div>
+                              </button>
+                            ))}
                           </div>
                         </div>
 
-                        {/* Middle Row: Lengths */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                          <div className="space-y-4">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Raw Length (mins)</label>
-                            <input
-                              type="number"
-                              value={item.params.rawFootageLength || 1}
-                              onChange={(e) => updateDraftParam(item.tempId, 'rawFootageLength', parseInt(e.target.value))}
-                              className="w-full bg-black/20 border border-white/5 rounded-xl px-6 py-3 text-white font-bold outline-none focus:border-primary/40"
-                            />
+                        {/* Delivery Speed Selection */}
+                        <div className="space-y-6">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-1 h-1 rounded-full bg-primary" />
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Delivery Speed</label>
                           </div>
-                          <div className="space-y-4">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Final Length (mins)</label>
-                            <input
-                              type="number"
-                              value={item.params.desiredLength || 1}
-                              onChange={(e) => updateDraftParam(item.tempId, 'desiredLength', parseInt(e.target.value))}
-                              className="w-full bg-black/20 border border-white/5 rounded-xl px-6 py-3 text-white font-bold outline-none focus:border-primary/40"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Visual Tone & Edit Pace */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                          <div className="space-y-5">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-1 h-1 rounded-full bg-primary" />
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Visual Tone</label>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              {['Funny', 'Serious', 'Professional', 'Elegant', 'Casual', 'Informational'].map(t => (
-                                <button
-                                  key={t}
-                                  onClick={() => updateDraftParam(item.tempId, 'tone', t)}
-                                  className={cn(
-                                    "py-2.5 px-4 rounded-xl text-[10px] font-bold border transition-all",
-                                    item.params.tone === t
-                                      ? "bg-primary text-white border-primary shadow-lg"
-                                      : "bg-white/[0.02] border-white/5 text-text-dim/40 hover:border-white/20"
-                                  )}
-                                >
-                                  {t}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-5">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-1 h-1 rounded-full bg-primary" />
-                              <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Edit Pace</label>
-                            </div>
-                            <div className="grid grid-cols-4 gap-4">
-                              {[
-                                { id: 'Slow', icon: Turtle },
-                                { id: 'Medium', icon: Zap },
-                                { id: 'Fast', icon: Flame },
-                                { id: 'Super', icon: Rocket },
-                              ].map(p => (
-                                <button
-                                  key={p.id}
-                                  onClick={() => updateDraftParam(item.tempId, 'pace', p.id)}
-                                  className={cn(
-                                    "flex flex-col items-center justify-center p-3 rounded-xl border transition-all",
-                                    item.params.pace === p.id
-                                      ? "bg-primary/10 border-primary/40 text-primary shadow-lg shadow-primary/5"
-                                      : "bg-white/[0.02] border-white/5 text-text-dim/40 hover:border-white/20"
-                                  )}
-                                >
-                                  <p.icon size={16} className="mb-2" />
-                                  <span className="text-[9px] font-bold uppercase tracking-widest">{p.id}</span>
-                                </button>
-                              ))}
-                            </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {[
+                              { id: 'STANDARD', label: 'Standard Delivery', time: '3 Days', extra: '+0 Credits' },
+                              { id: 'EXPRESS', label: 'Express Delivery', time: '24 Hours', extra: `+${(item.params.packageTier === 'PREMIUM' ? 30 : (item.params.packageTier === 'STANDARD' ? 20 : 10))} Credits` },
+                            ].map((speed) => (
+                              <button
+                                key={speed.id}
+                                onClick={() => updateDraftParam(item.tempId, 'deliverySpeed', speed.id)}
+                                className={cn(
+                                  "text-left p-6 rounded-2xl border transition-all flex justify-between items-center",
+                                  item.params.deliverySpeed === speed.id || (!item.params.deliverySpeed && speed.id === 'STANDARD')
+                                    ? "bg-primary/10 border-primary text-white shadow-lg shadow-primary/5"
+                                    : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20"
+                                )}
+                              >
+                                <div>
+                                  <span className="text-xs font-bold uppercase tracking-widest">{speed.label}</span>
+                                  <p className="text-[10px] opacity-60 mt-1">{speed.time}</p>
+                                </div>
+                                <div className="text-base font-bold text-primary">
+                                  {speed.extra}
+                                </div>
+                              </button>
+                            ))}
                           </div>
                         </div>
 
@@ -827,8 +798,17 @@ export default function NewOrderPage() {
                               <span className="text-sm font-bold text-white">Add Files</span>
                             </label>
                           </div>
-                          {item.files.length > 0 && (
+                          {(item.files.length > 0 || (item.assets && item.assets.length > 0)) && (
                             <div className="flex flex-wrap gap-2">
+                              {item.assets && item.assets.map((a: any, ai: number) => (
+                                <div key={a._id} className="bg-white/5 px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold">
+                                  <FileText size={12} className="text-text-dim/40" />
+                                  {a.originalName}
+                                  <button onClick={() => {
+                                    setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, assets: di.assets?.filter((_, i) => i !== ai) } : di))
+                                  }} className="hover:text-error"><X size={12} /></button>
+                                </div>
+                              ))}
                               {item.files.map((f, fi) => (
                                 <div key={fi} className="bg-white/5 px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold">
                                   <FileText size={12} className="text-text-dim/40" />

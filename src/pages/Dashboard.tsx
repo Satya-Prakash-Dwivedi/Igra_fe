@@ -159,7 +159,13 @@ const Dashboard: React.FC = () => {
                 orders.map((order, i) => (
                   <div
                     key={order._id}
-                    onClick={() => navigate(`/orders/${order._id}`)}
+                    onClick={() => {
+                      if (order.status === 'DRAFT') {
+                        navigate(`/orders/new?orderId=${order._id}`)
+                      } else {
+                        navigate(`/orders/${order._id}`)
+                      }
+                    }}
                     className="p-4 rounded-xl hover:bg-white/[0.03] transition-all duration-300 group/order cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6 border border-transparent hover:border-white/5"
                     style={{ animationDelay: `${i * 100}ms` }}
                   >
