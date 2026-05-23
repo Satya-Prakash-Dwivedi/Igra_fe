@@ -74,12 +74,12 @@ export default function Orders() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700 px-6 relative">
+    <div className="max-w-7xl mx-auto space-y-6 md:space-y-10 pb-16 md:pb-20 animate-in fade-in duration-700 px-4 md:px-6 relative">
       {/* Background Textures */}
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-10 relative z-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 pt-6 sm:pt-10 relative z-10">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Your <span className="text-primary">Orders</span>
@@ -91,7 +91,7 @@ export default function Orders() {
         
         <Button
           onClick={() => navigate('/orders/new')}
-          className="h-12 px-8 rounded-xl text-base"
+          className="h-12 px-8 rounded-xl text-base w-full md:w-auto"
         >
           Create Order
           <Plus size={18} className="ml-2" />
@@ -100,12 +100,12 @@ export default function Orders() {
 
       {/* Control Matrix */}
       <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl p-2 border border-white/5 shadow-xl relative z-10">
-        <div className="flex flex-col md:flex-row items-center gap-2">
+        <div className="flex flex-col md:flex-row md:items-center items-start gap-2">
           <div className="flex items-center gap-3 px-6 py-2 text-text-dim/40 border-r border-white/5 hidden md:flex">
              <Filter size={16} />
              <span className="text-xs font-bold uppercase tracking-wider">Status</span>
           </div>
-          <div className="flex flex-1 gap-2 overflow-x-auto no-scrollbar w-full p-1">
+          <div className="flex flex-1 gap-2 overflow-x-auto no-scrollbar w-full max-w-full p-1 pb-2">
             {STATUS_TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -114,7 +114,7 @@ export default function Orders() {
                   setPage(1)
                 }}
                 className={cn(
-                  "flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-300",
+                  "flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all duration-300",
                   statusFilter === key
                     ? "bg-white text-black shadow-lg"
                     : "bg-transparent text-text-dim/40 hover:text-white hover:bg-white/5"
@@ -130,12 +130,12 @@ export default function Orders() {
 
       {/* Operational Stream */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-40 gap-6 opacity-40 relative z-10">
+        <div className="flex flex-col items-center justify-center py-20 md:py-40 gap-6 opacity-40 relative z-10">
           <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
           <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Loading orders...</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="bg-bg-card/20 border border-dashed border-white/10 rounded-2xl p-20 text-center backdrop-blur-xl shadow-xl relative z-10">
+        <div className="bg-bg-card/20 border border-dashed border-white/10 rounded-2xl p-10 md:p-20 text-center backdrop-blur-xl shadow-xl relative z-10">
           <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-8 border border-white/5 shadow-xl">
              <Package size={40} className="text-text-dim/20" />
           </div>
@@ -143,7 +143,7 @@ export default function Orders() {
           <p className="text-text-dim/40 mb-10 max-w-sm mx-auto text-base">You haven't placed any orders yet. Create your first order to get started.</p>
           <Button
             onClick={() => navigate('/orders/new')}
-            className="px-8 h-12 rounded-xl text-base"
+            className="px-8 h-12 rounded-xl text-base w-full sm:w-auto"
           >
             Create Order
           </Button>
@@ -188,14 +188,14 @@ export default function Orders() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 pt-6 border-t border-white/5 relative z-10 group-hover:border-primary/20 transition-all duration-300">
+              <div className="grid grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-white/5 relative z-10 group-hover:border-primary/20 transition-all duration-300">
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Items</p>
                   <p className="text-xl font-bold text-white">
                     {order.itemCount || 1} <span className="text-[10px] font-normal text-text-dim/40 ml-1 uppercase">Assets</span>
                   </p>
                 </div>
-                <div className="space-y-1 text-right">
+                <div className="space-y-1 text-right mt-0">
                   <p className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Budget</p>
                   <p className="text-xl font-bold text-primary">
                      {order.totalCreditsQuoted.toLocaleString()} <span className="text-[10px] font-normal text-primary/40 ml-1 uppercase">Cr</span>
