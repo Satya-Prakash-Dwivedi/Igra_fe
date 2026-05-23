@@ -326,13 +326,22 @@ export default function OrderDetail() {
 
         <div className="flex items-center gap-3">
           {order.status === 'DRAFT' && (
-            <Button
-              variant="primary"
-              onClick={handleConfirmAndPay}
-              className="h-10 px-6 rounded-xl text-xs"
-            >
-              Confirm & Pay
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/orders/new?orderId=${order._id}`)}
+                className="h-10 px-6 rounded-xl text-[10px]"
+              >
+                Continue Setup
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleConfirmAndPay}
+                className="h-10 px-6 rounded-xl text-[10px]"
+              >
+                Confirm & Pay
+              </Button>
+            </>
           )}
           {order.status === 'AWAITING_APPROVAL' && (
             <Button

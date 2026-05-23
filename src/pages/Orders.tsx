@@ -153,7 +153,13 @@ export default function Orders() {
           {orders.map((order, i) => (
             <div
               key={order._id}
-              onClick={() => navigate(`/orders/${order._id}`)}
+              onClick={() => {
+                if (order.status === 'DRAFT') {
+                  navigate(`/orders/new?orderId=${order._id}`)
+                } else {
+                  navigate(`/orders/${order._id}`)
+                }
+              }}
               className="bg-bg-card/40 backdrop-blur-xl rounded-2xl p-6 group cursor-pointer border border-white/5 hover:border-primary/40 hover:bg-bg-card/60 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden shadow-xl"
               style={{ animationDelay: `${i * 100}ms` }}
             >
