@@ -35,7 +35,7 @@ const THUMBNAIL_STYLES = [
 ]
 
 const SERVICE_CATALOG = [
-  { kind: 'VIDEO_EDIT', label: 'Video editing', icon: PlaySquare, desc: 'Professional post-production with premium tiered packages', minCredits: 30 },
+  { kind: 'VIDEO_EDIT', label: 'Video editing', icon: PlaySquare, desc: 'Professional post-production with premium tiered packages', minCredits: 70 },
   { kind: 'THUMBNAIL', label: 'Thumbnail design', icon: Image, desc: 'High-impact visuals for maximum click-through', minCredits: 10 },
   { kind: 'INTRO', label: 'Custom intro', icon: PlayCircle, desc: 'Cinematic brand identifiers for your content', minCredits: 20 },
   { kind: 'CHANNEL_BANNER', label: 'Channel banner', icon: Layout, desc: 'Cohesive brand identity for your profile', minCredits: 15 },
@@ -65,19 +65,19 @@ function estimateCredits(item: DraftItem): number {
   if (item.kind === 'VIDEO_EDIT') {
     const tier = params.packageTier || 'BASIC'
     if (tier === 'BASIC') {
-      base = 30
+      base = 70
     } else if (tier === 'STANDARD') {
-      base = 60
+      base = 105
     } else if (tier === 'PREMIUM') {
-      base = 100
+      base = 130
     } else {
-      base = 30
+      base = 70
     }
 
     if (params.deliverySpeed === 'EXPRESS') {
-      let delta = 10
-      if (tier === 'STANDARD') delta = 20
-      if (tier === 'PREMIUM') delta = 30
+      let delta = 20
+      if (tier === 'STANDARD') delta = 30
+      if (tier === 'PREMIUM') delta = 40
       base += delta
     }
   }
@@ -109,13 +109,16 @@ export default function NewOrderPage() {
             setOrderId(detail.order._id)
             setTitle(detail.order.title || '')
             
-            const reconstructed = detail.items.map((item: any) => ({
-              tempId: item._id,
-              kind: item.kind,
-              params: item.params || {},
-              files: [],
-              assets: item.assets || []
-            }))
+            const validKinds = SERVICE_CATALOG.map(s => s.kind)
+            const reconstructed = detail.items
+              .filter((item: any) => validKinds.includes(item.kind))
+              .map((item: any) => ({
+                tempId: item._id,
+                kind: item.kind,
+                params: item.params || {},
+                files: [],
+                assets: item.assets || []
+              }))
             setDraftItems(reconstructed)
             if (reconstructed.length > 0) {
               setStepIndex(2)
@@ -171,16 +174,30 @@ export default function NewOrderPage() {
       setLoading(true)
       try {
         const existing = await orderApi.getOrderDetail(orderId!)
-        for (const extItem of existing.items) {
-          await orderApi.removeItem(orderId!, extItem._id)
-        }
         const newDrafts = []
-        for (const draft of draftItems) {
-          const added = await orderApi.addItem(orderId!, draft.kind, draft.params, [], [])
-          newDrafts.push({ ...draft, tempId: added._id })
+        const newlyAdded = []
+
+        try {
+          for (const draft of draftItems) {
+            const added = await orderApi.addItem(orderId!, draft.kind, draft.params, [], [])
+            newlyAdded.push(added)
+            newDrafts.push({ ...draft, tempId: added._id })
+          }
+
+          // Once all added successfully, remove old ones
+          for (const extItem of existing.items) {
+            await orderApi.removeItem(orderId!, extItem._id)
+          }
+
+          setDraftItems(newDrafts)
+          setStepIndex(2)
+        } catch (err: any) {
+          // rollback
+          for (const item of newlyAdded) {
+            await orderApi.removeItem(orderId!, item._id).catch(() => {})
+          }
+          throw err
         }
-        setDraftItems(newDrafts)
-        setStepIndex(2)
       } catch (err: any) {
         setError(err?.response?.data?.error || err?.response?.data?.message || err.message)
       } finally {
@@ -194,27 +211,39 @@ export default function NewOrderPage() {
       setLoading(true)
       try {
         const existing = await orderApi.getOrderDetail(orderId)
-        for (const extItem of existing.items) {
-          await orderApi.removeItem(orderId, extItem._id)
-        }
-
+        
         let cumulativeCredits = 0
-        // Sequential processing to avoid overwhelming the server and hitting rate limits
-        for (const draft of draftItems) {
-          const assetIds: string[] = draft.assets ? draft.assets.map((a: any) => a._id) : []
-          if (draft.files.length > 0) {
-            setUploading(true)
-            for (const file of draft.files) {
-              const { assetId } = await uploadApi.uploadFile(file)
-              assetIds.push(assetId)
+        const newlyAdded = []
+
+        try {
+          for (const draft of draftItems) {
+            const assetIds: string[] = draft.assets ? draft.assets.map((a: any) => a._id) : []
+            if (draft.files.length > 0) {
+              setUploading(true)
+              for (const file of draft.files) {
+                const { assetId } = await uploadApi.uploadFile(file)
+                assetIds.push(assetId)
+              }
+              setUploading(false)
             }
-            setUploading(false)
+            const added = await orderApi.addItem(orderId, draft.kind, draft.params, [], assetIds)
+            newlyAdded.push(added)
+            cumulativeCredits += added.creditsQuoted
           }
-          const added = await orderApi.addItem(orderId, draft.kind, draft.params, [], assetIds)
-          cumulativeCredits += added.creditsQuoted
+
+          // Once all added and uploaded successfully, remove old ones
+          for (const extItem of existing.items) {
+            await orderApi.removeItem(orderId, extItem._id)
+          }
+
+          setConfirmedTotal(cumulativeCredits)
+          setStepIndex(3)
+        } catch (err: any) {
+          for (const item of newlyAdded) {
+            await orderApi.removeItem(orderId, item._id).catch(() => {})
+          }
+          throw err
         }
-        setConfirmedTotal(cumulativeCredits)
-        setStepIndex(3)
       } catch (err: any) {
         const errorMsg = err?.response?.data?.error || err?.response?.data?.message || err.message
         setError(`Failed to save configuration: ${errorMsg}`)
@@ -252,6 +281,10 @@ export default function NewOrderPage() {
     if (kind === 'VIDEO_EDIT') {
       initialParams.packageTier = 'BASIC'
       initialParams.deliverySpeed = 'STANDARD'
+      initialParams.videoFormat = 'Horizontal (16:9)'
+      initialParams.videoLength = 5
+      initialParams.style = 'Clean & Professional'
+      initialParams.pace = 'Medium'
       initialParams.externalLinks = []
       initialParams.notes = ''
     } else if (kind === 'THUMBNAIL') {
@@ -515,7 +548,7 @@ export default function NewOrderPage() {
                       <div className="flex justify-between items-baseline">
                         <h3 className="font-bold text-lg text-white">{pkg.label}</h3>
                         <span className="text-[10px] font-black text-primary uppercase tracking-wider bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-md shadow-sm">
-                          {pkg.kind === 'VIDEO_EDIT' ? 'From 30' : pkg.minCredits} Cr
+                          {pkg.kind === 'VIDEO_EDIT' ? 'From 70' : pkg.minCredits} Cr
                         </span>
                       </div>
                       <p className="text-xs text-text-dim/60 leading-relaxed line-clamp-2">{pkg.desc}</p>
@@ -588,9 +621,18 @@ export default function NewOrderPage() {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {[
-                              { id: 'BASIC', label: 'BASIC', credits: 30, desc: 'Basic cuts, transitions, and background music' },
-                              { id: 'STANDARD', label: 'STANDARD', credits: 60, desc: 'Zoom cuts, text subtitles, sound effects, basic B-roll' },
-                              { id: 'PREMIUM', label: 'PREMIUM', credits: 100, desc: 'Advanced sound design, motion graphics, color grading, premium B-roll' },
+                              { 
+                                id: 'BASIC', label: 'BASIC PACKAGE', credits: 70, 
+                                features: ['6-day delivery', 'Unlimited Revisions', 'Up to 30 minutes of footage provided', 'Up to 5 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
+                              },
+                              { 
+                                id: 'STANDARD', label: 'STANDARD PACKAGE', credits: 105, 
+                                features: ['7-day delivery', 'Unlimited Revisions', 'Up to 60 minutes of footage provided', 'Up to 10 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
+                              },
+                              { 
+                                id: 'PREMIUM', label: 'PREMIUM PACKAGE', credits: 130, 
+                                features: ['7-day delivery', 'Unlimited Revisions', 'Up to 120 minutes of footage provided', 'Up to 15 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
+                              },
                             ].map((tier) => (
                               <button
                                 key={tier.id}
@@ -601,15 +643,19 @@ export default function NewOrderPage() {
                                   }
                                 }}
                                 className={cn(
-                                  "text-left p-6 rounded-2xl border transition-all flex flex-col justify-between h-40",
+                                  "text-left p-6 rounded-2xl border transition-all flex flex-col justify-between h-full gap-4",
                                   item.params.packageTier === tier.id || (!item.params.packageTier && tier.id === 'BASIC')
                                     ? "bg-primary/10 border-primary text-white shadow-lg shadow-primary/5"
                                     : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20"
                                 )}
                               >
-                                <div className="space-y-1">
+                                <div className="space-y-3 w-full">
                                   <span className="text-xs font-bold uppercase tracking-widest">{tier.label}</span>
-                                  <p className="text-[10px] opacity-60 leading-normal line-clamp-2">{tier.desc}</p>
+                                  <ul className="text-[10px] opacity-70 leading-relaxed space-y-1 text-left list-disc pl-3">
+                                    {tier.features.map((f, i) => (
+                                      <li key={i}>{f}</li>
+                                    ))}
+                                  </ul>
                                 </div>
                                 <div className="text-2xl font-bold mt-auto pt-4 text-primary">
                                   {tier.credits} Credits
@@ -627,8 +673,8 @@ export default function NewOrderPage() {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {[
-                              { id: 'STANDARD', label: 'Standard Delivery', time: '3 Days', extra: '+0 Credits' },
-                              { id: 'EXPRESS', label: 'Express Delivery', time: '24 Hours', extra: `+${(item.params.packageTier === 'PREMIUM' ? 30 : (item.params.packageTier === 'STANDARD' ? 20 : 10))} Credits` },
+                              { id: 'STANDARD', label: 'Standard Delivery', time: item.params.packageTier === 'BASIC' ? '6-day delivery' : '7-day delivery', extra: '+0 Credits' },
+                              { id: 'EXPRESS', label: 'Expedite Delivery', time: item.params.packageTier === 'PREMIUM' ? '4-day delivery' : (item.params.packageTier === 'STANDARD' ? '3-day delivery' : '2-day delivery'), extra: `+${(item.params.packageTier === 'PREMIUM' ? 40 : (item.params.packageTier === 'STANDARD' ? 30 : 20))} Credits` },
                             ].map((speed) => (
                               <button
                                 key={speed.id}
@@ -649,6 +695,77 @@ export default function NewOrderPage() {
                                 </div>
                               </button>
                             ))}
+                          </div>
+                        </div>
+
+
+                        {/* Extra Configuration */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Video Format</label>
+                            <div className="flex flex-wrap gap-3">
+                              {['Horizontal (16:9)', 'Vertical (9:16)', 'Square (1:1)'].map((opt) => (
+                                <button
+                                  key={opt}
+                                  onClick={() => updateDraftParam(item.tempId, 'videoFormat', opt)}
+                                  className={cn(
+                                    "px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap",
+                                    (item.params.videoFormat || 'Horizontal (16:9)') === opt
+                                      ? "bg-primary/20 border-primary text-white shadow-lg shadow-primary/10"
+                                      : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20 hover:text-white"
+                                  )}
+                                >
+                                  {opt}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Expected Length (Minutes)</label>
+                            <input
+                              type="number"
+                              value={item.params.videoLength || 5}
+                              onChange={(e) => updateDraftParam(item.tempId, 'videoLength', parseInt(e.target.value))}
+                              className="w-full bg-black/20 border border-white/5 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-primary/40"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Editing Style</label>
+                            <div className="flex flex-wrap gap-3">
+                              {['Clean & Professional', 'Fast-Paced & Energetic', 'Cinematic & Story-Driven', 'Documentary Style'].map((opt) => (
+                                <button
+                                  key={opt}
+                                  onClick={() => updateDraftParam(item.tempId, 'style', opt)}
+                                  className={cn(
+                                    "px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap",
+                                    (item.params.style || 'Clean & Professional') === opt
+                                      ? "bg-primary/20 border-primary text-white shadow-lg shadow-primary/10"
+                                      : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20 hover:text-white"
+                                  )}
+                                >
+                                  {opt}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Pacing</label>
+                            <div className="flex flex-wrap gap-3">
+                              {['Slow & Relaxed', 'Medium', 'Fast & Dynamic'].map((opt) => (
+                                <button
+                                  key={opt}
+                                  onClick={() => updateDraftParam(item.tempId, 'pace', opt)}
+                                  className={cn(
+                                    "px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap",
+                                    (item.params.pace || 'Medium') === opt
+                                      ? "bg-primary/20 border-primary text-white shadow-lg shadow-primary/10"
+                                      : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20 hover:text-white"
+                                  )}
+                                >
+                                  {opt}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
 
@@ -874,25 +991,27 @@ export default function NewOrderPage() {
         )}
 
         {/* Bottom Navigation */}
-        <div className="mt-12 flex justify-between items-center bg-bg-card/60 backdrop-blur-3xl border border-white/5 rounded-[2rem] p-8 shadow-2xl sticky bottom-6 group">
-          <div className="space-y-1">
-            <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Total Estimate</p>
-            <p className="text-3xl font-bold text-white tracking-tight italic">
-              {stepIndex === 3 ? confirmedTotal : totalEstimatedCredits} <span className="text-sm font-bold text-text-dim/40 not-italic">Credits</span>
-            </p>
-          </div>
+        {stepIndex > 0 && (
+          <div className="mt-12 flex justify-between items-center bg-bg-card/60 backdrop-blur-3xl border border-white/5 rounded-[2rem] p-8 shadow-2xl sticky bottom-6 group">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Total Estimate</p>
+              <p className="text-3xl font-bold text-white tracking-tight italic">
+                {stepIndex === 3 ? confirmedTotal : totalEstimatedCredits} <span className="text-sm font-bold text-text-dim/40 not-italic">Credits</span>
+              </p>
+            </div>
 
-          <Button
-            variant="primary"
-            onClick={handleNext}
-            isLoading={loading}
-            disabled={uploading || (stepIndex === 1 && draftItems.length === 0)}
-            className="h-14 px-12 rounded-2xl font-bold text-sm shadow-2xl shadow-primary/20"
-          >
-            {stepIndex === 3 ? 'Initiate Production' : 'Advance Protocol'}
-            <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </div>
+            <Button
+              variant="primary"
+              onClick={handleNext}
+              isLoading={loading}
+              disabled={uploading || (stepIndex === 1 && draftItems.length === 0)}
+              className="h-14 px-12 rounded-2xl font-bold text-sm shadow-2xl shadow-primary/20"
+            >
+              {stepIndex === 3 ? 'Initiate Production' : 'Continue'}
+              <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
