@@ -37,14 +37,14 @@ const DashboardLayout: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col transition-[padding] duration-200 transform-gpu">
+      <div className="flex-1 flex flex-col transition-[padding] duration-200 transform-gpu min-w-0">
         {/* Helper div to offset the fixed desktop sidebar */}
         <div className={cn(
-          "transition-[padding] duration-200",
+          "transition-[padding] duration-200 w-full",
           isSidebarCollapsed ? "md:pl-[72px]" : "md:pl-64"
         )}>
           <Navbar onMenuClick={() => setIsMobileMenuOpen(true)} />
-          <main className="flex-1 p-6 md:p-8 animate-in fade-in slide-in-up duration-200">
+          <main className="flex-1 p-6 md:p-8 animate-in fade-in slide-in-up duration-200 w-full min-w-0 overflow-x-hidden">
             <Outlet />
           </main>
         </div>
