@@ -25,6 +25,7 @@ import { createLogger, serializeError } from '../services/logger'
 import { toast } from 'sonner'
 import * as uploadApi from '../services/uploadService'
 import ConfirmModal from '../components/modals/ConfirmModal'
+import RevisionModal from '../components/modals/RevisionModal'
 
 const logger = createLogger('OrderDetail')
 
@@ -69,6 +70,8 @@ export default function OrderDetail() {
     message: '',
     onConfirm: () => { },
   })
+  const [isRevisionModalOpen, setIsRevisionModalOpen] = useState(false)
+  const [revisionItemId, setRevisionItemId] = useState<string | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -176,16 +179,9 @@ export default function OrderDetail() {
     }
   }
 
-  async function handleRequestRevision(itemId: string) {
-    const notes = prompt('Please provide revision details:')
-    if (notes === null) return;
-    try {
-      await orderApi.requestRevision(id!, itemId, notes || undefined)
-      toast.info('Revision requested.')
-      loadOrder()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || err.message)
-    }
+  function handleRequestRevision(itemId: string) {
+    setRevisionItemId(itemId)
+    setIsRevisionModalOpen(true)
   }
 
   async function handleFileUpload(itemId: string, files: FileList | null) {
@@ -593,11 +589,42 @@ export default function OrderDetail() {
               {events.map((event: any) => (
                 <div key={event._id} className="relative">
                   <div className="absolute -left-[41px] top-1 w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(225,29,72,0.5)]" />
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <p className="text-xs font-bold text-white uppercase tracking-tight">{event.type.replace(/_/g, ' ')}</p>
                     <p className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">
                       {new Date(event.createdAt).toLocaleString()}
                     </p>
+                    {event.type === 'REVISION_REQUESTED' && event.data && (
+                      <div className="mt-2 p-4 bg-black/20 rounded-xl border border-white/5 space-y-3 max-w-2xl">
+                        {event.data.notes && (
+                          <div>
+                            <span className="text-[8px] text-text-dim/40 font-bold uppercase tracking-widest block mb-1">Notes</span>
+                            <p className="text-xs text-text-dim leading-relaxed">{event.data.notes}</p>
+                          </div>
+                        )}
+                        {event.data.assets && event.data.assets.length > 0 && (
+                          <div>
+                            <span className="text-[8px] text-text-dim/40 font-bold uppercase tracking-widest block mb-1.5">Attached Files</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {event.data.assets.map((asset: any) => (
+                                <div key={asset._id} className="flex items-center justify-between bg-black/40 border border-white/5 rounded-lg p-2 text-xs">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <FileIcon size={12} className="text-text-dim/40 flex-shrink-0" />
+                                    <span className="text-white truncate font-medium">{asset.originalName}</span>
+                                  </div>
+                                  <button
+                                    onClick={() => handleDownload(asset.url, asset.originalName)}
+                                    className="text-[10px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1"
+                                  >
+                                    <Download size={10} /> Get
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -613,6 +640,19 @@ export default function OrderDetail() {
           onConfirm={confirmModal.onConfirm}
           onClose={() => setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))}
         />
+
+        {id && revisionItemId && (
+          <RevisionModal
+            isOpen={isRevisionModalOpen}
+            onClose={() => {
+              setIsRevisionModalOpen(false)
+              setRevisionItemId(null)
+            }}
+            orderId={id}
+            itemId={revisionItemId}
+            onSuccess={loadOrder}
+          />
+        )}
       </div>
     </div>
   )
