@@ -89,17 +89,17 @@ const Timeline: React.FC<{ events: AdminOrderEvent[] }> = ({ events }) => {
                 </div>
               )}
               {(event.data as any).assets && Array.isArray((event.data as any).assets) && ((event.data as any).assets).length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-[9px] text-text-dim/40 font-bold uppercase tracking-[0.2em] block">Attached Reference Files</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2 mt-4">
+                  <span className="text-[9px] text-primary/60 font-bold uppercase tracking-[0.2em] block">Attached Reference Files</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                     {((event.data as any).assets as any[]).map((asset: any) => (
-                      <div key={asset._id} className="flex items-center justify-between bg-black/40 border border-white/5 rounded-2xl p-3 text-xs">
+                      <div key={asset._id} className="flex items-center justify-between bg-black/40 border border-primary/10 rounded-2xl p-3 text-xs">
                         <div className="flex items-center gap-3 min-w-0">
-                          <FileIcon size={14} className="text-text-dim/40 flex-shrink-0" />
+                          <FileIcon size={14} className="text-primary/40 flex-shrink-0" />
                           <span className="text-white truncate font-medium">{asset.originalName}</span>
                         </div>
                         <button
-                          onClick={() => handleDownload(resolveApiUrl(asset.url), asset.originalName)}
+                          onClick={() => window.open(resolveApiUrl(asset.url), '_blank')}
                           className="text-[10px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1.5"
                         >
                           <Download size={12} /> Get
@@ -109,6 +109,13 @@ const Timeline: React.FC<{ events: AdminOrderEvent[] }> = ({ events }) => {
                   </div>
                 </div>
               )}
+            </div>
+          ) : event.type === 'REVISION_DELIVERED' ? (
+            <div className="bg-success/5 p-6 rounded-3xl border border-success/20 shadow-inner space-y-4 max-w-2xl">
+              <div className="space-y-1">
+                <span className="text-[9px] text-success/60 font-bold uppercase tracking-[0.2em] block">Status</span>
+                <p className="text-sm text-white leading-relaxed">The production team has uploaded and delivered the revised assets.</p>
+              </div>
             </div>
           ) : (
             event.data && Object.keys(event.data).length > 0 && (
@@ -143,12 +150,16 @@ const ItemCard: React.FC<{
   onUpdated: (updated: AdminOrderItem) => void
   onPreview: (asset: any) => void
   setConfirmModal: (state: any) => void
-}> = ({ item, orderId, isExpanded, onToggle, onUpdated, onPreview, setConfirmModal }) => {
+  events?: AdminOrderEvent[]
+}> = ({ item, orderId, isExpanded, onToggle, onUpdated, onPreview, setConfirmModal, events = [] }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newLink, setNewLink] = useState('')
   const [isAddingLink, setIsAddingLink] = useState(false)
+
+  const revisionEvents = events.filter(e => e.type === 'REVISION_REQUESTED' && (e.data as any)?.itemId === item._id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const latestRevisionEvent = revisionEvents[0]
 
   const validTransitions = ITEM_TRANSITIONS[item.status] ?? []
 
@@ -410,6 +421,45 @@ const ItemCard: React.FC<{
 
             <div className="space-y-8">
               <div className="space-y-10">
+                {/* Latest Revision Request Section */}
+                {item.usedRevisions > 0 && latestRevisionEvent && (
+                  <section className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <RefreshCw size={14} className="text-primary/40" />
+                      <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest">Latest Revision Request</h4>
+                    </div>
+                    <div className="bg-primary/5 p-6 rounded-3xl border border-primary/20 space-y-4 shadow-xl">
+                      {(latestRevisionEvent.data as any).notes && (
+                        <div className="space-y-1">
+                          <span className="text-[9px] text-primary/60 font-bold uppercase tracking-[0.2em] block">Notes</span>
+                          <p className="text-sm text-white leading-relaxed">{String((latestRevisionEvent.data as any).notes)}</p>
+                        </div>
+                      )}
+                      {(latestRevisionEvent.data as any).assets && Array.isArray((latestRevisionEvent.data as any).assets) && ((latestRevisionEvent.data as any).assets).length > 0 && (
+                        <div className="space-y-2 mt-4">
+                          <span className="text-[9px] text-primary/60 font-bold uppercase tracking-[0.2em] block">Attached Reference Files</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                            {((latestRevisionEvent.data as any).assets as any[]).map((asset: any) => (
+                              <div key={asset._id} className="flex items-center justify-between bg-black/40 border border-primary/10 rounded-2xl p-3 text-xs">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <FileIcon size={14} className="text-primary/40 flex-shrink-0" />
+                                  <span className="text-white truncate font-medium">{asset.originalName}</span>
+                                </div>
+                                <button
+                                  onClick={() => handleDownload(resolveApiUrl(asset.url), asset.originalName)}
+                                  className="text-[10px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1.5"
+                                >
+                                  <Download size={12} /> Get
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                )}
+
                 {/* Deliverables Section */}
                 <section className="space-y-6">
                   <div className="flex items-center gap-3">
@@ -1027,6 +1077,7 @@ const AdminOrderDetail: React.FC = () => {
                 onUpdated={handleItemUpdated}
                 onPreview={setPreviewAsset}
                 setConfirmModal={setConfirmModal}
+                events={events}
               />
             ))}
             {items.length === 0 && (
