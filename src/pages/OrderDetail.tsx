@@ -524,6 +524,10 @@ export default function OrderDetail() {
                     {item.status === 'DELIVERED' && (
                       <div className="mt-8 flex gap-3 border-t border-white/5 pt-6">
                         <Button onClick={() => handleApproveItem(item._id)} className="flex-1 h-10 rounded-lg text-[10px]">Approve Service</Button>
+                      </div>
+                    )}
+                    {!['APPROVED', 'CANCELLED', 'FAILED'].includes(item.status) && (
+                      <div className="mt-4 flex gap-3 border-t border-white/5 pt-6">
                         <Button variant="outline" onClick={() => handleRequestRevision(item._id)} className="flex-1 h-10 rounded-lg text-[10px]">Request Revision</Button>
                       </div>
                     )}
