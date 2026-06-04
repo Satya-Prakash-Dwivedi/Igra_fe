@@ -104,9 +104,9 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
       />
 
       {/* Modal */}
-      <div className="relative bg-bg-card border border-border rounded-2xl w-full max-w-lg overflow-hidden animate-in zoom-in slide-in-from-bottom-4 duration-300 shadow-2xl">
+      <div className="relative bg-bg-card border border-border rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in slide-in-from-bottom-4 duration-300 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-8 pt-8 pb-6 border-b border-border">
+        <div className="flex items-center justify-between px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-border shrink-0">
           <div>
             <h2 className="text-text-main font-bold text-xl leading-tight">Request Revision</h2>
             <p className="text-text-muted text-sm mt-1">Specify changes and provide reference files for the studio.</p>
@@ -122,7 +122,7 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
 
         {/* Success State */}
         {isSuccess ? (
-          <div className="p-8 flex flex-col items-center text-center gap-4">
+          <div className="p-4 sm:p-8 flex flex-col items-center text-center gap-4 overflow-y-auto">
             <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
               <CheckCircle2 size={36} className="text-success" />
             </div>
@@ -135,7 +135,7 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
             </Button>
           </div>
         ) : (
-          <form className="p-8 space-y-6" onSubmit={handleSubmit}>
+          <form className="p-4 sm:p-8 space-y-6 overflow-y-auto custom-scrollbar" onSubmit={handleSubmit}>
             {/* Notes */}
             <div className="space-y-2">
               <label className="text-text-muted text-xs font-semibold uppercase tracking-wider block">

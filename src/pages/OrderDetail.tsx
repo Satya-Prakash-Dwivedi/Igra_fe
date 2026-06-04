@@ -629,6 +629,14 @@ export default function OrderDetail() {
                         )}
                       </div>
                     )}
+                    {event.type === 'REVISION_DELIVERED' && (
+                      <div className="mt-2 p-4 bg-success/5 rounded-xl border border-success/20 space-y-3 max-w-2xl">
+                        <div>
+                          <span className="text-[8px] text-success/60 font-bold uppercase tracking-widest block mb-1">Status</span>
+                          <p className="text-xs text-white leading-relaxed">The production team has uploaded and delivered the revised assets.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
