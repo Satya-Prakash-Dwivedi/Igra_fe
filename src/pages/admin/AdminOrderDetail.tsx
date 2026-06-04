@@ -49,37 +49,91 @@ import { createLogger, serializeError } from '../../services/logger'
 
 const logger = createLogger('AdminOrderDetail')
 
-const Timeline: React.FC<{ events: AdminOrderEvent[] }> = ({ events }) => (
-  <div className="relative border-l-2 border-white/5 ml-4 pl-10 space-y-12">
-    {events.map((event, i) => (
-      <div key={i} className="relative group">
-        <div className="absolute -left-[49px] top-1 w-4 h-4 rounded-full bg-bg-dark border-4 border-white/10 group-hover:border-primary transition-all duration-500 z-10 shadow-2xl" />
-        <div className="mb-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-            <span className="text-xl font-bold text-white tracking-tight italic">{event.type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</span>
-            <span className="text-[10px] font-bold text-text-dim/40 bg-white/5 px-3 py-1 rounded-lg border border-white/5 uppercase tracking-widest">
-              {new Date(event.createdAt).toLocaleString()}
-            </span>
+const Timeline: React.FC<{ events: AdminOrderEvent[] }> = ({ events }) => {
+  const handleDownload = async (url: string, fileName: string) => {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(blobUrl)
+    } catch (err) {
+      window.open(url, '_blank')
+    }
+  }
+
+  return (
+    <div className="relative border-l-2 border-white/5 ml-4 pl-10 space-y-12">
+      {events.map((event, i) => (
+        <div key={i} className="relative group">
+          <div className="absolute -left-[49px] top-1 w-4 h-4 rounded-full bg-bg-dark border-4 border-white/10 group-hover:border-primary transition-all duration-500 z-10 shadow-2xl" />
+          <div className="mb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+              <span className="text-xl font-bold text-white tracking-tight italic">{event.type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</span>
+              <span className="text-[10px] font-bold text-text-dim/40 bg-white/5 px-3 py-1 rounded-lg border border-white/5 uppercase tracking-widest">
+                {new Date(event.createdAt).toLocaleString()}
+              </span>
+            </div>
           </div>
-        </div>
-        {event.data && Object.keys(event.data).length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white/[0.02] p-6 rounded-3xl border border-white/5 shadow-inner">
-            {Object.entries(event.data).map(([key, val]) => (
-              <div key={key} className="space-y-1">
-                <span className="text-[9px] text-text-dim/40 font-bold uppercase tracking-[0.2em] block">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                </span>
-                <p className="text-sm text-text-dim font-medium">
-                  {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                </p>
+          {event.type === 'REVISION_REQUESTED' && event.data ? (
+            <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5 shadow-inner space-y-4 max-w-2xl">
+              {(event.data as any).notes && (
+                <div className="space-y-1">
+                  <span className="text-[9px] text-text-dim/40 font-bold uppercase tracking-[0.2em] block">Notes</span>
+                  <p className="text-sm text-text-dim leading-relaxed">{String((event.data as any).notes)}</p>
+                </div>
+              )}
+              {(event.data as any).assets && Array.isArray((event.data as any).assets) && ((event.data as any).assets).length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[9px] text-text-dim/40 font-bold uppercase tracking-[0.2em] block">Attached Reference Files</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {((event.data as any).assets as any[]).map((asset: any) => (
+                      <div key={asset._id} className="flex items-center justify-between bg-black/40 border border-white/5 rounded-2xl p-3 text-xs">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <FileIcon size={14} className="text-text-dim/40 flex-shrink-0" />
+                          <span className="text-white truncate font-medium">{asset.originalName}</span>
+                        </div>
+                        <button
+                          onClick={() => handleDownload(resolveApiUrl(asset.url), asset.originalName)}
+                          className="text-[10px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1.5"
+                        >
+                          <Download size={12} /> Get
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            event.data && Object.keys(event.data).length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white/[0.02] p-6 rounded-3xl border border-white/5 shadow-inner">
+                {Object.entries(event.data).map(([key, val]) => {
+                  if (key === 'assetIds' || key === 'assets') return null;
+                  return (
+                    <div key={key} className="space-y-1">
+                      <span className="text-[9px] text-text-dim/40 font-bold uppercase tracking-[0.2em] block">
+                        {key.replace(/([A-Z])/g, ' $1').trim()}
+                      </span>
+                      <p className="text-sm text-text-dim font-medium">
+                        {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    ))}
-  </div>
-)
+            )
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 const ItemCard: React.FC<{
   item: AdminOrderItem

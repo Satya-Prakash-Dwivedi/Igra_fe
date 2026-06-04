@@ -127,8 +127,8 @@ export async function approveItem(orderId: string, itemId: string) {
   return res.data.data as OrderItem
 }
 
-export async function requestRevision(orderId: string, itemId: string, notes?: string) {
-  const res = await api.post(`/orders/${orderId}/items/${itemId}/revision`, { notes })
+export async function requestRevision(orderId: string, itemId: string, notes?: string, assetIds?: string[]) {
+  const res = await api.post(`/orders/${orderId}/items/${itemId}/revision`, { notes, assetIds })
   return res.data.data as OrderItem
 }
 
