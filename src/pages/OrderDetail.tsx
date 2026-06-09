@@ -269,10 +269,23 @@ export default function OrderDetail() {
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(blobUrl)
-    } catch (err) {
+    } catch (err: any) {
       logger.error('order.download_failed', { url, error: serializeError(err) })
-      // Fallback to opening in new tab if fetch fails (e.g. CORS)
-      window.open(url, '_blank')
+      if (err.response?.status === 404) {
+        toast.error('This file is no longer available on the server.')
+        return
+      }
+      
+      // If the error has no response, it's likely a CORS error from an S3 redirect.
+      // In this case, we fallback to a direct browser download.
+      const urlWithQuery = url.includes('?') ? `${url}&download=true` : `${url}?download=true`
+      const directUrl = resolveApiUrl(urlWithQuery)
+      const link = document.createElement('a')
+      link.href = directUrl
+      link.setAttribute('download', fileName)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     }
   }
 
