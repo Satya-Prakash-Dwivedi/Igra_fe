@@ -53,7 +53,8 @@ const logger = createLogger('AdminOrderDetail')
 const Timeline: React.FC<{ events: AdminOrderEvent[] }> = ({ events }) => {
   const handleDownload = async (url: string, fileName: string) => {
     try {
-      const response = await api.get(url, { responseType: 'blob' })
+      const absoluteUrl = resolveApiUrl(url)
+      const response = await api.get(absoluteUrl, { responseType: 'blob' })
       const blob = new Blob([response.data])
       const blobUrl = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -286,7 +287,8 @@ const ItemCard: React.FC<{
 
   const handleDownload = async (url: string, fileName: string) => {
     try {
-      const response = await api.get(url, { responseType: 'blob' })
+      const absoluteUrl = resolveApiUrl(url)
+      const response = await api.get(absoluteUrl, { responseType: 'blob' })
       const blob = new Blob([response.data])
       const blobUrl = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
