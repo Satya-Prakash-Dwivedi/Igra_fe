@@ -47,7 +47,6 @@ import { ITEM_TRANSITIONS } from '../../services/adminService'
 import StatusBadge from '../../components/admin/StatusBadge'
 import Button, { cn } from '../../components/Button'
 import { createLogger, serializeError } from '../../services/logger'
-
 const logger = createLogger('AdminOrderDetail')
 
 const Timeline: React.FC<{ events: AdminOrderEvent[] }> = ({ events }) => {
@@ -64,8 +63,19 @@ const Timeline: React.FC<{ events: AdminOrderEvent[] }> = ({ events }) => {
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(blobUrl)
-    } catch (err) {
-      window.open(url, '_blank')
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        toast.error('This file is no longer available on the server.')
+        return
+      }
+      const urlWithQuery = url.includes('?') ? `${url}&download=true` : `${url}?download=true`
+      const directUrl = resolveApiUrl(urlWithQuery)
+      const link = document.createElement('a')
+      link.href = directUrl
+      link.setAttribute('download', fileName)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     }
   }
 
@@ -298,9 +308,20 @@ const ItemCard: React.FC<{
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(blobUrl)
-    } catch (err) {
+    } catch (err: any) {
       logger.error('admin_item.download_failed', { url, error: serializeError(err) })
-      window.open(url, '_blank')
+      if (err.response?.status === 404) {
+        toast.error('This file is no longer available on the server.')
+        return
+      }
+      const urlWithQuery = url.includes('?') ? `${url}&download=true` : `${url}?download=true`
+      const directUrl = resolveApiUrl(urlWithQuery)
+      const link = document.createElement('a')
+      link.href = directUrl
+      link.setAttribute('download', fileName)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     }
   }
 
