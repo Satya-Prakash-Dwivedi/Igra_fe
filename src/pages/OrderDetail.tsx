@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
 import { createLogger, serializeError } from '../services/logger'
+import { resolveApiUrl } from '../utils/urlUtils'
 import { toast } from 'sonner'
 import * as uploadApi from '../services/uploadService'
 import ConfirmModal from '../components/modals/ConfirmModal'
@@ -257,7 +258,8 @@ export default function OrderDetail() {
 
   async function handleDownload(url: string, fileName: string) {
     try {
-      const response = await api.get(url, { responseType: 'blob' })
+      const absoluteUrl = resolveApiUrl(url)
+      const response = await api.get(absoluteUrl, { responseType: 'blob' })
       const blob = new Blob([response.data])
       const blobUrl = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
