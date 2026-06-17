@@ -983,7 +983,7 @@ const AdminOrderDetail: React.FC = () => {
             onClick={() => {
               setConfirmModal({
                 isOpen: true,
-                title: 'Deliver Production',
+                title: 'Deliver & Request Review',
                 message: 'Deliver the final assets to the client and open the review window?',
                 variant: 'primary',
                 onConfirm: async () => {
@@ -1004,51 +1004,12 @@ const AdminOrderDetail: React.FC = () => {
             isLoading={isLoading}
             className="bg-white text-black hover:bg-primary hover:text-white px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wide shadow-lg shadow-white/5 active:scale-95 border-none relative z-10"
           >
-            Deliver Production
+            Deliver & Request Review
           </Button>
         </div>
       )}
 
-      {/* Finalization Control */}
-      {order.status === 'FINALIZING' && (
-        <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 md:p-4 flex flex-col md:flex-row items-center justify-between gap-5 animate-in slide-in-from-top-4 duration-700 shadow-lg relative overflow-hidden group mb-10">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/10 to-transparent opacity-20" />
-          <div className="space-y-3 relative z-10 text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-4">
-               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 animate-pulse"><Check size={24} /></div>
-               <h2 className="text-base font-bold text-white tracking-tight ">Review <span className="text-primary ">completed</span></h2>
-            </div>
-            <p className="text-text-dim/60 text-sm font-medium max-w-xl">The client has completed their review. Finalize the order to archive the transmission and close the unit.</p>
-          </div>
-          <Button
-            onClick={() => {
-              setConfirmModal({
-                isOpen: true,
-                title: 'Finalize Order',
-                message: 'Mark this order as complete? This will archive the unit and notify the client.',
-                variant: 'primary',
-                onConfirm: async () => {
-                  setIsLoading(true)
-                  try {
-                    await adminService.finalizeOrder(id!)
-                    toast.success('Order completed successfully.')
-                    setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
-                    fetchAll()
-                  } catch (err: any) {
-                    toast.error(err?.response?.data?.error || err.message)
-                  } finally {
-                    setIsLoading(false)
-                  }
-                }
-              })
-            }}
-            isLoading={isLoading}
-            className="bg-white text-black hover:bg-primary hover:text-white px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wide shadow-lg shadow-white/5 active:scale-95 border-none relative z-10"
-          >
-            Mark as Order Complete
-          </Button>
-        </div>
-      )}
+
 
       {/* Navigation Matrix */}
       <div className="flex flex-wrap gap-3 bg-white/[0.02] backdrop-blur-3xl rounded-lg p-3 border border-white/5 shadow-lg">

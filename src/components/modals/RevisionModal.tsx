@@ -84,8 +84,9 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
       // 2. Submit revision request
       await orderApi.requestRevision(orderId, itemId, notes.trim(), assetIds)
 
-      setIsSuccess(true)
+      import('sonner').then(({ toast }) => toast.success('Revision requested successfully.'))
       onSuccess()
+      handleClose()
     } catch (err: any) {
       logger.error('revision_modal.submit_failed', { error: serializeError(err) })
       setIsUploadingFiles(false)
