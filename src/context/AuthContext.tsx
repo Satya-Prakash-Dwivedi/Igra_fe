@@ -11,6 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (credentials: any) => Promise<User>
+  loginWithGoogle: (credential: string) => Promise<User>
   register: (userData: any) => Promise<{ success: boolean; message: string }>
   logout: () => Promise<void>
   updateUser: (updatedUser: User) => void
@@ -127,6 +128,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user?._id, user?.id]) // Re-run whenever the user ID changes
 
+  const loginWithGoogle = async (credential: string) => {
+    const response = await authService.loginWithGoogle(credential)
+    const { user: userData, access_token } = response.data
+    updateUser(userData)
+    setAccessToken(access_token)
+    api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+    return userData
+  }
+
   const value = useMemo(
     () => ({
       user,
@@ -134,6 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuthenticated: !!user,
       isLoading,
       login,
+      loginWithGoogle,
       register,
       logout,
       updateUser,
@@ -141,5 +152,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [user, accessToken, isLoading, logout, updateUser]
   )
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value as AuthContextType}>{children}</AuthContext.Provider>
 }

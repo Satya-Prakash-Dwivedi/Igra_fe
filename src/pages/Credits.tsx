@@ -13,13 +13,16 @@ import {
   Star,
   Sparkles,
   Zap,
-  Coins
+  Coins,
+  X,
+  ShieldCheck
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { createLogger, serializeError } from '../services/logger'
 import { cn } from '../components/Button'
 import { toast } from 'sonner'
 import Button from '../components/Button'
+import { useAuth } from '../hooks/useAuth'
 
 const logger = createLogger('Credits')
 
@@ -32,6 +35,7 @@ const REASON_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function Credits() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [wallet, setWallet] = useState<CreditWallet | null>(null)
   const [packs, setPacks] = useState<CreditPack[]>([])
   const [ledger, setLedger] = useState<LedgerEntry[]>([])
@@ -40,10 +44,18 @@ export default function Credits() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'packs' | 'history' | 'invoices'>('packs')
   const [customAmount, setCustomAmount] = useState<string>('5')
+  const [selectedPack, setSelectedPack] = useState<{ id: string; amount?: number; name: string; priceCents: number } | null>(null)
 
   useEffect(() => {
     loadData()
     checkPayPalRedirect()
+    // Preload Razorpay Checkout script
+    if (!document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.async = true
+      document.body.appendChild(script)
+    }
   }, [])
 
   async function checkPayPalRedirect() {
@@ -91,25 +103,108 @@ export default function Credits() {
     }
   }
 
-  async function handlePurchase(packId: string) {
-    setPurchasing(packId)
+  function handlePurchaseClick(packId: string) {
+    const amount = packId === 'custom' ? parseFloat(customAmount) : undefined
+    if (packId === 'custom' && (!amount || amount < 5)) {
+      toast.error('Minimum purchase is $5')
+      return
+    }
+
+    let packName = 'Custom'
+    let priceCents = amount ? Math.round(amount * 100) : 0
+
+    if (packId !== 'custom') {
+      const pack = packs.find(p => p.id === packId)
+      if (pack) {
+        packName = pack.name
+        priceCents = pack.priceCents
+      }
+    }
+
+    setSelectedPack({ id: packId, amount, name: packName, priceCents })
+  }
+
+  async function executeCheckout(provider: 'paypal' | 'razorpay') {
+    if (!selectedPack) return
+    setPurchasing(provider)
     try {
-      const amount = packId === 'custom' ? parseFloat(customAmount) : undefined
-      if (packId === 'custom' && (!amount || amount < 5)) {
-        toast.error('Minimum purchase is $5')
-        setPurchasing(null)
+      let targetCurrency: string | undefined = undefined;
+      
+      // If Razorpay, detect if user is in India to show UPI/NetBanking
+      if (provider === 'razorpay') {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (timeZone.includes('Kolkata') || timeZone.includes('Calcutta') || timeZone.includes('Asia/Colombo') || timeZone.includes('Asia/Dhaka')) {
+            targetCurrency = 'INR';
+        } else {
+            targetCurrency = 'USD';
+        }
+      }
+
+      const { payment, approveLink, razorpayOrderId, keyId, amount, currency } = await billingApi.createPurchase(
+        selectedPack.id,
+        selectedPack.amount,
+        provider,
+        targetCurrency
+      )
+
+      if (provider === 'paypal' && approveLink) {
+        window.location.href = approveLink
         return
       }
-      const { approveLink } = await billingApi.createPurchase(packId, amount)
-      if (approveLink) {
-        window.location.href = approveLink
+
+      if (provider === 'razorpay' && razorpayOrderId) {
+        const rzpKey = keyId || import.meta.env.VITE_RAZORPAY_KEY_ID
+        if (!rzpKey || !(window as any).Razorpay) {
+          toast.error('Razorpay gateway is still loading or not configured')
+          setPurchasing(null)
+          return
+        }
+
+        const options = {
+          key: rzpKey,
+          amount: amount || payment.amountCents,
+          currency: currency || 'USD',
+          name: 'Igra Studios',
+          description: `${selectedPack.name} Credit Pack`,
+          order_id: razorpayOrderId,
+          prefill: {
+            name: user?.name || '',
+            email: user?.email || '',
+          },
+          theme: {
+            color: '#6366f1',
+          },
+          handler: async function (response: any) {
+            try {
+              setLoading(true)
+              setSelectedPack(null)
+              await billingApi.capturePurchase(payment._id, {
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpaySignature: response.razorpay_signature,
+              })
+              await loadData()
+              toast.success('Credits purchased successfully via Razorpay!')
+            } catch (err: any) {
+              logger.error('credits.razorpay_capture_failed', { error: serializeError(err) })
+              toast.error(err?.response?.data?.error || 'Verification failed')
+            } finally {
+              setLoading(false)
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              setPurchasing(null)
+            },
+          },
+        }
+
+        const rzp = new (window as any).Razorpay(options)
+        rzp.open()
       }
     } catch (err: any) {
-      logger.error('credits.purchase_failed', {
-        packId,
-        error: serializeError(err),
-      })
-      toast.error(err?.response?.data?.error || 'Purchase failed')
+      logger.error('credits.checkout_failed', { provider, error: serializeError(err) })
+      toast.error(err?.response?.data?.error || 'Checkout failed')
       setPurchasing(null)
     }
   }
@@ -218,7 +313,7 @@ export default function Credits() {
                    <Button
                     fullWidth
                     variant={pack.popular ? "primary" : "outline"}
-                    onClick={() => handlePurchase(pack.id)}
+                    onClick={() => handlePurchaseClick(pack.id)}
                     disabled={purchasing !== null}
                     className="h-12 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg"
                   >
@@ -273,7 +368,7 @@ export default function Credits() {
                  <Button
                   fullWidth
                   variant="outline"
-                  onClick={() => handlePurchase('custom')}
+                  onClick={() => handlePurchaseClick('custom')}
                   disabled={purchasing !== null}
                   className="h-12 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg hover:bg-primary hover:text-white hover:border-primary transition-all"
                 >
@@ -362,6 +457,75 @@ export default function Credits() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Payment Gateway Selection Modal */}
+        {selectedPack && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-bg-card border border-white/10 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
+              <button
+                onClick={() => { if (!purchasing) setSelectedPack(null) }}
+                className="absolute top-6 right-6 text-text-dim hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="space-y-2 text-left">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest">
+                  <ShieldCheck size={12} /> Secure Checkout
+                </div>
+                <h3 className="text-2xl font-bold text-white">Choose Gateway</h3>
+                <p className="text-xs text-text-dim/80">
+                  You are purchasing the <span className="text-white font-bold">{selectedPack.name} Pack</span> for{' '}
+                  <span className="text-primary font-bold">${(selectedPack.priceCents / 100).toFixed(2)} USD</span>.
+                </p>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <button
+                  onClick={() => executeCheckout('paypal')}
+                  disabled={purchasing !== null}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-white/10 transition-all group"
+                >
+                  <div className="flex items-center gap-3.5 text-left">
+                    <div className="w-10 h-10 rounded-xl bg-[#003087]/20 border border-[#003087]/40 flex items-center justify-center text-[#0079C1]">
+                      <CreditCard size={20} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">PayPal</div>
+                      <div className="text-[10px] text-text-dim/60 font-semibold">Pay via PayPal Account or Cards</div>
+                    </div>
+                  </div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-text-dim/40 group-hover:text-white transition-colors">
+                    {purchasing === 'paypal' ? 'Loading...' : 'Select'}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => executeCheckout('razorpay')}
+                  disabled={purchasing !== null}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-white/10 transition-all group"
+                >
+                  <div className="flex items-center gap-3.5 text-left">
+                    <div className="w-10 h-10 rounded-xl bg-[#0c2340]/40 border border-[#3395ff]/40 flex items-center justify-center text-[#3395ff]">
+                      <Zap size={20} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">Razorpay</div>
+                      <div className="text-[10px] text-text-dim/60 font-semibold">Cards, UPI, NetBanking, Wallets</div>
+                    </div>
+                  </div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-text-dim/40 group-hover:text-white transition-colors">
+                    {purchasing === 'razorpay' ? 'Loading...' : 'Select'}
+                  </div>
+                </button>
+              </div>
+
+              <p className="text-[10px] text-text-dim/40 text-center font-medium">
+                By continuing, you agree to our terms of service and billing policies.
+              </p>
+            </div>
           </div>
         )}
       </div>
