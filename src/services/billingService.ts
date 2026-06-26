@@ -14,7 +14,9 @@ export interface CreditPack {
 export interface Payment {
   _id: string
   userId: string
-  paypalOrderId: string
+  provider?: string
+  paypalOrderId?: string
+  razorpayOrderId?: string
   amountCents: number
   creditsPurchased: number
   packId: string
@@ -25,7 +27,13 @@ export interface Payment {
 export interface Invoice {
   _id: string
   userId: string
-  paymentId: { paypalOrderId?: string; paypalCaptureId?: string }
+  paymentId: {
+    provider?: string
+    paypalOrderId?: string
+    paypalCaptureId?: string
+    razorpayOrderId?: string
+    razorpayPaymentId?: string
+  }
   invoiceNumber: string
   lineItems: { description: string; quantity: number; unitPriceCents: number; totalCents: number }[]
   subtotalCents: number
@@ -45,13 +53,16 @@ export async function getCreditPacks() {
   return res.data.data as CreditPack[]
 }
 
-export async function createPurchase(packId: string, amountDollars?: number) {
-  const res = await api.post('/billing/purchase', { packId, amountDollars }, { headers: idempotencyHeaders() })
-  return res.data.data as { payment: Payment; approveLink: string }
+export async function createPurchase(packId: string, amountDollars?: number, provider: 'paypal' | 'razorpay' = 'paypal', targetCurrency?: string) {
+  const res = await api.post('/billing/purchase', { packId, amountDollars, provider, targetCurrency }, { headers: idempotencyHeaders() })
+  return res.data.data as { payment: Payment; approveLink?: string; razorpayOrderId?: string; keyId?: string; amount?: number; currency?: string }
 }
 
-export async function capturePurchase(paymentId: string) {
-  const res = await api.post(`/billing/purchase/${paymentId}/capture`)
+export async function capturePurchase(
+  paymentIdOrOrderId: string,
+  razorpayData?: { razorpayPaymentId: string; razorpayOrderId: string; razorpaySignature: string }
+) {
+  const res = await api.post(`/billing/purchase/${paymentIdOrOrderId}/capture`, razorpayData)
   return res.data.data as Payment
 }
 

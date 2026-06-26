@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { createLogger, serializeError } from '../services/logger';
+import { GoogleLogin } from '@react-oauth/google';
 
 const logger = createLogger('Register');
 
@@ -26,7 +27,7 @@ const Register: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -152,11 +153,53 @@ const Register: React.FC = () => {
               <Button
                 type="submit"
                 isLoading={isSubmitting}
-                className="h-14 rounded-2xl font-bold text-sm shadow-2xl shadow-primary/20 mt-2"
+                className="h-14 rounded-2xl font-bold text-sm shadow-2xl shadow-primary/20 mt-2 w-full"
               >
                 Create Account
                 <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/10"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-bg-card px-2 text-text-dim uppercase tracking-widest font-bold">Or continue with</span>
+                </div>
+              </div>
+
+              <div className="flex justify-center w-full">
+                <div className="w-full flex justify-center overflow-hidden rounded-xl">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      if (credentialResponse.credential) {
+                        try {
+                          setIsSubmitting(true);
+                          setError(null);
+                          const userData = await loginWithGoogle(credentialResponse.credential);
+                          if (userData.role === 'admin' || userData.role === 'staff') {
+                            navigate('/admin/dashboard');
+                          } else {
+                            navigate('/dashboard');
+                          }
+                        } catch (err: any) {
+                          console.error(err);
+                          setError(err?.response?.data?.message || 'Google Login failed');
+                        } finally {
+                          setIsSubmitting(false);
+                        }
+                      }
+                    }}
+                    onError={() => {
+                      setError('Google Login failed');
+                    }}
+                    useOneTap
+                    shape="pill"
+                    theme="filled_black"
+                    width="100%"
+                  />
+                </div>
+              </div>
 
               <div className="text-center pt-2">
                  <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest flex items-center justify-center gap-2">

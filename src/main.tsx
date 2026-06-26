@@ -24,8 +24,14 @@ window.addEventListener('unhandledrejection', (event) => {
   })
 })
 
+import { GoogleOAuthProvider } from '@react-oauth/google'
+
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <App />
+    </GoogleOAuthProvider>
   </StrictMode>
 )
