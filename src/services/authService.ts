@@ -56,6 +56,11 @@ const authService = {
     return data;
   },
 
+  async loginWithGoogle(credential: string): Promise<AuthResponse> {
+    const { data } = await api.post<AuthResponse>('/auth/google', { credential });
+    return data;
+  },
+
   async register(userData: RegisterData): Promise<{success: boolean; message: string}> {
     const { data } = await api.post<{success: boolean; message: string}>('/auth/register', userData);
     return data;
