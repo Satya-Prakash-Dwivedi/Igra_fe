@@ -483,7 +483,7 @@ export default function OrderDetail() {
                           <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest mb-4">
                             Configuration
                           </h4>
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {Object.entries(item.params).map(
                               ([key, val]) =>
                                 key !== 'showLinkInput' && (

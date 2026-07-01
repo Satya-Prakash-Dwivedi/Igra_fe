@@ -15,6 +15,7 @@ import {
   ShieldAlert,
   Calendar,
   Loader2,
+  ArrowLeft,
 } from 'lucide-react'
 import messageService from '../../services/messageService'
 import type { Message, DirectMessageThread } from '../../services/messageService'
@@ -128,7 +129,7 @@ const AdminMessages: React.FC = () => {
   return (
     <div className="absolute inset-0 flex h-full w-full bg-bg-dark overflow-hidden animate-in fade-in duration-700">
       {/* Sidebar: Thread List */}
-      <div className="w-[320px] border-r border-white/5 bg-white/[0.01] flex flex-col h-full z-20">
+      <div className={cn("w-full md:w-[320px] shrink-0 border-r border-white/5 bg-white/[0.01] flex-col h-full z-20 transition-all", activeUserId ? "hidden md:flex" : "flex")}>
         <div className="p-5 space-y-5">
           <div className="flex items-center justify-between">
             <div>
@@ -227,7 +228,7 @@ const AdminMessages: React.FC = () => {
       </div>
 
       {/* Main Area: Chat Window */}
-      <div className="flex-1 flex flex-col bg-bg-dark relative overflow-hidden h-full">
+      <div className={cn("flex-1 flex-col bg-bg-dark relative overflow-hidden h-full transition-all", !activeUserId ? "hidden md:flex" : "flex")}>
         {!activeUserId ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 relative z-10">
             <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center mb-4 shadow-2xl">
@@ -239,8 +240,14 @@ const AdminMessages: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="h-16 border-b border-white/5 bg-bg-dark/60 backdrop-blur-3xl px-8 flex items-center justify-between z-30">
+            <div className="h-16 border-b border-white/5 bg-bg-dark/60 backdrop-blur-3xl px-4 md:px-8 flex items-center justify-between z-30">
               <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setActiveUserId(null)}
+                  className="md:hidden w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center text-text-muted hover:text-white"
+                >
+                  <ArrowLeft size={16} />
+                </button>
                 <img
                   src={
                     resolveApiUrl(activeThread?.user.avatar) ||

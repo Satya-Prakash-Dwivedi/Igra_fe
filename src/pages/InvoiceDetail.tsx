@@ -119,7 +119,7 @@ export default function InvoiceDetail() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-10 py-10 border-y border-white/5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 py-10 border-y border-white/5">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
                 <FileText size={12} className="text-primary" />

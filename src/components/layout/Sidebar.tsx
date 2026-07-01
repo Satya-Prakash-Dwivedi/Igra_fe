@@ -93,7 +93,7 @@ const NavItem: React.FC<NavItemProps> = ({
 
   if (to) {
     return (
-      <NavLink to={to} className={({ isActive }) => cn(className({ isActive }), 'relative')}>
+      <NavLink to={to} onClick={onClick} className={({ isActive }) => cn(className({ isActive }), 'relative')}>
         {({ isActive }) => (
           <>
             {activeGlow(isActive)}
@@ -212,7 +212,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
               )}
               <nav className="space-y-1">
                 {topNavItems.map((item) => (
-                  <NavItem key={item.to} {...item} collapsed={isCollapsed} />
+                  <NavItem key={item.to} {...item} collapsed={isCollapsed} onClick={() => { if (window.innerWidth < 768) onToggle(false); }} />
                 ))}
               </nav>
             </div>
@@ -229,15 +229,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                   icon={<UserCircle size={18} />}
                   label="Profile"
                   collapsed={isCollapsed}
+                  onClick={() => { if (window.innerWidth < 768) onToggle(false); }}
                 />
                 <NavItem
                   to="/support"
                   icon={<LifeBuoy size={18} />}
                   label="Support"
                   collapsed={isCollapsed}
+                  onClick={() => { if (window.innerWidth < 768) onToggle(false); }}
                 />
                 <NavItem
-                  onClick={() => setIsBugModalOpen(true)}
+                  onClick={() => { setIsBugModalOpen(true); if (window.innerWidth < 768) onToggle(false); }}
                   icon={<Bug size={18} />}
                   label="Report Bug"
                   collapsed={isCollapsed}
@@ -280,13 +282,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
           {/* Bottom Logout */}
           <div className="pb-6">
-            <NavItem
-              onClick={() => setIsLogoutModalOpen(true)}
-              icon={<LogOut size={18} />}
-              label="Logout"
-              collapsed={isCollapsed}
-              destructive
-            />
+                <NavItem
+                  onClick={() => { setIsLogoutModalOpen(true); if (window.innerWidth < 768) onToggle(false); }}
+                  icon={<LogOut size={18} />}
+                  label="Logout"
+                  collapsed={isCollapsed}
+                  destructive
+                />
           </div>
         </div>
       </aside>

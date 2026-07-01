@@ -80,7 +80,7 @@ const AdminDashboard: React.FC = () => {
       setError(null)
       const [statsData, ordersData, messagesData] = await Promise.all([
         adminService.getDashboard(),
-        adminService.listOrders({ limit: 5 }),
+        adminService.listOrders({ limit: 7 }),
         adminService.getRecentMessages(5),
       ])
       setStats(statsData)

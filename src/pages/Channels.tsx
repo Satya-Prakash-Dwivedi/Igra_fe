@@ -243,9 +243,9 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
 
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-10 animate-in fade-in duration-500">
-      <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-8 md:p-12 shadow-2xl relative z-10">
+      <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-5 sm:p-8 md:p-12 shadow-2xl relative z-10">
         {/* Header */}
-        <div className="flex items-center justify-between mb-10 pb-10 border-b border-white/5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10 pb-10 border-b border-white/5">
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">
               {isEditing ? 'Edit Identity' : 'Establish New Identity'}
@@ -265,7 +265,7 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
             {isEditing && (
               <Button
                 variant="outline"
-                className="bg-error/10 hover:bg-error text-error hover:text-white border-error/20 h-10 px-6 rounded-xl"
+                className="bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-white border-orange-500/20 h-10 px-6 rounded-xl"
                 onClick={handleDelete}
                 isLoading={isDeleting}
               >
@@ -276,7 +276,7 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
         </div>
 
         {/* Live Preview Section */}
-        <div className="mb-12 bg-white/[0.01] p-8 rounded-[2.5rem] border border-white/5 shadow-inner">
+        <div className="mb-12 bg-white/[0.01] p-4 sm:p-8 rounded-[2.5rem] border border-white/5 shadow-inner overflow-hidden">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
             <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-text-muted">
