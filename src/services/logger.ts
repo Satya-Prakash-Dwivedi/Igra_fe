@@ -42,7 +42,7 @@ function write(level: LogLevel, message: string, context?: LogContext) {
     const timestamp = new Date().toLocaleTimeString([], { hour12: false })
     const icons = { debug: '🐞', info: 'ℹ️', warn: '⚠️', error: '🚨' }
     const colors = { debug: '#7f8c8d', info: '#3498db', warn: '#f39c12', error: '#e74c3c' }
-    
+
     const scope = (context?.scope as string) || 'global'
     const cleanContext = { ...context }
     delete cleanContext.scope
@@ -73,10 +73,18 @@ function write(level: LogLevel, message: string, context?: LogContext) {
   const payload = JSON.stringify(entry)
 
   switch (level) {
-    case 'debug': console.debug(payload); break
-    case 'info': console.info(payload); break
-    case 'warn': console.warn(payload); break
-    case 'error': console.error(payload); break
+    case 'debug':
+      console.debug(payload)
+      break
+    case 'info':
+      console.info(payload)
+      break
+    case 'warn':
+      console.warn(payload)
+      break
+    case 'error':
+      console.error(payload)
+      break
   }
 }
 

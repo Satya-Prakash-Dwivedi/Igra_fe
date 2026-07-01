@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Package,
   Lock,
@@ -10,68 +10,68 @@ import {
   Zap,
   ChevronRight,
   Shield,
-  User
-} from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import authService from '../services/authService';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import { createLogger, serializeError } from '../services/logger';
-import { GoogleLogin } from '@react-oauth/google';
+  User,
+} from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+import authService from '../services/authService'
+import Button from '../components/Button'
+import Input from '../components/Input'
+import { createLogger, serializeError } from '../services/logger'
+import { GoogleLogin } from '@react-oauth/google'
 
-const logger = createLogger('Login');
+const logger = createLogger('Login')
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isResending, setIsResending] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState<string | null>(null);
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isResending, setIsResending] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState<string | null>(null)
 
-  const { login, loginWithGoogle } = useAuth();
-  const navigate = useNavigate();
+  const { login, loginWithGoogle } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
 
     try {
-      const userData = await login({ email: email.trim(), password });
+      const userData = await login({ email: email.trim(), password })
       if (userData.role === 'admin' || userData.role === 'staff') {
-        navigate('/admin/dashboard');
+        navigate('/admin/dashboard')
       } else {
-        navigate('/dashboard');
+        navigate('/dashboard')
       }
     } catch (err: any) {
-      logger.error('login.failed', { error: serializeError(err) });
-      setError(err?.response?.data?.message || 'Invalid credentials');
+      logger.error('login.failed', { error: serializeError(err) })
+      setError(err?.response?.data?.message || 'Invalid credentials')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleResendVerification = async () => {
     if (!email) {
-      setError('Please enter your email first');
-      return;
+      setError('Please enter your email first')
+      return
     }
 
-    setIsResending(true);
-    setError(null);
-    setResendSuccess(null);
+    setIsResending(true)
+    setError(null)
+    setResendSuccess(null)
 
     try {
-      const response = await authService.resendVerification(email.trim());
-      setResendSuccess(response.message);
+      const response = await authService.resendVerification(email.trim())
+      setResendSuccess(response.message)
     } catch (err: any) {
-      console.error('Resend verification failed:', err);
-      setError(err?.response?.data?.message || 'Failed to resend verification email');
+      console.error('Resend verification failed:', err)
+      setError(err?.response?.data?.message || 'Failed to resend verification email')
     } finally {
-      setIsResending(false);
+      setIsResending(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen w-full bg-bg-dark flex items-center justify-center p-6 relative overflow-hidden">
@@ -81,7 +81,10 @@ const Login: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 max-w-6xl w-full gap-20 items-center relative z-10">
         {/* Left Side */}
         <div className="hidden lg:block space-y-12 animate-in slide-in-from-left-8 duration-700">
-          <div className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate('/')}>
+          <div
+            className="flex items-center gap-4 group cursor-pointer"
+            onClick={() => navigate('/')}
+          >
             <div className="w-12 h-12 bg-white text-black rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105">
               <Package size={24} />
             </div>
@@ -89,7 +92,9 @@ const Login: React.FC = () => {
               <span className="text-2xl font-bold tracking-tight text-white uppercase italic leading-none">
                 Igra
               </span>
-              <span className="text-primary text-[8px] tracking-[0.3em] font-bold uppercase">Studios</span>
+              <span className="text-primary text-[8px] tracking-[0.3em] font-bold uppercase">
+                Studios
+              </span>
             </div>
           </div>
 
@@ -99,7 +104,8 @@ const Login: React.FC = () => {
               <span className="text-primary">Studio Portal</span>
             </h1>
             <p className="text-text-dim/60 text-base max-w-sm">
-              Manage your video projects, collaborate with our editors, and track your content delivery in real-time.
+              Manage your video projects, collaborate with our editors, and track your content
+              delivery in real-time.
             </p>
           </div>
 
@@ -128,14 +134,20 @@ const Login: React.FC = () => {
                   <Package size={28} />
                 </div>
               </div>
-              <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-3">Secure Access</p>
-              <h2 className="text-3xl font-bold text-white tracking-tight italic">Welcome <span className="text-primary not-italic">Back</span></h2>
+              <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-3">
+                Secure Access
+              </p>
+              <h2 className="text-3xl font-bold text-white tracking-tight italic">
+                Welcome <span className="text-primary not-italic">Back</span>
+              </h2>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
-                  <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Email Address</label>
+                  <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+                    Email Address
+                  </label>
                 </div>
                 <Input
                   type="email"
@@ -149,8 +161,15 @@ const Login: React.FC = () => {
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center px-1">
-                  <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Password</label>
-                  <Link to="/forgot-password" className="text-primary/60 hover:text-primary font-bold uppercase tracking-widest text-[10px]">Forgot?</Link>
+                  <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+                    Password
+                  </label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-primary/60 hover:text-primary font-bold uppercase tracking-widest text-[10px]"
+                  >
+                    Forgot?
+                  </Link>
                 </div>
                 <Input
                   type="password"
@@ -196,7 +215,10 @@ const Login: React.FC = () => {
                 className="h-14 rounded-2xl font-bold text-sm shadow-2xl shadow-primary/20 w-full"
               >
                 Sign In
-                <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  size={18}
+                  className="ml-2 group-hover:translate-x-1 transition-transform"
+                />
               </Button>
 
               <div className="relative my-6">
@@ -204,7 +226,9 @@ const Login: React.FC = () => {
                   <div className="w-full border-t border-white/10"></div>
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="bg-bg-card px-2 text-text-dim uppercase tracking-widest font-bold">Or continue with</span>
+                  <span className="bg-bg-card px-2 text-text-dim uppercase tracking-widest font-bold">
+                    Or continue with
+                  </span>
                 </div>
               </div>
 
@@ -214,24 +238,24 @@ const Login: React.FC = () => {
                     onSuccess={async (credentialResponse) => {
                       if (credentialResponse.credential) {
                         try {
-                          setIsSubmitting(true);
-                          setError(null);
-                          const userData = await loginWithGoogle(credentialResponse.credential);
+                          setIsSubmitting(true)
+                          setError(null)
+                          const userData = await loginWithGoogle(credentialResponse.credential)
                           if (userData.role === 'admin' || userData.role === 'staff') {
-                            navigate('/admin/dashboard');
+                            navigate('/admin/dashboard')
                           } else {
-                            navigate('/dashboard');
+                            navigate('/dashboard')
                           }
                         } catch (err: any) {
-                          console.error(err);
-                          setError(err?.response?.data?.message || 'Google Login failed');
+                          console.error(err)
+                          setError(err?.response?.data?.message || 'Google Login failed')
                         } finally {
-                          setIsSubmitting(false);
+                          setIsSubmitting(false)
                         }
                       }
                     }}
                     onError={() => {
-                      setError('Google Login failed');
+                      setError('Google Login failed')
                     }}
                     useOneTap
                     shape="pill"
@@ -244,7 +268,10 @@ const Login: React.FC = () => {
               <div className="text-center pt-2">
                 <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest flex items-center justify-center gap-2">
                   Don't have an account?
-                  <Link to="/register" className="text-primary hover:underline flex items-center gap-1">
+                  <Link
+                    to="/register"
+                    className="text-primary hover:underline flex items-center gap-1"
+                  >
                     Sign Up <ChevronRight size={10} />
                   </Link>
                 </p>
@@ -254,7 +281,7 @@ const Login: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

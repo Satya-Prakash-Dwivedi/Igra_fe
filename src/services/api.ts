@@ -100,7 +100,7 @@ api.interceptors.response.use(
       logger.error('api.rate_limited', {
         url: requestUrl,
         method: originalRequest?.method,
-        message: 'Aggressive request frequency detected'
+        message: 'Aggressive request frequency detected',
       })
       // Optionally dispatch a global event or show a toast here
     }

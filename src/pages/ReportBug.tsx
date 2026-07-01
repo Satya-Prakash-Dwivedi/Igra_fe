@@ -12,7 +12,7 @@ import {
   ArrowLeft,
   Camera,
   MessageSquare,
-  Zap
+  Zap,
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
 import * as uploadApi from '../services/uploadService'
@@ -53,7 +53,7 @@ const ReportBug = () => {
     setError(null)
 
     try {
-      let screenshotAssetIds: string[] = []
+      const screenshotAssetIds: string[] = []
       if (screenshots.length > 0) {
         setIsUploadingFiles(true)
         for (const file of screenshots) {
@@ -66,7 +66,7 @@ const ReportBug = () => {
       await supportApi.createBugReport({
         description,
         screenshotAssetIds,
-        wantsFollowUp
+        wantsFollowUp,
       })
 
       toast.success('Bug report submitted. Thank you for your feedback!')
@@ -95,7 +95,9 @@ const ReportBug = () => {
           </button>
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-white tracking-tight">Report Bug</h1>
-            <p className="text-text-dim/60 text-sm">Help us improve Igra Studios by reporting any issues you find.</p>
+            <p className="text-text-dim/60 text-sm">
+              Help us improve Igra Studios by reporting any issues you find.
+            </p>
           </div>
         </div>
       </div>
@@ -106,12 +108,12 @@ const ReportBug = () => {
             {/* Description */}
             <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-xl">
               <div className="flex items-center gap-3 mb-6">
-                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <MessageSquare size={20} />
-                 </div>
-                 <h3 className="text-lg font-bold text-white">Issue Description</h3>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <MessageSquare size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-white">Issue Description</h3>
               </div>
-              
+
               <div className="space-y-4">
                 <textarea
                   value={description}
@@ -125,12 +127,12 @@ const ReportBug = () => {
             {/* Screenshots */}
             <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-xl">
               <div className="flex items-center gap-3 mb-6">
-                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <Camera size={20} />
-                 </div>
-                 <h3 className="text-lg font-bold text-white">Screenshots</h3>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <Camera size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-white">Screenshots</h3>
               </div>
-              
+
               <div className="space-y-6">
                 <div
                   onClick={() => screenshotInputRef.current?.click()}
@@ -139,10 +141,12 @@ const ReportBug = () => {
                   <Upload size={24} className="text-text-dim/20" />
                   <div className="text-center">
                     <p className="text-sm font-bold text-white">Upload Screenshots</p>
-                    <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest mt-1">PNG, JPG, JPEG up to 10MB</p>
+                    <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest mt-1">
+                      PNG, JPG, JPEG up to 10MB
+                    </p>
                   </div>
                 </div>
-                
+
                 <input
                   ref={screenshotInputRef}
                   type="file"
@@ -155,15 +159,24 @@ const ReportBug = () => {
                 {screenshots.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {screenshots.map((file, i) => (
-                      <div key={i} className="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl px-4 py-3">
+                      <div
+                        key={i}
+                        className="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl px-4 py-3"
+                      >
                         <div className="flex items-center gap-3 min-w-0">
                           <FileIcon size={14} className="text-text-dim/40" />
                           <div className="min-w-0">
-                             <p className="text-[10px] font-bold text-white truncate">{file.name}</p>
-                             <p className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">{(file.size / 1024).toFixed(1)} KB</p>
+                            <p className="text-[10px] font-bold text-white truncate">{file.name}</p>
+                            <p className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </p>
                           </div>
                         </div>
-                        <button type="button" onClick={() => removeScreenshot(i)} className="text-text-dim/20 hover:text-error transition-all">
+                        <button
+                          type="button"
+                          onClick={() => removeScreenshot(i)}
+                          className="text-text-dim/20 hover:text-error transition-all"
+                        >
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -176,58 +189,72 @@ const ReportBug = () => {
         </div>
 
         <div className="space-y-8">
-           {/* Follow-up */}
-           <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-xl space-y-6">
-              <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <Zap size={20} />
-                 </div>
-                 <h3 className="text-lg font-bold text-white">Options</h3>
+          {/* Follow-up */}
+          <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-xl space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Zap size={20} />
               </div>
-              
-              <div className="space-y-3">
-                 <div 
-                   onClick={() => setWantsFollowUp(true)}
-                   className={cn(
-                     "flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all",
-                     wantsFollowUp ? "bg-primary/5 border-primary/20 text-white" : "bg-transparent border-white/5 text-text-dim/40"
-                   )}
-                 >
-                    <div className={cn("w-3 h-3 rounded-full border-2", wantsFollowUp ? "border-primary bg-primary" : "border-white/10")} />
-                    <span className="text-xs font-bold">Wants follow-up</span>
-                 </div>
-                 
-                 <div 
-                   onClick={() => setWantsFollowUp(false)}
-                   className={cn(
-                     "flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all",
-                     !wantsFollowUp ? "bg-primary/5 border-primary/20 text-white" : "bg-transparent border-white/5 text-text-dim/40"
-                   )}
-                 >
-                    <div className={cn("w-3 h-3 rounded-full border-2", !wantsFollowUp ? "border-primary bg-primary" : "border-white/10")} />
-                    <span className="text-xs font-bold">Anonymous report</span>
-                 </div>
-              </div>
-           </div>
+              <h3 className="text-lg font-bold text-white">Options</h3>
+            </div>
 
-           {/* Submit */}
-           <div className="space-y-4">
-              {error && (
-                <div className="flex items-center gap-2 p-4 bg-error/10 border border-error/20 rounded-xl text-[10px] font-bold text-error uppercase tracking-widest">
-                  <AlertCircle size={14} />
-                  {error}
-                </div>
-              )}
-
-              <Button 
-                onClick={handleSubmit} 
-                className="w-full h-14 rounded-xl font-bold"
-                isLoading={isSubmitting}
+            <div className="space-y-3">
+              <div
+                onClick={() => setWantsFollowUp(true)}
+                className={cn(
+                  'flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all',
+                  wantsFollowUp
+                    ? 'bg-primary/5 border-primary/20 text-white'
+                    : 'bg-transparent border-white/5 text-text-dim/40'
+                )}
               >
-                {isUploadingFiles ? 'Uploading Files...' : 'Submit Report'}
-                <ChevronRight size={18} className="ml-2" />
-              </Button>
-           </div>
+                <div
+                  className={cn(
+                    'w-3 h-3 rounded-full border-2',
+                    wantsFollowUp ? 'border-primary bg-primary' : 'border-white/10'
+                  )}
+                />
+                <span className="text-xs font-bold">Wants follow-up</span>
+              </div>
+
+              <div
+                onClick={() => setWantsFollowUp(false)}
+                className={cn(
+                  'flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all',
+                  !wantsFollowUp
+                    ? 'bg-primary/5 border-primary/20 text-white'
+                    : 'bg-transparent border-white/5 text-text-dim/40'
+                )}
+              >
+                <div
+                  className={cn(
+                    'w-3 h-3 rounded-full border-2',
+                    !wantsFollowUp ? 'border-primary bg-primary' : 'border-white/10'
+                  )}
+                />
+                <span className="text-xs font-bold">Anonymous report</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div className="space-y-4">
+            {error && (
+              <div className="flex items-center gap-2 p-4 bg-error/10 border border-error/20 rounded-xl text-[10px] font-bold text-error uppercase tracking-widest">
+                <AlertCircle size={14} />
+                {error}
+              </div>
+            )}
+
+            <Button
+              onClick={handleSubmit}
+              className="w-full h-14 rounded-xl font-bold"
+              isLoading={isSubmitting}
+            >
+              {isUploadingFiles ? 'Uploading Files...' : 'Submit Report'}
+              <ChevronRight size={18} className="ml-2" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

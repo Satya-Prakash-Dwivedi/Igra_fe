@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Loader2, AlertCircle, ChevronDown, ChevronRight, Paperclip, Mail, ShieldAlert, MessageCircle, Filter, Database, Calendar, User as UserIcon } from 'lucide-react'
+import {
+  Loader2,
+  ChevronDown,
+  ChevronRight,
+  Paperclip,
+  Mail,
+  ShieldAlert,
+  MessageCircle,
+  Filter,
+  Calendar,
+  User as UserIcon,
+  LifeBuoy,
+} from 'lucide-react'
 import adminService from '../../services/adminService'
 import type { AdminTicket, SupportStatus, TicketCategory } from '../../services/adminService'
 import Pagination from '../../components/admin/Pagination'
@@ -11,15 +23,19 @@ const logger = createLogger('AdminTickets')
 
 const SUPPORT_STATUSES: SupportStatus[] = ['open', 'in_progress', 'resolved', 'closed']
 const TICKET_CATEGORIES: TicketCategory[] = [
-  'Order Problem', 'Billing Issue', 'Technical Issue', 'Feature Request', 'Other',
+  'Order Problem',
+  'Billing Issue',
+  'Technical Issue',
+  'Feature Request',
+  'Other',
 ]
 
 const CATEGORY_STYLES: Record<TicketCategory, string> = {
-  'Order Problem':    'bg-amber-500/10 text-amber-500 border border-amber-500/20',
-  'Billing Issue':    'bg-rose-500/10 text-rose-500 border border-rose-500/20',
-  'Technical Issue':  'bg-blue-500/10 text-blue-500 border border-blue-500/20',
-  'Feature Request':  'bg-purple-500/10 text-purple-500 border border-purple-500/20',
-  'Other':            'bg-white/5 text-text-dim border border-white/5',
+  'Order Problem': 'bg-amber-500/10 text-amber-500',
+  'Billing Issue': 'bg-error/10 text-error',
+  'Technical Issue': 'bg-blue-500/10 text-blue-500',
+  'Feature Request': 'bg-purple-500/10 text-purple-500',
+  Other: 'bg-white/10 text-text-muted',
 }
 
 // ─── Inline Status Dropdown with Optimistic UI ────────────────────────────────
@@ -53,14 +69,20 @@ const StatusDropdown: React.FC<{
         value={current}
         onChange={handleChange}
         disabled={isUpdating}
-        className="appearance-none bg-black/40 border border-white/10 rounded-xl pl-4 pr-10 py-2 text-[10px] font-bold uppercase tracking-widest text-white focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/40 transition-all cursor-pointer disabled:opacity-50"
+        className="appearance-none bg-black/20 border border-white/10 rounded-lg pl-3 pr-8 py-1.5 text-xs font-semibold uppercase tracking-wider text-white focus:outline-none focus:border-primary/50 transition-colors cursor-pointer disabled:opacity-50"
       >
         {SUPPORT_STATUSES.map((s) => (
-          <option key={s} value={s} className="bg-bg-dark">{s.replace('_', ' ')}</option>
+          <option key={s} value={s} className="bg-bg-dark">
+            {s.replace('_', ' ')}
+          </option>
         ))}
       </select>
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-dim/40 group-hover:text-primary transition-colors">
-        {isUpdating ? <Loader2 size={12} className="animate-spin" /> : <ChevronDown size={12} />}
+      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+        {isUpdating ? (
+          <Loader2 size={12} className="animate-spin text-primary" />
+        ) : (
+          <ChevronDown size={12} />
+        )}
       </div>
     </div>
   )
@@ -96,13 +118,15 @@ const AdminTickets: React.FC = () => {
       setPages(result.pages)
     } catch (err) {
       logger.error('admin_tickets.fetch_failed', { error: serializeError(err) })
-      setError('Failed to sync support protocols.')
+      setError('Failed to load support tickets.')
     } finally {
       setIsLoading(false)
     }
   }, [statusFilter, categoryFilter, page])
 
-  useEffect(() => { fetchTickets() }, [fetchTickets])
+  useEffect(() => {
+    fetchTickets()
+  }, [fetchTickets])
 
   const setFilter = (key: string, value: string) => {
     const params: Record<string, string> = { page: '1' }
@@ -120,89 +144,112 @@ const AdminTickets: React.FC = () => {
   }
 
   const updateStatusOptimistic = (id: string, status: SupportStatus) => {
-    setTickets((prev) => prev.map((t) => t._id === id ? { ...t, status } : t))
+    setTickets((prev) => prev.map((t) => (t._id === id ? { ...t, status } : t)))
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 p-6 md:p-12 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto space-y-8 p-6 md:p-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-white font-bold text-4xl tracking-tight italic">Support <span className="text-primary not-italic">protocols</span></h1>
+        <div>
           <div className="flex items-center gap-3">
-             <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-lg text-[10px] font-bold text-primary uppercase tracking-widest">
-                <Database size={10} /> Live tickets
-             </div>
-             <p className="text-text-dim text-sm font-medium">{total} total incidents active</p>
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <LifeBuoy size={20} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Support Tickets</h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-2 text-text-muted text-sm font-medium">
+            <p>{total} total tickets active</p>
           </div>
         </div>
       </div>
 
       {/* Control Bar */}
-      <div className="flex flex-col md:flex-row items-center gap-6 bg-bg-card/40 backdrop-blur-xl border border-white/5 p-6 rounded-[2rem] shadow-2xl">
-        <div className="flex items-center gap-4 flex-1 w-full">
-           <div className="relative flex-1 group">
-              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dim/40 group-focus-within:text-primary transition-colors" size={18} />
-              <select
-                value={statusFilter}
-                onChange={(e) => setFilter('status', e.target.value)}
-                className="w-full bg-black/20 border border-white/5 rounded-2xl pl-12 pr-6 py-3.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all appearance-none cursor-pointer"
-              >
-                <option value="">All statuses</option>
-                {SUPPORT_STATUSES.map((s) => <option key={s} value={s} className="bg-bg-dark capitalize">{s.replace('_', ' ')}</option>)}
-              </select>
-           </div>
-           
-           <div className="relative flex-1 group">
-              <MessageCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dim/40 group-focus-within:text-primary transition-colors" size={18} />
-              <select
-                value={categoryFilter}
-                onChange={(e) => setFilter('category', e.target.value)}
-                className="w-full bg-black/20 border border-white/5 rounded-2xl pl-12 pr-6 py-3.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all appearance-none cursor-pointer"
-              >
-                <option value="">All categories</option>
-                {TICKET_CATEGORIES.map((c) => <option key={c} value={c} className="bg-bg-dark">{c}</option>)}
-              </select>
-           </div>
+      <div className="flex flex-col sm:flex-row items-center gap-4 bg-bg-card border border-white/10 p-4 rounded-xl shadow-sm">
+        <div className="relative flex-1 w-full">
+          <Filter
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted"
+            size={16}
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => setFilter('status', e.target.value)}
+            className="w-full bg-black/20 border border-white/10 rounded-lg pl-10 pr-8 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-primary/50 transition-colors appearance-none cursor-pointer"
+          >
+            <option value="">All statuses</option>
+            {SUPPORT_STATUSES.map((s) => (
+              <option key={s} value={s} className="bg-bg-dark capitalize">
+                {s.replace('_', ' ')}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="relative flex-1 w-full">
+          <MessageCircle
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted"
+            size={16}
+          />
+          <select
+            value={categoryFilter}
+            onChange={(e) => setFilter('category', e.target.value)}
+            className="w-full bg-black/20 border border-white/10 rounded-lg pl-10 pr-8 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-primary/50 transition-colors appearance-none cursor-pointer"
+          >
+            <option value="">All categories</option>
+            {TICKET_CATEGORIES.map((c) => (
+              <option key={c} value={c} className="bg-bg-dark">
+                {c}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-48 gap-6">
-          <div className="relative">
-             <div className="w-16 h-16 border-2 border-primary/20 rounded-full" />
-             <div className="absolute inset-0 w-16 h-16 border-t-2 border-primary rounded-full animate-spin" />
-          </div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-text-dim/40 animate-pulse">Syncing incident reports...</p>
+        <div className="flex flex-col items-center justify-center py-32 gap-4">
+          <Loader2 size={32} className="text-primary animate-spin" />
+          <p className="text-sm font-medium text-text-muted">Loading tickets...</p>
         </div>
       ) : error ? (
-        <div className="bg-error/10 border border-error/20 rounded-[2rem] p-10 flex items-center gap-6 text-error shadow-2xl">
+        <div className="bg-error/5 border border-error/20 rounded-xl p-6 flex items-center gap-4 text-error shadow-sm">
           <ShieldAlert size={32} />
           <div className="space-y-1">
-             <p className="font-bold text-lg">Communications failure</p>
-             <p className="text-sm opacity-60">Unable to retrieve support records from the secure vault.</p>
+            <p className="font-semibold text-lg">Failed to load tickets</p>
+            <p className="text-sm text-error/80">{error}</p>
           </div>
         </div>
       ) : (
-        <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-700">
-          <div className="bg-bg-card/40 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
-            <div className="overflow-x-auto custom-scrollbar">
+        <div className="space-y-6">
+          <div className="bg-bg-card border border-white/10 rounded-xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-white/[0.02] border-b border-white/5">
-                    <th className="px-6 py-6 w-12"></th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em]"><div className="flex items-center gap-2"><UserIcon size={14} /> Client</div></th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em]">Category</th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em]">Brief</th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em]">Status</th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em] text-right"><div className="flex items-center justify-end gap-2"><Calendar size={14} /> Received</div></th>
+                  <tr className="bg-black/20 border-b border-white/10">
+                    <th className="px-4 py-4 w-12"></th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Client
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Message
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider text-right">
+                      Date
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {tickets.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-8 py-32 text-center opacity-20">
-                        <p className="text-xl font-bold italic">No active support incidents</p>
+                      <td colSpan={6} className="px-6 py-24 text-center text-text-muted">
+                        <p className="text-sm">No support tickets found</p>
                       </td>
                     </tr>
                   ) : (
@@ -210,34 +257,52 @@ const AdminTickets: React.FC = () => {
                       <React.Fragment key={ticket._id}>
                         <tr
                           className={cn(
-                            "hover:bg-white/[0.02] transition-all duration-300 cursor-pointer group",
-                            expandedId === ticket._id && "bg-white/[0.02]"
+                            'hover:bg-white/[0.02] transition-colors cursor-pointer group',
+                            expandedId === ticket._id && 'bg-white/[0.02]'
                           )}
-                          onClick={() => setExpandedId(expandedId === ticket._id ? null : ticket._id)}
+                          onClick={() =>
+                            setExpandedId(expandedId === ticket._id ? null : ticket._id)
+                          }
                         >
-                          <td className="px-6 py-6">
-                            <div className={cn(
-                               "w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-text-dim transition-all duration-500",
-                               expandedId === ticket._id && "rotate-90 text-primary bg-primary/10 shadow-lg shadow-primary/10"
-                            )}>
-                               <ChevronRight size={16} />
+                          <td className="px-4 py-4">
+                            <div
+                              className={cn(
+                                'w-6 h-6 rounded flex items-center justify-center text-text-muted transition-transform',
+                                expandedId === ticket._id && 'rotate-90 text-primary'
+                              )}
+                            >
+                              <ChevronRight size={18} />
                             </div>
                           </td>
-                          <td className="px-8 py-6 min-w-[200px]">
-                            <div className="flex flex-col gap-0.5">
-                               <p className="text-white font-bold text-sm tracking-tight">{ticket.userId?.name ?? '—'}</p>
-                               <p className="text-text-dim text-[10px] font-medium opacity-40">{ticket.userId?.email ?? ''}</p>
+                          <td className="px-6 py-4 min-w-[200px]">
+                            <div className="flex flex-col">
+                              <p className="text-white font-semibold text-sm truncate">
+                                {ticket.userId?.name ?? '—'}
+                              </p>
+                              <p className="text-text-muted text-xs truncate">
+                                {ticket.userId?.email ?? ''}
+                              </p>
                             </div>
                           </td>
-                          <td className="px-8 py-6">
-                            <span className={cn('px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest', CATEGORY_STYLES[ticket.category])}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={cn(
+                                'px-2.5 py-1 rounded text-[10px] font-semibold uppercase tracking-wider',
+                                CATEGORY_STYLES[ticket.category]
+                              )}
+                            >
                               {ticket.category}
                             </span>
                           </td>
-                          <td className="px-8 py-6 max-w-[300px]">
-                            <p className="text-text-dim text-sm font-medium truncate opacity-60 group-hover:opacity-100 transition-opacity">{ticket.message}</p>
+                          <td className="px-6 py-4 max-w-[300px]">
+                            <p className="text-text-muted text-sm truncate group-hover:text-white/80 transition-colors">
+                              {ticket.message}
+                            </p>
                           </td>
-                          <td className="px-8 py-6" onClick={(e) => e.stopPropagation()}>
+                          <td
+                            className="px-6 py-4 whitespace-nowrap"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <StatusDropdown
                               ticketId={ticket._id}
                               current={ticket.status}
@@ -245,48 +310,69 @@ const AdminTickets: React.FC = () => {
                               onRevert={updateStatusOptimistic}
                             />
                           </td>
-                          <td className="px-8 py-6 text-right whitespace-nowrap">
-                            <span className="text-xs font-bold text-text-dim">
-                              {new Date(ticket.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          <td className="px-6 py-4 text-right whitespace-nowrap">
+                            <span className="text-sm text-text-muted">
+                              {new Date(ticket.createdAt).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
                             </span>
                           </td>
                         </tr>
                         {/* Expanded Row */}
                         {expandedId === ticket._id && (
-                          <tr className="bg-black/20 animate-in slide-in-from-top-4 duration-500">
-                            <td colSpan={6} className="px-20 py-10">
-                               <div className="bg-bg-dark border border-white/5 rounded-3xl p-10 shadow-inner space-y-8">
-                                  <div className="space-y-4">
-                                     <div className="flex items-center gap-3 text-text-dim/40">
-                                        <MessageCircle size={14} />
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Detailed incident report</span>
-                                     </div>
-                                     <p className="text-white text-lg font-medium leading-relaxed whitespace-pre-wrap">{ticket.message}</p>
+                          <tr className="bg-black/10">
+                            <td colSpan={6} className="px-10 py-6 border-l-2 border-primary">
+                              <div className="space-y-6">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2 text-text-muted">
+                                    <MessageCircle size={16} />
+                                    <span className="text-xs font-semibold uppercase tracking-wider">
+                                      Ticket Message
+                                    </span>
                                   </div>
-                                  
-                                  {ticket.attachmentAssetIds.length > 0 && (
-                                    <div className="pt-6 border-t border-white/5">
-                                       <div className="flex items-center gap-3 text-text-dim/40 mb-4">
-                                          <Paperclip size={14} />
-                                          <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Encrypted attachments ({ticket.attachmentAssetIds.length})</span>
-                                       </div>
-                                       <div className="flex flex-wrap gap-3">
-                                          {ticket.attachmentAssetIds.map((id) => (
-                                            <div key={id} className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl px-4 py-2 hover:border-primary/40 transition-all group/asset cursor-pointer">
-                                               <span className="text-xs font-mono text-primary font-bold">{id.slice(-8)}</span>
-                                               <div className="w-px h-3 bg-white/10" />
-                                               <span className="text-[10px] text-text-dim group-hover/asset:text-white transition-colors">Download</span>
-                                            </div>
-                                          ))}
-                                       </div>
-                                    </div>
-                                  )}
+                                  <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap">
+                                    {ticket.message}
+                                  </p>
+                                </div>
 
-                                  <div className="pt-8 flex items-center justify-end gap-4">
-                                     <Button variant="outline" className="rounded-xl px-6 border-white/5 bg-white/5">Mark for review</Button>
-                                     <Button variant="primary" className="rounded-xl px-8 shadow-xl shadow-primary/20">Open communication</Button>
+                                {ticket.attachmentAssetIds.length > 0 && (
+                                  <div className="pt-4 border-t border-white/5">
+                                    <div className="flex items-center gap-2 text-text-muted mb-3">
+                                      <Paperclip size={16} />
+                                      <span className="text-xs font-semibold uppercase tracking-wider">
+                                        Attachments ({ticket.attachmentAssetIds.length})
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {ticket.attachmentAssetIds.map((id) => (
+                                        <div
+                                          key={id}
+                                          className="flex items-center gap-2 bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 hover:border-white/30 transition-colors cursor-pointer group/asset"
+                                        >
+                                          <span className="text-xs font-medium text-primary">
+                                            {id.slice(-8)}
+                                          </span>
+                                          <div className="w-px h-3 bg-white/10" />
+                                          <span className="text-[10px] font-semibold text-text-muted group-hover/asset:text-white transition-colors uppercase tracking-wider">
+                                            Download
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                               </div>
+                                )}
+
+                                <div className="pt-4 flex items-center justify-end gap-3">
+                                  <Button variant="outline" className="text-sm px-4">
+                                    Reply via Email
+                                  </Button>
+                                  <Button variant="primary" className="text-sm px-4">
+                                    Mark Reviewed
+                                  </Button>
+                                </div>
+                              </div>
                             </td>
                           </tr>
                         )}
@@ -297,9 +383,9 @@ const AdminTickets: React.FC = () => {
               </table>
             </div>
           </div>
-          
-          <div className="pt-6">
-             <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
+
+          <div className="flex justify-center">
+            <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
           </div>
         </div>
       )}

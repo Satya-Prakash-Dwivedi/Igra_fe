@@ -1,5 +1,14 @@
 import React, { useState, useRef } from 'react'
-import { X, Upload, AlertCircle, CheckCircle2, Loader2, ChevronDown, File as FileIcon, Trash2 } from 'lucide-react'
+import {
+  X,
+  Upload,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  ChevronDown,
+  File as FileIcon,
+  Trash2,
+} from 'lucide-react'
 import Button, { cn } from '../Button'
 import supportService from '../../services/supportService'
 import type { SupportCategory } from '../../services/supportService'
@@ -116,7 +125,9 @@ const SupportTicketModal: React.FC<SupportTicketModalProps> = ({ isOpen, onClose
         {/* Header */}
         <div className="flex items-center justify-between px-8 pt-8 pb-6 border-b border-border">
           <div>
-            <h2 className="text-text-main font-bold text-xl leading-tight">Get in touch with the team</h2>
+            <h2 className="text-text-main font-bold text-xl leading-tight">
+              Get in touch with the team
+            </h2>
             <p className="text-text-muted text-sm mt-1">We usually respond within 24 hours.</p>
           </div>
           <button
@@ -138,7 +149,11 @@ const SupportTicketModal: React.FC<SupportTicketModalProps> = ({ isOpen, onClose
             <p className="text-text-muted text-sm max-w-xs leading-relaxed">
               We've received your message and will get back to you as soon as possible.
             </p>
-            <Button variant="primary" onClick={handleClose} className="mt-4 px-8 py-3 rounded-xl font-bold">
+            <Button
+              variant="primary"
+              onClick={handleClose}
+              className="mt-4 px-8 py-3 rounded-xl font-bold"
+            >
               Done
             </Button>
           </div>
@@ -159,14 +174,19 @@ const SupportTicketModal: React.FC<SupportTicketModalProps> = ({ isOpen, onClose
                     !category && error ? 'border-error' : 'border-border'
                   )}
                 >
-                  <option value="" disabled>Choose an option</option>
+                  <option value="" disabled>
+                    Choose an option
+                  </option>
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat} className="bg-bg-card text-text-main">
                       {cat}
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                <ChevronDown
+                  size={16}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+                />
               </div>
             </div>
 
@@ -197,9 +217,13 @@ const SupportTicketModal: React.FC<SupportTicketModalProps> = ({ isOpen, onClose
                 onClick={() => fileInputRef.current?.click()}
                 className="border border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/60 transition-all group"
               >
-                <Upload size={22} className="text-text-muted group-hover:text-primary transition-colors" />
+                <Upload
+                  size={22}
+                  className="text-text-muted group-hover:text-primary transition-colors"
+                />
                 <p className="text-text-muted text-sm">
-                  Drop files here or <span className="text-primary font-medium">click to browse</span>
+                  Drop files here or{' '}
+                  <span className="text-primary font-medium">click to browse</span>
                 </p>
               </div>
               <input
@@ -214,7 +238,10 @@ const SupportTicketModal: React.FC<SupportTicketModalProps> = ({ isOpen, onClose
               {attachedFiles.length > 0 && (
                 <div className="space-y-2">
                   {attachedFiles.map((file, i) => (
-                    <div key={i} className="flex items-center justify-between bg-bg-dark border border-border rounded-lg px-3 py-2">
+                    <div
+                      key={i}
+                      className="flex items-center justify-between bg-bg-dark border border-border rounded-lg px-3 py-2"
+                    >
                       <div className="flex items-center gap-2 min-w-0">
                         <FileIcon size={14} className="text-text-muted flex-shrink-0" />
                         <span className="text-text-main text-xs truncate">{file.name}</span>
@@ -222,7 +249,11 @@ const SupportTicketModal: React.FC<SupportTicketModalProps> = ({ isOpen, onClose
                           ({(file.size / 1024).toFixed(0)} KB)
                         </span>
                       </div>
-                      <button type="button" onClick={() => removeFile(i)} className="text-text-muted hover:text-error transition-colors ml-2">
+                      <button
+                        type="button"
+                        onClick={() => removeFile(i)}
+                        className="text-text-muted hover:text-error transition-colors ml-2"
+                      >
                         <Trash2 size={14} />
                       </button>
                     </div>

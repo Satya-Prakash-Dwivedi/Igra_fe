@@ -1,86 +1,86 @@
-import { lazy, Suspense, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, AuthContext } from './context/AuthContext';
+import { lazy, Suspense, useContext } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, AuthContext } from './context/AuthContext'
 
-import { Toaster } from 'sonner';
+import { Toaster } from 'sonner'
 
 // Layouts
-import DashboardLayout from './layouts/DashboardLayout';
-import AdminLayout from './layouts/AdminLayout';
+import DashboardLayout from './layouts/DashboardLayout'
+import AdminLayout from './layouts/AdminLayout'
 
 // Auth Pages
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
-const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 
 // Dashboard Pages
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Orders = lazy(() => import('./pages/Orders'));
-const NewOrderPage = lazy(() => import('./pages/NewOrderPage'));
-const OrderDetail = lazy(() => import('./pages/OrderDetail'));
-const Credits = lazy(() => import('./pages/Credits'));
-const Invoices = lazy(() => import('./pages/Invoices'));
-const InvoiceDetail = lazy(() => import('./pages/InvoiceDetail'));
-const Messages = lazy(() => import('./pages/Messages'));
-const Channels = lazy(() => import('./pages/Channels'));
-const Profile = lazy(() => import('./pages/UserProfile'));
-const Support = lazy(() => import('./pages/Support'));
-const ReportBug = lazy(() => import('./pages/ReportBug'));
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Orders = lazy(() => import('./pages/Orders'))
+const NewOrderPage = lazy(() => import('./pages/NewOrderPage'))
+const OrderDetail = lazy(() => import('./pages/OrderDetail'))
+const Credits = lazy(() => import('./pages/Credits'))
+const Invoices = lazy(() => import('./pages/Invoices'))
+const InvoiceDetail = lazy(() => import('./pages/InvoiceDetail'))
+const Messages = lazy(() => import('./pages/Messages'))
+const Channels = lazy(() => import('./pages/Channels'))
+const Profile = lazy(() => import('./pages/UserProfile'))
+const Support = lazy(() => import('./pages/Support'))
+const ReportBug = lazy(() => import('./pages/ReportBug'))
 
 // Admin Pages
-import AdminRoute from './components/admin/AdminRoute';
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
-const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
-const AdminOrderDetail = lazy(() => import('./pages/admin/AdminOrderDetail'));
-const AdminTickets = lazy(() => import('./pages/admin/AdminTickets'));
-const AdminBugReports = lazy(() => import('./pages/admin/AdminBugReports'));
-const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
-const AdminUserDetail = lazy(() => import('./pages/admin/AdminUserDetail'));
-const AdminStaff = lazy(() => import('./pages/admin/AdminStaff'));
-const AdminMessages = lazy(() => import('./pages/admin/AdminMessages'));
+import AdminRoute from './components/admin/AdminRoute'
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
+const AdminOrderDetail = lazy(() => import('./pages/admin/AdminOrderDetail'))
+const AdminTickets = lazy(() => import('./pages/admin/AdminTickets'))
+const AdminBugReports = lazy(() => import('./pages/admin/AdminBugReports'))
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
+const AdminUserDetail = lazy(() => import('./pages/admin/AdminUserDetail'))
+const AdminStaff = lazy(() => import('./pages/admin/AdminStaff'))
+const AdminMessages = lazy(() => import('./pages/admin/AdminMessages'))
 
 // A simple Loading Spinner
 const LoadingSpinner = () => (
   <div className="min-h-screen bg-bg-dark flex items-center justify-center">
     <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
   </div>
-);
+)
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const context = useContext(AuthContext);
-  
+  const context = useContext(AuthContext)
+
   if (context?.isLoading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner />
   }
-  
+
   if (!context?.isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace />
   }
-  
-  return <>{children}</>;
-};
+
+  return <>{children}</>
+}
 
 // Role-based Home Redirect
 const HomeRedirect = () => {
-  const context = useContext(AuthContext);
-  
+  const context = useContext(AuthContext)
+
   if (context?.isLoading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner />
   }
-  
+
   if (!context?.isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace />
   }
-  
+
   if (context.user?.role === 'admin' || context.user?.role === 'staff') {
-    return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/admin/dashboard" replace />
   }
-  
-  return <Navigate to="/dashboard" replace />;
-};
+
+  return <Navigate to="/dashboard" replace />
+}
 
 function App() {
   return (
@@ -95,9 +95,15 @@ function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            
+
             {/* Protected Dashboard Routes */}
-            <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+            <Route
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/orders/new" element={<NewOrderPage />} />
@@ -113,7 +119,13 @@ function App() {
             </Route>
 
             {/* Admin Portal Routes */}
-            <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
+            <Route
+              element={
+                <AdminRoute>
+                  <AdminLayout />
+                </AdminRoute>
+              }
+            >
               <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/orders" element={<AdminOrders />} />
@@ -133,7 +145,7 @@ function App() {
         </Suspense>
       </Router>
     </AuthProvider>
-  );
+  )
 }
 
-export default App;
+export default App

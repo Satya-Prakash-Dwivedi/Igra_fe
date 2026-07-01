@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { 
-  ArrowLeft, 
-  Download, 
-  Receipt, 
-  Calendar, 
-  Hash, 
+import {
+  ArrowLeft,
+  Download,
+  Receipt,
+  Calendar,
+  Hash,
   CreditCard,
   FileText,
   Loader2,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react'
 import * as billingApi from '../services/billingService'
 import type { Invoice } from '../services/billingService'
@@ -49,7 +49,9 @@ export default function InvoiceDetail() {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4 animate-in fade-in duration-700">
         <Loader2 size={32} className="animate-spin text-primary" />
-        <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Loading invoice details...</p>
+        <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+          Loading invoice details...
+        </p>
       </div>
     )
   }
@@ -61,7 +63,9 @@ export default function InvoiceDetail() {
           <Receipt size={32} />
         </div>
         <h1 className="text-2xl font-bold text-white">Invoice not found</h1>
-        <Button onClick={() => navigate('/invoices')} variant="outline">Back to Invoices</Button>
+        <Button onClick={() => navigate('/invoices')} variant="outline">
+          Back to Invoices
+        </Button>
       </div>
     )
   }
@@ -87,10 +91,7 @@ export default function InvoiceDetail() {
           </div>
         </div>
 
-        <Button 
-          onClick={handleDownload}
-          className="h-10 px-6 rounded-xl text-xs gap-2"
-        >
+        <Button onClick={handleDownload} className="h-10 px-6 rounded-xl text-xs gap-2">
           <Download size={16} />
           Download PDF
         </Button>
@@ -100,7 +101,7 @@ export default function InvoiceDetail() {
       <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative z-10">
         {/* Decorative Top Bar */}
         <div className="h-2 bg-gradient-to-r from-primary to-primary/60 w-full" />
-        
+
         <div className="p-10 space-y-12">
           {/* Company Branding */}
           <div className="flex justify-between items-start">
@@ -118,7 +119,7 @@ export default function InvoiceDetail() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-10 py-10 border-y border-white/5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 py-10 border-y border-white/5">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
                 <FileText size={12} className="text-primary" />
@@ -126,7 +127,12 @@ export default function InvoiceDetail() {
               </div>
               <div className="space-y-1">
                 <p className="text-lg font-bold text-white">Customer Account</p>
-                <p className="text-sm text-text-dim/60">User ID: {String(invoice.userId || '').slice(-8).toUpperCase()}</p>
+                <p className="text-sm text-text-dim/60">
+                  User ID:{' '}
+                  {String(invoice.userId || '')
+                    .slice(-8)
+                    .toUpperCase()}
+                </p>
               </div>
             </div>
 
@@ -138,9 +144,11 @@ export default function InvoiceDetail() {
               <div className="grid grid-cols-2 gap-y-3">
                 <div className="text-[10px] font-bold text-text-dim/20 uppercase">Invoice #</div>
                 <div className="text-sm font-bold text-white">{invoice.invoiceNumber}</div>
-                
+
                 <div className="text-[10px] font-bold text-text-dim/20 uppercase">Issue Date</div>
-                <div className="text-sm font-bold text-white">{new Date(invoice.createdAt).toLocaleDateString()}</div>
+                <div className="text-sm font-bold text-white">
+                  {new Date(invoice.createdAt).toLocaleDateString()}
+                </div>
 
                 <div className="text-[10px] font-bold text-text-dim/20 uppercase">Currency</div>
                 <div className="text-sm font-bold text-white">{invoice.currency}</div>
@@ -156,14 +164,25 @@ export default function InvoiceDetail() {
             </div>
             <div className="space-y-4">
               {invoice.lineItems.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-2xl group hover:bg-white/[0.04] transition-all duration-300">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-2xl group hover:bg-white/[0.04] transition-all duration-300"
+                >
                   <div className="space-y-1">
-                    <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">{item.description}</p>
-                    <p className="text-[10px] text-text-dim/40 font-bold uppercase tracking-widest">Quantity: {item.quantity}</p>
+                    <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">
+                      {item.description}
+                    </p>
+                    <p className="text-[10px] text-text-dim/40 font-bold uppercase tracking-widest">
+                      Quantity: {item.quantity}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-white">${(item.totalCents / 100).toFixed(2)}</p>
-                    <p className="text-[9px] text-text-dim/40 font-bold uppercase tracking-widest">${(item.unitPriceCents / 100).toFixed(2)} / unit</p>
+                    <p className="text-lg font-bold text-white">
+                      ${(item.totalCents / 100).toFixed(2)}
+                    </p>
+                    <p className="text-[9px] text-text-dim/40 font-bold uppercase tracking-widest">
+                      ${(item.unitPriceCents / 100).toFixed(2)} / unit
+                    </p>
                   </div>
                 </div>
               ))}
@@ -173,12 +192,20 @@ export default function InvoiceDetail() {
           {/* Totals */}
           <div className="flex flex-col items-end gap-3 pt-6 border-t border-white/5">
             <div className="flex items-center gap-10">
-              <span className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Subtotal</span>
-              <span className="text-lg font-bold text-white">${(invoice.subtotalCents / 100).toFixed(2)}</span>
+              <span className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+                Subtotal
+              </span>
+              <span className="text-lg font-bold text-white">
+                ${(invoice.subtotalCents / 100).toFixed(2)}
+              </span>
             </div>
             <div className="flex items-center gap-10">
-              <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Total Amount</span>
-              <span className="text-3xl font-black text-primary">${(invoice.totalCents / 100).toFixed(2)}</span>
+              <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
+                Total Amount
+              </span>
+              <span className="text-3xl font-black text-primary">
+                ${(invoice.totalCents / 100).toFixed(2)}
+              </span>
             </div>
           </div>
         </div>

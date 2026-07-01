@@ -24,7 +24,7 @@ developer.
 - Use Tailwind utility classes for everything — layout, spacing, typography, color, transitions.
 - Never write a `<style>` block inside a component file.
 - Never use inline `style={{}}` props. If a value cannot be expressed with a Tailwind class, add it to the theme (see Section 6).
-- Never use hardcoded hex values like `text-[#e11d48]` — always use the named theme token like `text-primary`.
+- Never use hardcoded hex values like `text-[#FE4331]` — always use the named theme token like `text-primary`.
 - Every color used must come from the CSS variables mapped via `@theme`. No exceptions.
 - If a new color or spacing value is needed, add it to `@theme` in globals.css first, then use it as a class.
 
@@ -89,12 +89,12 @@ A single specific question to test understanding of what was just built.
 @theme {
   --color-bg-dark:       #0a0a0a;
   --color-bg-card:       #141414;
-  --color-primary:       #e11d48;
+  --color-primary:       #FE4331;
   --color-primary-hover: #be123c;
   --color-text-main:     #ffffff;
   --color-text-muted:    #94a3b8;
   --color-border:        #262626;
-  --color-error:         #f43f5e;
+  --color-error:         #fb7185;
   --color-success:       #10b981;
 }
 ```

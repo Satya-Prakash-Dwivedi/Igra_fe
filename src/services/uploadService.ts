@@ -28,7 +28,12 @@ export async function startUpload(fileName: string, fileSize: number, mimeType: 
   return res.data.data as UploadStart
 }
 
-export async function registerPart(sessionId: string, partNumber: number, etag: string, sizeBytes?: number) {
+export async function registerPart(
+  sessionId: string,
+  partNumber: number,
+  etag: string,
+  sizeBytes?: number
+) {
   const res = await api.post(`/uploads/${sessionId}/parts`, { partNumber, etag, sizeBytes })
   return res.data.data
 }
@@ -49,19 +54,16 @@ export async function getUploadStatus(sessionId: string) {
  */
 export async function uploadFile(
   file: File,
-  onProgress?: (pct: number) => void,
+  onProgress?: (pct: number) => void
 ): Promise<UploadResult> {
   // 1. Start upload
-  const { uploadSessionId, assetId, presignedUrls, partSizeBytes, totalParts, isDirect } = await startUpload(
-    file.name,
-    file.size,
-    file.type || 'application/octet-stream',
-  )
+  const { uploadSessionId, assetId, presignedUrls, partSizeBytes, totalParts, isDirect } =
+    await startUpload(file.name, file.size, file.type || 'application/octet-stream')
 
   // 1b. Direct Upload Path (Optimization for assets < 20MB)
   if (isDirect) {
     if (onProgress) onProgress(10)
-    
+
     const uploadRes = await fetch(presignedUrls[0], {
       method: 'PUT',
       body: file,
@@ -74,10 +76,10 @@ export async function uploadFile(
     if (onProgress) onProgress(90)
     const finalizeRes = await finalizeUpload(uploadSessionId)
     if (onProgress) onProgress(100)
-    
+
     return {
       assetId,
-      url: finalizeRes?.url
+      url: finalizeRes?.url,
     }
   }
 
@@ -92,7 +94,7 @@ export async function uploadFile(
       method: 'PUT',
       body: blob,
     })
-    
+
     if (!uploadRes.ok) {
       throw new Error(`Failed to upload part ${i + 1}: ${uploadRes.statusText}`)
     }
@@ -112,16 +114,27 @@ export async function uploadFile(
 
   return {
     assetId,
-    url: finalizeRes?.url
+    url: finalizeRes?.url,
   }
 }
 
 /**
  * Resume an interrupted multipart upload by checking status and only uploading missing chunks.
  */
-export async function resumeUpload(file: File, sessionId: string, onProgress?: (pct: number) => void): Promise<UploadResult> {
+export async function resumeUpload(
+  file: File,
+  sessionId: string,
+  onProgress?: (pct: number) => void
+): Promise<UploadResult> {
   const res = await api.get(`/uploads/${sessionId}/resume`)
-  const { uploadSessionId, assetId, partSizeBytes, totalParts, uploadedPartNumbers, presignedUrls } = res.data.data
+  const {
+    uploadSessionId,
+    assetId,
+    partSizeBytes,
+    totalParts,
+    uploadedPartNumbers,
+    presignedUrls,
+  } = res.data.data
 
   let totalUploaded = uploadedPartNumbers.length
 
@@ -155,7 +168,7 @@ export async function resumeUpload(file: File, sessionId: string, onProgress?: (
   const finalizeRes = await finalizeUpload(uploadSessionId)
   return {
     assetId,
-    url: finalizeRes?.url
+    url: finalizeRes?.url,
   }
 }
 
@@ -165,7 +178,7 @@ const uploadService = {
   finalizeUpload,
   getUploadStatus,
   uploadFile,
-  resumeUpload
+  resumeUpload,
 }
 
 export default uploadService

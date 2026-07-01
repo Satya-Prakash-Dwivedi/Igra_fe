@@ -53,9 +53,25 @@ export async function getCreditPacks() {
   return res.data.data as CreditPack[]
 }
 
-export async function createPurchase(packId: string, amountDollars?: number, provider: 'paypal' | 'razorpay' = 'paypal', targetCurrency?: string) {
-  const res = await api.post('/billing/purchase', { packId, amountDollars, provider, targetCurrency }, { headers: idempotencyHeaders() })
-  return res.data.data as { payment: Payment; approveLink?: string; razorpayOrderId?: string; keyId?: string; amount?: number; currency?: string }
+export async function createPurchase(
+  packId: string,
+  amountDollars?: number,
+  provider: 'paypal' | 'razorpay' = 'paypal',
+  targetCurrency?: string
+) {
+  const res = await api.post(
+    '/billing/purchase',
+    { packId, amountDollars, provider, targetCurrency },
+    { headers: idempotencyHeaders() }
+  )
+  return res.data.data as {
+    payment: Payment
+    approveLink?: string
+    razorpayOrderId?: string
+    keyId?: string
+    amount?: number
+    currency?: string
+  }
 }
 
 export async function capturePurchase(

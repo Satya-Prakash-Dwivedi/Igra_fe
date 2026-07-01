@@ -1,25 +1,46 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Loader2, AlertCircle, ArrowRight, Filter, Users, List, Hash, User as UserIcon, Calendar, Database, Eye } from 'lucide-react'
+import {
+  Loader2,
+  AlertCircle,
+  Filter,
+  Users,
+  User as UserIcon,
+  Database,
+  Package,
+  Eye,
+} from 'lucide-react'
 import adminService from '../../services/adminService'
-import type { AdminOrder, OrderStatus } from '../../services/adminService'
+import type { AdminOrder, OrderStatus, AdminUser } from '../../services/adminService'
 import StatusBadge from '../../components/admin/StatusBadge'
 import Pagination from '../../components/admin/Pagination'
+import { calculateDeadline } from '../../utils/orderUtils'
 import { createLogger, serializeError } from '../../services/logger'
 import { useAuth } from '../../hooks/useAuth'
-import Button, { cn } from '../../components/Button'
+import { cn } from '../../components/Button'
 
 const logger = createLogger('AdminOrders')
 
 const ORDER_STATUSES: OrderStatus[] = [
-  'DRAFT', 'PENDING_PAYMENT', 'UNDER_REVIEW', 'IN_PROGRESS',
-  'FINALIZING', 'AWAITING_APPROVAL', 'COMPLETED', 'CANCELLED',
+  'DRAFT',
+  'PENDING_PAYMENT',
+  'UNDER_REVIEW',
+  'IN_PROGRESS',
+  'FINALIZING',
+  'AWAITING_APPROVAL',
+  'COMPLETED',
+  'CANCELLED',
 ]
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
-  DRAFT: 'Draft', PENDING_PAYMENT: 'Pending payment', UNDER_REVIEW: 'Under review',
-  IN_PROGRESS: 'In progress', FINALIZING: 'Finalizing', AWAITING_APPROVAL: 'Awaiting approval',
-  COMPLETED: 'Completed', CANCELLED: 'Cancelled',
+  DRAFT: 'Draft',
+  PENDING_PAYMENT: 'Pending payment',
+  UNDER_REVIEW: 'Under review',
+  IN_PROGRESS: 'In progress',
+  FINALIZING: 'Finalizing',
+  AWAITING_APPROVAL: 'Awaiting approval',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
 }
 
 const AdminOrders: React.FC = () => {
@@ -27,12 +48,12 @@ const AdminOrders: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [orders, setOrders] = useState<AdminOrder[]>([])
+  const [staffList, setStaffList] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const { user } = useAuth()
   const statusFilter = (searchParams.get('status') as OrderStatus) || ''
   const assignedToFilter = searchParams.get('assignedTo') || ''
   const page = parseInt(searchParams.get('page') ?? '1', 10)
@@ -41,38 +62,42 @@ const AdminOrders: React.FC = () => {
     setIsLoading(true)
     setError(null)
     try {
-      const result = await adminService.listOrders({ 
-        status: statusFilter || undefined, 
+      const result = await adminService.listOrders({
+        status: statusFilter || undefined,
         assignedTo: assignedToFilter || undefined,
-        page, 
-        limit: 20 
+        page,
+        limit: 20,
       })
       setOrders(result.items)
       setTotal(result.total)
       setPages(result.pages)
     } catch (err) {
       logger.error('admin_orders.fetch_failed', { error: serializeError(err) })
-      setError('Failed to load production queue.')
+      setError('Failed to load orders.')
     } finally {
       setIsLoading(false)
     }
   }, [statusFilter, assignedToFilter, page])
 
-  useEffect(() => { fetchOrders() }, [fetchOrders])
+  useEffect(() => {
+    fetchOrders()
+  }, [fetchOrders])
 
-  const setFilter = (status: string) => {
-    const params: Record<string, string> = { page: '1' }
-    if (status) params.status = status
-    if (assignedToFilter) params.assignedTo = assignedToFilter
-    setSearchParams(params)
-  }
+  useEffect(() => {
+    adminService
+      .listStaff()
+      .then(setStaffList)
+      .catch((err) => logger.error('failed_to_load_staff', { error: serializeError(err) }))
+  }, [])
 
-  const toggleOnlyMine = () => {
+  const setFilter = (key: 'status' | 'assignedTo', value: string) => {
     const params: Record<string, string> = { page: '1' }
-    if (statusFilter) params.status = statusFilter
-    
-    if (!assignedToFilter && user?._id) {
-      params.assignedTo = user._id
+    if (key === 'status') {
+      if (value) params.status = value
+      if (assignedToFilter) params.assignedTo = assignedToFilter
+    } else {
+      if (statusFilter) params.status = statusFilter
+      if (value) params.assignedTo = value
     }
     setSearchParams(params)
   }
@@ -85,95 +110,113 @@ const AdminOrders: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 p-6 md:p-12 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-white font-bold text-4xl tracking-tight">Production <span className="text-primary italic">queue</span></h1>
-        <div className="flex items-center gap-3">
-           <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-lg text-[10px] font-bold text-primary uppercase tracking-widest">
-              <Database size={10} /> Active database
-           </div>
-           <p className="text-text-dim text-sm font-medium">{total} total orders found</p>
+    <div className="max-w-7xl mx-auto space-y-8 p-6 md:p-10 relative">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <Package size={20} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Order Management</h1>
+            </div>
+          </div>
+          <p className="text-text-muted text-sm font-medium mt-2">
+            Managing {total} total orders across the platform.
+          </p>
         </div>
-      </div>
       </div>
 
       {/* Control Bar */}
-      <div className="flex flex-col md:flex-row items-center gap-6 bg-bg-card/40 backdrop-blur-xl border border-white/5 p-6 rounded-[2rem] shadow-2xl">
-        <div className="flex items-center gap-4 flex-1 w-full">
-           <div className="relative flex-1 group">
-              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dim/40 group-focus-within:text-primary transition-colors" size={18} />
-              <select
-                value={statusFilter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="w-full bg-black/20 border border-white/5 rounded-2xl pl-12 pr-6 py-3.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all appearance-none cursor-pointer"
-              >
-                <option value="">All production statuses</option>
-                {ORDER_STATUSES.map((s) => (
-                  <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-                ))}
-              </select>
-           </div>
-           
-           <div className="h-10 w-px bg-white/5 hidden md:block" />
-           
-           <button
-             onClick={toggleOnlyMine}
-             className={cn(
-               "flex items-center gap-3 px-6 py-3.5 rounded-2xl border transition-all duration-300 font-bold text-sm",
-               !!assignedToFilter && assignedToFilter === user?._id
-                ? "bg-primary border-primary text-white shadow-lg shadow-primary/20"
-                : "bg-black/20 border-white/5 text-text-dim hover:text-white"
-             )}
-           >
-              <Users size={18} />
-              Assigned to me
-           </button>
+      <div className="flex flex-col sm:flex-row items-center gap-4 bg-bg-card border border-white/10 p-4 rounded-xl shadow-sm">
+        <div className="relative w-full sm:w-64">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
+          <select
+            value={statusFilter}
+            onChange={(e) => setFilter('status', e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none cursor-pointer"
+          >
+            <option value="">All statuses</option>
+            {ORDER_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {STATUS_LABELS[s]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="h-6 w-px bg-white/10 hidden sm:block" />
+
+        <div className="relative w-full sm:w-64">
+          <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
+          <select
+            value={assignedToFilter}
+            onChange={(e) => setFilter('assignedTo', e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none cursor-pointer"
+          >
+            <option value="">All Assignees</option>
+            {staffList.map((s) => (
+              <option key={s._id} value={s._id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-48 gap-6">
-          <div className="relative">
-             <div className="w-16 h-16 border-2 border-primary/20 rounded-full" />
-             <div className="absolute inset-0 w-16 h-16 border-t-2 border-primary rounded-full animate-spin" />
-          </div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-text-dim/40 animate-pulse">Syncing production records...</p>
+        <div className="flex flex-col items-center justify-center py-32 gap-4">
+          <Loader2 size={32} className="text-primary animate-spin" />
+          <p className="text-sm font-medium text-text-muted">Loading orders...</p>
         </div>
       ) : error ? (
-        <div className="bg-error/10 border border-error/20 rounded-[2rem] p-10 flex items-center gap-6 text-error">
-          <AlertCircle size={32} />
-          <div className="space-y-1">
-             <p className="font-bold text-lg">Failed to load production queue</p>
-             <p className="text-sm opacity-60">There was an error communicating with the core API. Please try again.</p>
-          </div>
+        <div className="bg-error/5 border border-error/20 text-error px-6 py-4 rounded-lg flex items-center gap-3">
+          <AlertCircle size={18} />
+          <p className="font-semibold text-sm">{error}</p>
         </div>
       ) : (
-        <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-700">
-          <div className="bg-bg-card/40 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
-            <div className="overflow-x-auto custom-scrollbar">
+        <div className="space-y-6">
+          <div className="bg-bg-card border border-white/10 rounded-xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-white/[0.02] border-b border-white/5">
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em]"><div className="flex items-center gap-2"><Hash size={14} /> Order</div></th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em]"><div className="flex items-center gap-2"><UserIcon size={14} /> Client</div></th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em]"><div className="flex items-center gap-2"><List size={14} /> Title</div></th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em]">Status</th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em]">Assignee</th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em] text-right">Value</th>
-                    <th className="px-8 py-6 text-[10px] font-bold text-text-dim/60 uppercase tracking-[0.2em] text-right"><div className="flex items-center justify-end gap-2"><Calendar size={14} /> Received</div></th>
-                    <th className="px-8 py-6"></th>
+                  <tr className="bg-white/5 border-b border-white/10">
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Order
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Client
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Title
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Deadline
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Assignee
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider text-right">
+                      Value
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider text-right">
+                      Received
+                    </th>
+                    <th className="px-6 py-4"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {orders.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-8 py-32 text-center">
-                         <div className="flex flex-col items-center gap-4 opacity-20">
-                            <Database size={48} />
-                            <p className="text-xl font-bold italic">No active production records</p>
-                         </div>
+                      <td colSpan={8} className="py-24 text-center">
+                        <div className="flex flex-col items-center gap-3 text-text-muted">
+                          <Database size={32} className="opacity-50" />
+                          <p className="text-sm font-medium">No orders found.</p>
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -181,52 +224,102 @@ const AdminOrders: React.FC = () => {
                       <tr
                         key={order._id}
                         onClick={() => navigate(`/admin/orders/${order._id}`)}
-                        className="hover:bg-white/[0.02] cursor-pointer transition-all duration-300 group"
+                        className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
                       >
-                        <td className="px-8 py-6">
-                          <span className="text-xs font-bold text-primary font-mono tracking-tight bg-primary/5 px-2 py-1 rounded border border-primary/10 group-hover:bg-primary group-hover:text-white transition-all">
-                            {order.orderNumber}
+                        <td className="px-6 py-4">
+                          <span className="text-xs font-semibold text-primary block">
+                            #{order.orderNumber}
                           </span>
                         </td>
-                        <td className="px-8 py-6 min-w-[200px]">
-                          <div className="flex flex-col gap-0.5">
-                             <p className="text-white font-bold text-sm tracking-tight">{order.userId?.name ?? '—'}</p>
-                             <p className="text-text-dim text-[10px] font-medium opacity-40">{order.userId?.email ?? ''}</p>
+                        <td className="px-6 py-4 min-w-[150px]">
+                          <div className="flex flex-col">
+                            <p className="text-white font-semibold text-sm truncate max-w-[150px]">
+                              {order.userId?.name ?? '—'}
+                            </p>
+                            <p className="text-text-muted text-xs font-medium truncate max-w-[150px]">
+                              {order.userId?.email ?? ''}
+                            </p>
                           </div>
                         </td>
-                        <td className="px-8 py-6">
-                           <p className="text-white text-sm font-semibold max-w-[200px] truncate group-hover:translate-x-1 transition-transform">
-                              {order.title}
-                           </p>
+                        <td className="px-6 py-4">
+                          <p className="text-white text-sm font-semibold max-w-[200px] truncate">
+                            {order.title}
+                          </p>
                         </td>
-                        <td className="px-8 py-6">
+                        <td className="px-6 py-4">
                           <StatusBadge status={order.status} />
                         </td>
-                        <td className="px-8 py-6">
-                           <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
-                                 <UserIcon size={10} className="text-text-dim/40" />
+                        <td className="px-6 py-4">
+                          {(() => {
+                            if (!order.items || order.items.length === 0) return <span className="text-xs text-text-muted">—</span>
+                            
+                            const deadlines = order.items
+                              .map(item => calculateDeadline(order.approvedAt, order.createdAt, order.status, item.kind, item.params))
+                              .filter(d => d.date !== null)
+                            
+                            if (deadlines.length === 0) return <span className="text-xs text-text-muted">—</span>
+                            
+                            // Find the most urgent one
+                            deadlines.sort((a, b) => a.date!.getTime() - b.date!.getTime())
+                            const urgent = deadlines[0]
+                            
+                            return (
+                              <div
+                                className={cn(
+                                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider',
+                                  urgent.status === 'OVERDUE'
+                                    ? 'border-error/20 bg-error/10 text-error'
+                                    : urgent.status === 'URGENT'
+                                      ? 'border-orange-500/20 bg-orange-500/10 text-orange-500'
+                                      : urgent.status === 'COMPLETED'
+                                        ? 'border-success/20 bg-success/10 text-success line-through opacity-75'
+                                        : 'border-primary/20 bg-primary/10 text-primary'
+                                )}
+                              >
+                                {urgent.status === 'COMPLETED' && <span className="mr-1">✓</span>}
+                                {urgent.formatted}
                               </div>
-                              <span className={cn("text-xs font-bold", order.assignedTo ? "text-white" : "text-text-dim/40 italic")}>
-                                {order.assignedTo?.name ?? 'Unassigned'}
-                              </span>
-                           </div>
+                            )
+                          })()}
                         </td>
-                        <td className="px-8 py-6 text-right">
-                          <div className="flex flex-col items-end">
-                             <span className="text-sm font-bold text-white font-mono">{order.totalCreditsQuoted.toLocaleString()}</span>
-                             <span className="text-[10px] font-bold text-text-dim uppercase tracking-widest opacity-40">Credits</span>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center">
+                              <UserIcon size={12} className="text-text-muted" />
+                            </div>
+                            <span
+                              className={cn(
+                                'text-xs font-semibold',
+                                order.assignedTo ? 'text-white' : 'text-text-muted italic'
+                              )}
+                            >
+                              {order.assignedTo?.name ?? 'Unassigned'}
+                            </span>
                           </div>
                         </td>
-                        <td className="px-8 py-6 text-right whitespace-nowrap">
-                          <span className="text-xs font-bold text-text-dim">
-                            {new Date(order.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="text-sm font-semibold text-white">
+                              {order.totalCreditsQuoted.toLocaleString()}
+                            </span>
+                            <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                              Credits
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <span className="text-sm font-medium text-white">
+                            {new Date(order.createdAt).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
                           </span>
                         </td>
-                        <td className="px-8 py-6 text-right">
-                           <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-text-dim/20 group-hover:text-primary group-hover:bg-primary/10 transition-all shadow-inner">
-                             <Eye size={18} />
-                           </div>
+                        <td className="px-6 py-4 text-right">
+                          <div className="inline-flex items-center justify-center p-2 rounded-lg text-text-muted hover:bg-white/5 hover:text-white transition-colors">
+                            <Eye size={16} />
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -235,9 +328,9 @@ const AdminOrders: React.FC = () => {
               </table>
             </div>
           </div>
-          
-          <div className="pt-6">
-             <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
+
+          <div className="pt-2">
+            <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
           </div>
         </div>
       )}

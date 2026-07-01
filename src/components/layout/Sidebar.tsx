@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Package,
+  LifeBuoy,
 } from 'lucide-react'
 import { cn } from '../Button'
 import { useAuth } from '../../hooks/useAuth'
@@ -46,14 +47,16 @@ const NavItem: React.FC<NavItemProps> = ({
   const content = (
     <>
       <div className="relative z-10">
-        <div className={cn(
-          "w-5 h-5 flex items-center justify-center transition-transform duration-200 transform-gpu",
-          "group-hover:scale-110 group-active:scale-95"
-        )}>
+        <div
+          className={cn(
+            'w-5 h-5 flex items-center justify-center transition-transform duration-200 transform-gpu',
+            'group-hover:scale-110 group-active:scale-95'
+          )}
+        >
           {icon}
         </div>
         {badge && (
-          <span className="absolute -top-1.5 -right-1.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(244,63,94,0.6)] animate-pulse"></span>
+          <span className="absolute -top-1.5 -right-1.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.6)] animate-pulse"></span>
         )}
       </div>
       <span
@@ -64,11 +67,11 @@ const NavItem: React.FC<NavItemProps> = ({
       >
         {label}
       </span>
-      
+
       {collapsed && (
-              <div className="absolute left-14 px-4 py-2 bg-bg-dark border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-[opacity,transform] duration-200 z-50 whitespace-nowrap shadow-2xl translate-x-2 group-hover:translate-x-0 backdrop-blur-md italic transform-gpu">
-            {label}
-         </div>
+        <div className="absolute left-14 px-4 py-2 bg-bg-dark border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-[opacity,transform] duration-200 z-50 whitespace-nowrap shadow-2xl translate-x-2 group-hover:translate-x-0 backdrop-blur-md italic transform-gpu">
+          {label}
+        </div>
       )}
     </>
   )
@@ -79,16 +82,18 @@ const NavItem: React.FC<NavItemProps> = ({
       isActive
         ? 'text-white bg-white/[0.05] shadow-sm'
         : 'text-text-dim hover:text-white hover:bg-white/[0.02]',
-      destructive && 'hover:text-red-500 hover:bg-red-500/5'
+      destructive && 'text-primary hover:text-primary hover:bg-primary/10'
     )
 
-  const activeGlow = (isActive: boolean) => isActive && !collapsed && (
-     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[2px_0_10px_rgba(244,63,94,0.5)] transition-opacity duration-200" />
-  )
+  const activeGlow = (isActive: boolean) =>
+    isActive &&
+    !collapsed && (
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[2px_0_10px_rgba(var(--primary-rgb),0.5)] transition-opacity duration-200" />
+    )
 
   if (to) {
     return (
-      <NavLink to={to} className={({ isActive }) => cn(className({ isActive }), "relative")}>
+      <NavLink to={to} onClick={onClick} className={({ isActive }) => cn(className({ isActive }), 'relative')}>
         {({ isActive }) => (
           <>
             {activeGlow(isActive)}
@@ -100,7 +105,7 @@ const NavItem: React.FC<NavItemProps> = ({
   }
 
   return (
-    <button onClick={onClick} className={cn(className(), "relative")}>
+    <button onClick={onClick} className={cn(className(), 'relative')}>
       {content}
     </button>
   )
@@ -144,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
   return (
     <>
-    <aside
+      <aside
         className={cn(
           'fixed left-0 top-0 h-screen bg-bg-dark border-r border-white/5 flex flex-col transition-[width] duration-300 z-40 backdrop-blur-md transform-gpu',
           isCollapsed ? 'w-[72px]' : 'w-64'
@@ -152,16 +157,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
       >
         {/* Logo Area */}
         <div className="h-20 flex items-center px-6 relative">
-          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/dashboard')}>
+          <div
+            className="flex items-center gap-3 group cursor-pointer"
+            onClick={() => navigate('/dashboard')}
+          >
             <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center p-2 shadow-lg transition-transform duration-200 group-hover:scale-105 transform-gpu">
-               <Package size={20} />
+              <Package size={20} />
             </div>
             {!isCollapsed && (
               <div className="flex flex-col animate-in fade-in slide-in-left duration-200">
-                 <span className="font-bold text-xl tracking-tight uppercase text-white leading-none">
-                   Igra
-                 </span>
-                 <span className="text-[8px] font-bold tracking-widest uppercase text-primary mt-0.5">Studios</span>
+                <span className="font-bold text-xl tracking-tight uppercase text-white leading-none">
+                  Igra
+                </span>
+                <span className="text-[8px] font-bold tracking-widest uppercase text-primary mt-0.5">
+                  Studios
+                </span>
               </div>
             )}
           </div>
@@ -176,13 +186,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
         {/* Global Search Button Placeholder */}
         <div className="px-4 mb-6">
-           <div className={cn(
-             "w-full bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 transition-colors duration-200",
-             isCollapsed ? "justify-center h-10" : "px-4 h-11"
-           )}>
-              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-              {!isCollapsed && <span className="text-[9px] font-bold uppercase tracking-widest text-text-dim">Primary Sector</span>}
-           </div>
+          <div
+            className={cn(
+              'w-full bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 transition-colors duration-200',
+              isCollapsed ? 'justify-center h-10' : 'px-4 h-11'
+            )}
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+            {!isCollapsed && (
+              <span className="text-[9px] font-bold uppercase tracking-widest text-text-dim">
+                Primary Sector
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Navigation */}
@@ -191,20 +207,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
             <div>
               {!isCollapsed && (
                 <div className="px-4 mb-4 text-[9px] font-bold uppercase tracking-widest text-text-dim/40 flex items-center gap-2 animate-in fade-in duration-300">
-                   Navigation
+                  Navigation
                 </div>
               )}
               <nav className="space-y-1">
                 {topNavItems.map((item) => (
-                  <NavItem key={item.to} {...item} collapsed={isCollapsed} />
+                  <NavItem key={item.to} {...item} collapsed={isCollapsed} onClick={() => { if (window.innerWidth < 768) onToggle(false); }} />
                 ))}
               </nav>
             </div>
 
             <div>
-               {!isCollapsed && (
+              {!isCollapsed && (
                 <div className="px-4 mb-4 text-[9px] font-bold uppercase tracking-widest text-text-dim/40 flex items-center gap-2 animate-in fade-in duration-300">
-                   Account Settings
+                  Account Settings
                 </div>
               )}
               <nav className="space-y-1">
@@ -213,9 +229,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                   icon={<UserCircle size={18} />}
                   label="Profile"
                   collapsed={isCollapsed}
+                  onClick={() => { if (window.innerWidth < 768) onToggle(false); }}
                 />
                 <NavItem
-                  onClick={() => setIsBugModalOpen(true)}
+                  to="/support"
+                  icon={<LifeBuoy size={18} />}
+                  label="Support"
+                  collapsed={isCollapsed}
+                  onClick={() => { if (window.innerWidth < 768) onToggle(false); }}
+                />
+                <NavItem
+                  onClick={() => { setIsBugModalOpen(true); if (window.innerWidth < 768) onToggle(false); }}
                   icon={<Bug size={18} />}
                   label="Report Bug"
                   collapsed={isCollapsed}
@@ -228,27 +252,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
           {/* User Profile Section */}
           <div className="pt-4 px-4 mb-2">
-            <div 
+            <div
               className={cn(
-                "flex items-center gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/5 transition-all duration-300",
-                isCollapsed ? "justify-center px-0" : "px-3"
+                'flex items-center gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/5 transition-all duration-300',
+                isCollapsed ? 'justify-center px-0' : 'px-3'
               )}
             >
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-[10px] font-black flex-shrink-0 overflow-hidden border border-white/10 shadow-lg">
                 {user?.avatar ? (
-                  <img 
-                    src={resolveApiUrl(user.avatar)} 
-                    alt={user.name} 
+                  <img
+                    src={resolveApiUrl(user.avatar)}
+                    alt={user.name}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  user?.firstName?.[0] ?? user?.name?.[0] ?? 'U'
+                  (user?.firstName?.[0] ?? user?.name?.[0] ?? 'U')
                 )}
               </div>
               {!isCollapsed && (
                 <div className="flex flex-col min-w-0 animate-in fade-in slide-in-from-left-2 duration-300">
                   <span className="text-[10px] font-bold text-white truncate">{user?.name}</span>
-                  <span className="text-[8px] font-medium text-text-dim/60 uppercase tracking-widest truncate">{user?.role}</span>
+                  <span className="text-[8px] font-medium text-text-dim/60 uppercase tracking-widest truncate">
+                    {user?.role}
+                  </span>
                 </div>
               )}
             </div>
@@ -256,19 +282,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
           {/* Bottom Logout */}
           <div className="pb-6">
-            <NavItem
-              onClick={() => setIsLogoutModalOpen(true)}
-              icon={<LogOut size={18} />}
-              label="Logout"
-              collapsed={isCollapsed}
-              destructive
-            />
+                <NavItem
+                  onClick={() => { setIsLogoutModalOpen(true); if (window.innerWidth < 768) onToggle(false); }}
+                  icon={<LogOut size={18} />}
+                  label="Logout"
+                  collapsed={isCollapsed}
+                  destructive
+                />
           </div>
         </div>
       </aside>
 
       <BugReportModal isOpen={isBugModalOpen} onClose={() => setIsBugModalOpen(false)} />
-      <LogoutModal 
+      <LogoutModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
