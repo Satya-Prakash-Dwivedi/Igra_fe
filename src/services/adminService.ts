@@ -62,6 +62,8 @@ export interface AdminOrder {
   totalCreditsQuoted: number
   totalCreditsCaptured: number
   createdAt: string
+  approvedAt?: string
+  items?: AdminOrderItem[]
 }
 
 export interface AdminOrderAsset {

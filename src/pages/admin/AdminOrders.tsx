@@ -14,6 +14,7 @@ import adminService from '../../services/adminService'
 import type { AdminOrder, OrderStatus, AdminUser } from '../../services/adminService'
 import StatusBadge from '../../components/admin/StatusBadge'
 import Pagination from '../../components/admin/Pagination'
+import { calculateDeadline } from '../../utils/orderUtils'
 import { createLogger, serializeError } from '../../services/logger'
 import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../../components/Button'
@@ -194,6 +195,9 @@ const AdminOrders: React.FC = () => {
                       Status
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Deadline
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider">
                       Assignee
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold text-text-muted uppercase tracking-wider text-right">
@@ -244,6 +248,39 @@ const AdminOrders: React.FC = () => {
                         </td>
                         <td className="px-6 py-4">
                           <StatusBadge status={order.status} />
+                        </td>
+                        <td className="px-6 py-4">
+                          {(() => {
+                            if (!order.items || order.items.length === 0) return <span className="text-xs text-text-muted">—</span>
+                            
+                            const deadlines = order.items
+                              .map(item => calculateDeadline(order.approvedAt, order.createdAt, order.status, item.kind, item.params))
+                              .filter(d => d.date !== null)
+                            
+                            if (deadlines.length === 0) return <span className="text-xs text-text-muted">—</span>
+                            
+                            // Find the most urgent one
+                            deadlines.sort((a, b) => a.date!.getTime() - b.date!.getTime())
+                            const urgent = deadlines[0]
+                            
+                            return (
+                              <div
+                                className={cn(
+                                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider',
+                                  urgent.status === 'OVERDUE'
+                                    ? 'border-error/20 bg-error/10 text-error'
+                                    : urgent.status === 'URGENT'
+                                      ? 'border-orange-500/20 bg-orange-500/10 text-orange-500'
+                                      : urgent.status === 'COMPLETED'
+                                        ? 'border-success/20 bg-success/10 text-success line-through opacity-75'
+                                        : 'border-primary/20 bg-primary/10 text-primary'
+                                )}
+                              >
+                                {urgent.status === 'COMPLETED' && <span className="mr-1">✓</span>}
+                                {urgent.formatted}
+                              </div>
+                            )
+                          })()}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">

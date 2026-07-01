@@ -31,15 +31,18 @@ import {
   CreditCard,
   ShieldAlert,
   Calendar,
+  HelpCircle,
 } from 'lucide-react'
 import socketService from '../../services/socketService'
 import { AuthContext } from '../../context/AuthContext'
 import adminService from '../../services/adminService'
+import { calculateDeadline } from '../../utils/orderUtils'
 import * as uploadApi from '../../services/uploadService'
 import { resolveApiUrl } from '../../utils/urlUtils'
 import ConfirmModal from '../../components/modals/ConfirmModal'
 import { toast } from 'sonner'
 import type {
+  AdminOrder,
   AdminOrderDetailData,
   AdminOrderItem,
   AdminOrderEvent,
@@ -185,6 +188,9 @@ const Timeline: React.FC<{ events: AdminOrderEvent[] }> = ({ events }) => {
 const ItemCard: React.FC<{
   item: AdminOrderItem
   orderId: string
+  approvedAt?: string
+  createdAt?: string
+  orderStatus?: string
   isExpanded: boolean
   onToggle: () => void
   onUpdated: (updated: AdminOrderItem) => void
@@ -194,6 +200,9 @@ const ItemCard: React.FC<{
 }> = ({
   item,
   orderId,
+  approvedAt,
+  createdAt,
+  orderStatus,
   isExpanded,
   onToggle,
   onUpdated,
@@ -419,6 +428,29 @@ const ItemCard: React.FC<{
         </div>
 
         <div className="flex items-center gap-3">
+          {(() => {
+            const deadline = calculateDeadline(approvedAt, createdAt || '', orderStatus || '', item.kind, item.params)
+            if (!deadline.date) return null
+            
+            return (
+              <div
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-bold uppercase tracking-wider shadow-inner',
+                  deadline.status === 'OVERDUE'
+                    ? 'border-error/20 bg-error/10 text-error'
+                    : deadline.status === 'URGENT'
+                      ? 'border-orange-500/20 bg-orange-500/10 text-orange-500'
+                      : deadline.status === 'COMPLETED'
+                        ? 'border-success/20 bg-success/10 text-success line-through opacity-75'
+                        : 'border-primary/20 bg-primary/10 text-primary'
+                )}
+              >
+                <Calendar size={14} className={deadline.status === 'COMPLETED' ? 'opacity-50' : ''} />
+                {deadline.status === 'COMPLETED' && <span className="mr-1">✓</span>}
+                {deadline.formatted}
+              </div>
+            )
+          })()}
           <StatusBadge
             status={item.status}
             className="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide"
@@ -1371,6 +1403,9 @@ const AdminOrderDetail: React.FC = () => {
                 key={item._id}
                 item={item}
                 orderId={id!}
+                approvedAt={order?.approvedAt}
+                createdAt={order?.createdAt}
+                orderStatus={order?.status}
                 isExpanded={expandedItem === item._id}
                 onToggle={() => setExpandedItem(expandedItem === item._id ? null : item._id)}
                 onUpdated={handleItemUpdated}
