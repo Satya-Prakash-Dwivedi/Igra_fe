@@ -28,7 +28,7 @@ const TONES: { label: ChannelTone; icon: string }[] = [
   { label: 'Informational', icon: '📺' },
 ]
 
-const DEFAULT_COLORS: [string, string, string] = ['#e11d48', '#141414', '#ffffff']
+const DEFAULT_COLORS: [string, string, string] = ['#FE4331', '#141414', '#ffffff'];
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -251,7 +251,7 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
         {/* Live Preview Section */}
         <div className="mb-12 bg-white/[0.01] p-8 rounded-[2.5rem] border border-white/5 shadow-inner">
           <div className="flex items-center gap-2 mb-6">
-             <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
+             <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-text-muted">Live Identity Preview</span>
           </div>
           <div className="max-w-md mx-auto md:mx-0">

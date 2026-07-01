@@ -53,7 +53,7 @@ const NavItem: React.FC<NavItemProps> = ({
           {icon}
         </div>
         {badge && (
-          <span className="absolute -top-1.5 -right-1.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(244,63,94,0.6)] animate-pulse"></span>
+          <span className="absolute -top-1.5 -right-1.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.6)] animate-pulse"></span>
         )}
       </div>
       <span
@@ -83,7 +83,7 @@ const NavItem: React.FC<NavItemProps> = ({
     )
 
   const activeGlow = (isActive: boolean) => isActive && !collapsed && (
-     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[2px_0_10px_rgba(244,63,94,0.5)] transition-opacity duration-200" />
+     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[2px_0_10px_rgba(var(--primary-rgb),0.5)] transition-opacity duration-200" />
   )
 
   if (to) {
