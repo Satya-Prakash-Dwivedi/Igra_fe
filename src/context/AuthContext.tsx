@@ -58,7 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Ensure name is populated for legacy/convenience
     const userWithName = {
       ...updatedUser,
-      name: updatedUser.name || `${updatedUser.firstName} ${updatedUser.lastName}`.trim() || updatedUser.email
+      name:
+        updatedUser.name ||
+        `${updatedUser.firstName} ${updatedUser.lastName}`.trim() ||
+        updatedUser.email,
     }
     setUser(userWithName)
   }, [])
@@ -110,13 +113,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const userId = user?._id || user?.id
     if (userId) {
       const socket = socketService.getSocket()
-      
+
       const setupSocket = () => {
         socketService.joinUser(userId)
       }
 
       socket.on('connect', setupSocket)
-      
+
       if (socket.connected) {
         setupSocket()
       }

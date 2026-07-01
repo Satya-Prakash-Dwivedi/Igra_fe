@@ -1,18 +1,18 @@
-import React from 'react';
-import { X, ShieldAlert, type LucideIcon } from 'lucide-react';
-import Button from '../Button';
+import React from 'react'
+import { X, ShieldAlert, type LucideIcon } from 'lucide-react'
+import Button from '../Button'
 
 interface ConfirmModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  isLoading?: boolean;
-  variant?: 'primary' | 'error' | 'success';
-  icon?: LucideIcon;
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  message: string
+  confirmText?: string
+  cancelText?: string
+  isLoading?: boolean
+  variant?: 'primary' | 'error' | 'success'
+  icon?: LucideIcon
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -25,9 +25,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   cancelText = 'Cancel',
   isLoading,
   variant = 'primary',
-  icon: Icon
+  icon: Icon,
 }) => {
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   const getVariantStyles = () => {
     switch (variant) {
@@ -35,29 +35,29 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         return {
           iconBg: 'bg-error/10 border-error/20 text-error shadow-error/5',
           confirmBtn: 'bg-error hover:bg-error/90 shadow-error/10',
-          accentColor: 'text-error'
-        };
+          accentColor: 'text-error',
+        }
       case 'success':
         return {
           iconBg: 'bg-primary/10 border-primary/20 text-primary shadow-primary/5',
           confirmBtn: 'bg-primary hover:bg-primary/90 shadow-primary/10',
-          accentColor: 'text-primary'
-        };
+          accentColor: 'text-primary',
+        }
       default:
         return {
           iconBg: 'bg-primary/10 border-primary/20 text-primary shadow-primary/5',
           confirmBtn: 'bg-primary hover:bg-primary/90 shadow-primary/10',
-          accentColor: 'text-primary'
-        };
+          accentColor: 'text-primary',
+        }
     }
-  };
+  }
 
-  const styles = getVariantStyles();
+  const styles = getVariantStyles()
 
   // Split title into parts to colorize the last word
-  const titleParts = title.split(' ');
-  const lastWord = titleParts.pop();
-  const titleStart = titleParts.join(' ');
+  const titleParts = title.split(' ')
+  const lastWord = titleParts.pop()
+  const titleStart = titleParts.join(' ')
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
@@ -78,7 +78,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
         <div className="flex flex-col items-center text-center space-y-6">
           {Icon && (
-            <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shadow-xl ${styles.iconBg}`}>
+            <div
+              className={`w-14 h-14 rounded-2xl border flex items-center justify-center shadow-xl ${styles.iconBg}`}
+            >
               <Icon size={28} />
             </div>
           )}
@@ -87,9 +89,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <h2 className="text-xl font-bold text-white tracking-tight italic">
               {titleStart} <span className={`${styles.accentColor} not-italic`}>{lastWord}</span>
             </h2>
-            <p className="text-text-dim/60 text-sm leading-relaxed">
-              {message}
-            </p>
+            <p className="text-text-dim/60 text-sm leading-relaxed">{message}</p>
           </div>
 
           <div className="flex flex-col w-full gap-3 pt-2">
@@ -113,12 +113,14 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
           <div className="flex items-center gap-2 opacity-20">
             <ShieldAlert size={10} className="text-text-dim" />
-            <span className="text-[9px] font-bold uppercase tracking-widest text-text-dim">Authorized Action Protocol</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-text-dim">
+              Authorized Action Protocol
+            </span>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ConfirmModal;
+export default ConfirmModal

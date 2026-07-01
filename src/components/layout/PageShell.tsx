@@ -1,9 +1,9 @@
-import React from 'react';
+import React from 'react'
 
 interface PageShellProps {
-  title: string;
-  subtitle: string;
-  placeholder: string;
+  title: string
+  subtitle: string
+  placeholder: string
 }
 
 const PageShell: React.FC<PageShellProps> = ({ title, subtitle, placeholder }) => {
@@ -13,12 +13,12 @@ const PageShell: React.FC<PageShellProps> = ({ title, subtitle, placeholder }) =
         <h1 className="text-text-main text-2xl font-bold">{title}</h1>
         <p className="text-text-muted text-sm mt-1">{subtitle}</p>
       </div>
-      
+
       <div className="rounded-xl border border-border bg-bg-card h-[calc(100vh-200px)] flex items-center justify-center">
         <p className="text-text-muted text-sm italic">{placeholder}</p>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default PageShell;
+export default PageShell

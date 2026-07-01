@@ -62,6 +62,8 @@ export interface AdminOrder {
   totalCreditsQuoted: number
   totalCreditsCaptured: number
   createdAt: string
+  approvedAt?: string
+  items?: AdminOrderItem[]
 }
 
 export interface AdminOrderAsset {
@@ -111,11 +113,13 @@ export interface AdminTicket {
 
 export interface Message {
   _id: string
-  orderId: {
-    _id: string
-    orderNumber: string
-    title: string
-  } | string
+  orderId:
+    | {
+        _id: string
+        orderNumber: string
+        title: string
+      }
+    | string
   itemId?: string
   senderId: AdminUser
   content: string
@@ -137,13 +141,13 @@ export interface AdminBugReport {
 
 export const ITEM_TRANSITIONS: Record<OrderItemStatus, OrderItemStatus[]> = {
   PENDING_INPUT: ['READY', 'BLOCKED', 'CANCELLED'],
-  BLOCKED:       ['READY', 'CANCELLED'],
-  READY:         ['IN_PROGRESS', 'CANCELLED'],
-  IN_PROGRESS:   ['DELIVERED', 'FAILED', 'CANCELLED'],
-  DELIVERED:     ['APPROVED', 'IN_PROGRESS'],
-  APPROVED:      [],
-  FAILED:        [],
-  CANCELLED:     [],
+  BLOCKED: ['READY', 'CANCELLED'],
+  READY: ['IN_PROGRESS', 'CANCELLED'],
+  IN_PROGRESS: ['DELIVERED', 'FAILED', 'CANCELLED'],
+  DELIVERED: ['APPROVED', 'IN_PROGRESS'],
+  APPROVED: [],
+  FAILED: [],
+  CANCELLED: [],
 }
 
 // ─── Pagination Wrapper ────────────────────────────────────────────────────────
@@ -163,14 +167,16 @@ const adminService = {
     const { data } = await api.get<{ success: boolean; data: DashboardStats }>('/admin/dashboard')
     return data.data
   },
-  
+
   async getRecentMessages(limit = 10): Promise<Message[]> {
     const { data } = await api.get('/admin/messages/recent', { params: { limit } })
     return data.data
   },
 
   // Orders
-  async listOrders(params: { status?: string; assignedTo?: string; page?: number; limit?: number } = {}): Promise<Paginated<AdminOrder>> {
+  async listOrders(
+    params: { status?: string; assignedTo?: string; page?: number; limit?: number } = {}
+  ): Promise<Paginated<AdminOrder>> {
     const { data } = await api.get('/admin/orders', { params })
     const d = data.data
     return { total: d.total, page: d.page, pages: d.pages, items: d.orders }
@@ -191,7 +197,11 @@ const adminService = {
     return data.data.order
   },
 
-  async transitionItemStatus(oid: string, iid: string, status: OrderItemStatus): Promise<AdminOrderItem> {
+  async transitionItemStatus(
+    oid: string,
+    iid: string,
+    status: OrderItemStatus
+  ): Promise<AdminOrderItem> {
     const { data } = await api.patch(`/admin/orders/${oid}/items/${iid}/status`, { status })
     return data.data.item
   },
@@ -205,7 +215,12 @@ const adminService = {
     await api.post(`/admin/orders/${oid}/items/${iid}/refund`)
   },
 
-  async addAssetToItem(oid: string, iid: string, assetIds: string[], role: string = 'INPUT'): Promise<AdminOrderItem> {
+  async addAssetToItem(
+    oid: string,
+    iid: string,
+    assetIds: string[],
+    role: string = 'INPUT'
+  ): Promise<AdminOrderItem> {
     const { data } = await api.post(`/admin/orders/${oid}/items/${iid}/assets`, { assetIds, role })
     return data.data.item
   },
@@ -223,7 +238,7 @@ const adminService = {
     const { data } = await api.delete(`/admin/orders/${oid}/items/${iid}/links`, { data: { link } })
     return data.data.item
   },
-  
+
   async deliverOrder(id: string): Promise<AdminOrder> {
     const { data } = await api.post(`/orders/${id}/deliver`)
     return data.data
@@ -272,7 +287,9 @@ const adminService = {
   },
 
   // Support Tickets
-  async listTickets(params: { status?: string; category?: string; page?: number; limit?: number } = {}): Promise<Paginated<AdminTicket>> {
+  async listTickets(
+    params: { status?: string; category?: string; page?: number; limit?: number } = {}
+  ): Promise<Paginated<AdminTicket>> {
     const { data } = await api.get('/admin/support/tickets', { params })
     const d = data.data
     return { total: d.total, page: d.page, pages: d.pages, items: d.tickets }
@@ -284,7 +301,9 @@ const adminService = {
   },
 
   // Bug Reports
-  async listBugReports(params: { status?: string; page?: number; limit?: number } = {}): Promise<Paginated<AdminBugReport>> {
+  async listBugReports(
+    params: { status?: string; page?: number; limit?: number } = {}
+  ): Promise<Paginated<AdminBugReport>> {
     const { data } = await api.get('/admin/support/bugs', { params })
     const d = data.data
     return { total: d.total, page: d.page, pages: d.pages, items: d.bugReports }

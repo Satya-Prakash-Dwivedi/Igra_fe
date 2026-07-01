@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
-import { cn } from './Button';
+import React, { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
+import { cn } from './Button'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
-  showPasswordToggle?: boolean;
+  label?: string
+  error?: string
+  showPasswordToggle?: boolean
 }
 
 const Input: React.FC<InputProps> = ({
@@ -16,17 +16,13 @@ const Input: React.FC<InputProps> = ({
   showPasswordToggle = false,
   ...props
 }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const isPassword = type === 'password';
-  const inputType = isPassword && showPassword ? 'text' : type;
+  const [showPassword, setShowPassword] = useState(false)
+  const isPassword = type === 'password'
+  const inputType = isPassword && showPassword ? 'text' : type
 
   return (
     <div className="w-full space-y-1.5">
-      {label && (
-        <label className="text-sm font-medium text-text-muted">
-          {label}
-        </label>
-      )}
+      {label && <label className="text-sm font-medium text-text-muted">{label}</label>}
       <div className="relative">
         <input
           type={inputType}
@@ -49,7 +45,7 @@ const Input: React.FC<InputProps> = ({
       </div>
       {error && <p className="text-xs text-error">{error}</p>}
     </div>
-  );
-};
+  )
+}
 
-export default Input;
+export default Input

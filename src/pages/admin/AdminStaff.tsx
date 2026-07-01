@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { UserPlus, Shield, Trash2, Search, Users, ShieldCheck, Mail, X, ShieldAlert, Zap } from 'lucide-react'
+import {
+  UserPlus,
+  Shield,
+  Trash2,
+  Search,
+  Users,
+  ShieldCheck,
+  Mail,
+  X,
+  ShieldAlert,
+  Zap,
+  Settings,
+} from 'lucide-react'
 import adminService from '../../services/adminService'
 import type { AdminUser } from '../../services/adminService'
 import { serializeError, createLogger } from '../../services/logger'
@@ -18,6 +30,9 @@ const AdminStaff: React.FC = () => {
   // Add Staff Modal State
   const [showAddModal, setShowAddModal] = useState(false)
   const [assignLoading, setAssignLoading] = useState(false)
+
+  // Revoke Staff Modal State
+  const [userToRevoke, setUserToRevoke] = useState<AdminUser | null>(null)
 
   // Wait, searching users to add them
   const [searchQuery, setSearchQuery] = useState('')
@@ -73,10 +88,10 @@ const AdminStaff: React.FC = () => {
   }
 
   const handleRemoveStaff = async (userId: string) => {
-    if (!confirm('Are you sure you want to revoke staff access?')) return
     try {
       await adminService.removeStaff(userId)
       fetchStaff()
+      setUserToRevoke(null)
       toast.success('Staff access revoked')
     } catch (err: any) {
       logger.error('failed_to_remove_staff', { err: serializeError(err) })
@@ -85,92 +100,111 @@ const AdminStaff: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 p-6 md:p-12 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto space-y-8 p-6 md:p-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-white font-bold text-4xl tracking-tight">Studio <span className="text-primary italic">personnel</span></h1>
-          <p className="text-text-dim text-lg font-medium opacity-60">Manage your internal production team and permissions.</p>
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <Settings size={20} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Staff Settings</h1>
+            </div>
+          </div>
+          <div className="mt-2 text-text-muted text-sm font-medium">
+            <p>Manage your internal production team and permissions.</p>
+          </div>
         </div>
         <Button
           variant="primary"
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-8 py-4 rounded-2xl shadow-xl shadow-primary/20"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg shadow-sm"
         >
-          <UserPlus size={20} />
-          Add editor
+          <UserPlus size={18} />
+          Add Editor
         </Button>
       </div>
 
       {error && (
-        <div className="bg-error/10 border border-error/20 text-error p-6 rounded-[2rem] flex items-center gap-4 animate-in shake duration-300 shadow-2xl">
-          <ShieldAlert size={24} />
-          <p className="font-bold">{error}</p>
+        <div className="bg-error/5 border border-error/20 text-error p-4 rounded-xl flex items-center gap-3 shadow-sm">
+          <ShieldAlert size={20} />
+          <p className="font-semibold">{error}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 col-span-full gap-6">
-             <div className="relative">
-                <div className="w-16 h-16 border-2 border-primary/20 rounded-full" />
-                <div className="absolute inset-0 w-16 h-16 border-t-2 border-primary rounded-full animate-spin" />
-             </div>
-             <p className="text-xs font-bold uppercase tracking-[0.2em] text-text-dim/40 animate-pulse">Syncing team records...</p>
+          <div className="flex flex-col items-center justify-center py-20 col-span-full gap-4">
+            <div className="relative">
+              <div className="w-10 h-10 border-2 border-primary/20 rounded-full" />
+              <div className="absolute inset-0 w-10 h-10 border-t-2 border-primary rounded-full animate-spin" />
+            </div>
+            <p className="text-sm font-medium text-text-muted">Syncing team records...</p>
           </div>
         ) : staff.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 col-span-full gap-6 bg-bg-card/40 border border-dashed border-white/5 rounded-[3rem] opacity-40">
-             <Users size={48} className="text-text-dim/20" />
-             <p className="text-xl font-bold italic">No active production staff found</p>
+          <div className="flex flex-col items-center justify-center py-24 col-span-full gap-4 bg-bg-card border border-dashed border-white/10 rounded-xl">
+            <Users size={40} className="text-text-muted/50" />
+            <p className="text-lg font-semibold text-text-muted">
+              No active production staff found
+            </p>
           </div>
         ) : (
-          staff.map((member, i) => (
-            <div key={member._id} className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center text-center group transition-all duration-500 hover:border-primary/40 hover:scale-[1.02] animate-in slide-in-from-bottom-8 duration-700" style={{ animationDelay: `${i * 100}ms` }}>
-              <div className="relative mb-6">
-                <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-2 border-white/10 shadow-2xl group-hover:scale-105 group-hover:border-primary transition-all duration-500">
-                   <img 
-                     src={resolveApiUrl(member.avatar) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
-                     alt="avatar" 
-                     className="w-full h-full object-cover"
-                   />
+          staff.map((member) => (
+            <div
+              key={member._id}
+              className="bg-bg-card border border-white/10 rounded-xl p-6 shadow-sm flex flex-col items-center text-center group transition-colors hover:border-white/20 hover:bg-white/[0.02]"
+            >
+              <div className="relative mb-5">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-primary/50 transition-colors">
+                  <img
+                    src={
+                      resolveApiUrl(member.avatar) ||
+                      'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+                    }
+                    alt="avatar"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div className="absolute -bottom-2 -right-2 bg-bg-dark border border-white/10 rounded-xl p-2 shadow-xl group-hover:rotate-12 transition-transform duration-500">
+                <div className="absolute -bottom-1 -right-1 bg-bg-dark border border-white/10 rounded-lg p-1.5 shadow-sm">
                   {member.role === 'admin' ? (
-                    <ShieldCheck size={18} className="text-primary" />
+                    <ShieldCheck size={16} className="text-primary" />
                   ) : (
-                    <Shield size={18} className="text-success" />
+                    <Shield size={16} className="text-emerald-500" />
                   )}
                 </div>
               </div>
-              
-              <div className="space-y-1 mb-6 w-full">
-                <h3 className="text-white font-bold text-xl tracking-tight group-hover:text-primary transition-colors">{member.name}</h3>
-                <div className="flex items-center justify-center gap-2 text-text-dim/40">
-                   <Mail size={12} />
-                   <p className="text-xs font-medium truncate max-w-[200px]">{member.email}</p>
+
+              <div className="space-y-1 mb-5 w-full">
+                <h3 className="text-white font-semibold text-lg truncate px-2">{member.name}</h3>
+                <div className="flex items-center justify-center gap-1.5 text-text-muted">
+                  <Mail size={12} />
+                  <p className="text-xs font-medium truncate max-w-[200px]">{member.email}</p>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-3 mb-10">
-                 <div className={cn(
-                    "px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all duration-500",
-                    member.role === 'admin' 
-                      ? "bg-primary/10 border-primary/20 text-primary shadow-[0_0_20px_rgba(225,29,72,0.1)]" 
-                      : "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
-                 )}>
-                   {member.role}
-                 </div>
-                 <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+
+              <div className="flex items-center justify-center mb-8">
+                <div
+                  className={cn(
+                    'px-3 py-1 rounded text-xs font-semibold uppercase tracking-wider',
+                    member.role === 'admin'
+                      ? 'bg-primary/10 text-primary'
+                      : 'bg-emerald-500/10 text-emerald-500'
+                  )}
+                >
+                  {member.role}
+                </div>
               </div>
 
-              <div className="flex flex-col w-full gap-3 mt-auto pt-6">
-                <button
-                  onClick={() => handleRemoveStaff(member._id)}
-                  className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-error border border-error/10 hover:bg-error hover:text-white transition-all duration-500 opacity-0 group-hover:opacity-100 shadow-xl shadow-error/5"
+              <div className="flex flex-col w-full mt-auto">
+                <Button
+                  variant="outline"
+                  onClick={() => setUserToRevoke(member)}
+                  className="w-full text-error border-error/20 hover:bg-error/10 text-sm font-semibold flex items-center justify-center gap-2"
                 >
-                  <Trash2 size={14} />
-                  Revoke access
-                </button>
+                  <Trash2 size={16} />
+                  Revoke Access
+                </Button>
               </div>
             </div>
           ))
@@ -179,61 +213,84 @@ const AdminStaff: React.FC = () => {
 
       {showAddModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-2xl animate-in fade-in duration-500" onClick={() => setShowAddModal(false)} />
-          
-          <div className="bg-bg-card/60 backdrop-blur-3xl w-full max-w-lg rounded-[3rem] shadow-[0_50px_200px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden relative z-10 animate-in zoom-in-95 duration-500">
-            <div className="p-10 border-b border-white/5 flex justify-between items-center bg-black/20">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowAddModal(false)}
+          />
+
+          <div className="bg-bg-card w-full max-w-lg rounded-xl shadow-xl border border-white/10 overflow-hidden relative z-10">
+            <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
               <div className="space-y-1">
-                 <h2 className="text-2xl font-bold text-white tracking-tight">Onboard personnel</h2>
-                 <p className="text-text-dim text-xs font-medium opacity-60">Grant production privileges to an existing user.</p>
+                <h2 className="text-lg font-semibold text-white">Add Staff Member</h2>
+                <p className="text-text-muted text-sm">
+                  Grant production privileges to an existing user.
+                </p>
               </div>
-              <button onClick={() => setShowAddModal(false)} className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-text-dim hover:text-white hover:bg-white/10 transition-all">
-                <X size={20} />
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X size={18} />
               </button>
             </div>
-            
-            <div className="p-10 space-y-8">
-              <form onSubmit={handleSearchUsers} className="relative group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-text-dim/40 group-focus-within:text-primary transition-all duration-300" size={20} />
-                <input 
-                  type="text" 
+
+            <div className="p-6 space-y-6">
+              <form onSubmit={handleSearchUsers} className="relative">
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"
+                  size={18}
+                />
+                <input
+                  type="text"
                   placeholder="Identify user by email or name..."
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full pl-14 pr-6 py-5 bg-black/20 border border-white/5 rounded-2xl text-white placeholder:text-text-dim/20 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/40 transition-all shadow-inner font-medium"
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder:text-text-muted/60 focus:outline-none focus:border-primary/50 transition-colors"
                 />
-                <button type="submit" className="hidden">Search</button>
+                <button type="submit" className="hidden">
+                  Search
+                </button>
               </form>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {searchLoading ? (
-                  <div className="flex flex-col items-center py-10 gap-4 opacity-40">
-                     <Loader2 size={32} className="animate-spin text-primary" />
-                     <p className="text-xs font-bold uppercase tracking-widest">Scanning records...</p>
+                  <div className="flex flex-col items-center py-8 gap-3">
+                    <Loader2 size={24} className="animate-spin text-primary" />
+                    <p className="text-sm text-text-muted">Scanning records...</p>
                   </div>
                 ) : searchResults.length === 0 ? (
                   searchQuery && (
-                    <div className="py-10 text-center opacity-20">
-                       <p className="text-sm font-bold italic">No matching records found</p>
+                    <div className="py-8 text-center text-text-muted">
+                      <p className="text-sm">No matching records found</p>
                     </div>
                   )
                 ) : (
-                  searchResults.map(u => (
-                    <div key={u._id} className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-[1.5rem] group hover:border-primary/40 transition-all duration-500 shadow-xl">
-                      <div className="flex items-center gap-4">
-                         <img src={resolveApiUrl(u.avatar) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} className="w-12 h-12 rounded-xl object-cover border border-white/10 shadow-lg" />
-                         <div className="min-w-0">
-                           <p className="text-white font-bold tracking-tight truncate max-w-[150px]">{u.name}</p>
-                           <p className="text-xs text-text-dim/60 font-medium truncate max-w-[150px]">{u.email}</p>
-                         </div>
+                  searchResults.map((u) => (
+                    <div
+                      key={u._id}
+                      className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-lg hover:border-white/20 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={
+                            resolveApiUrl(u.avatar) ||
+                            'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+                          }
+                          className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                        />
+                        <div className="min-w-0 pr-4">
+                          <p className="text-white font-semibold text-sm truncate">{u.name}</p>
+                          <p className="text-xs text-text-muted truncate">{u.email}</p>
+                        </div>
                       </div>
                       <Button
+                        variant="primary"
                         disabled={assignLoading}
                         onClick={() => handleAssignStaff(u._id)}
-                        className="px-6 rounded-xl shadow-lg shadow-primary/10 flex items-center gap-2 group-hover:scale-105"
+                        className="px-4 py-1.5 text-sm flex items-center gap-1.5 shrink-0"
                       >
                         <Zap size={14} />
-                        Grant access
+                        Grant
                       </Button>
                     </div>
                   ))
@@ -243,24 +300,58 @@ const AdminStaff: React.FC = () => {
           </div>
         </div>
       )}
+
+      {userToRevoke && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setUserToRevoke(null)}
+          />
+          <div className="bg-bg-card w-full max-w-sm rounded-xl shadow-xl border border-white/10 overflow-hidden relative z-10 p-6 text-center space-y-6">
+            <div className="w-12 h-12 bg-error/10 text-error rounded-full flex items-center justify-center mx-auto">
+              <ShieldAlert size={24} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-white">Revoke Access?</h2>
+              <p className="text-text-muted text-sm leading-relaxed">
+                Are you sure you want to revoke production staff access for{' '}
+                <span className="text-white font-semibold">{userToRevoke.name}</span>? They will
+                lose all administrative privileges immediately.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 w-full">
+              <Button variant="outline" className="flex-1" onClick={() => setUserToRevoke(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                className="flex-1 bg-error hover:bg-error/90"
+                onClick={() => handleRemoveStaff(userToRevoke._id)}
+              >
+                Revoke
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-const Loader2 = ({ size, className }: { size: number, className?: string }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
+const Loader2 = ({ size, className }: { size: number; className?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     className={className}
   >
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
   </svg>
-);
+)
 
 export default AdminStaff

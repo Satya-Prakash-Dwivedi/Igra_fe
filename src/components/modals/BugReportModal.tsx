@@ -1,6 +1,14 @@
 import React, { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowLeft, Upload, AlertCircle, CheckCircle2, Trash2, File as FileIcon, Loader2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Upload,
+  AlertCircle,
+  CheckCircle2,
+  Trash2,
+  File as FileIcon,
+  Loader2,
+} from 'lucide-react'
 import Button from '../Button'
 import supportService from '../../services/supportService'
 import * as uploadApi from '../../services/uploadService'
@@ -104,9 +112,14 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
               </div>
               <h3 className="text-text-main font-bold text-xl">Bug report sent!</h3>
               <p className="text-text-muted text-sm max-w-xs leading-relaxed">
-                Thanks for helping us improve Igra Studios. {wantsFollowUp ? "We'll follow up with you shortly." : ''}
+                Thanks for helping us improve Igra Studios.{' '}
+                {wantsFollowUp ? "We'll follow up with you shortly." : ''}
               </p>
-              <Button variant="primary" onClick={handleClose} className="mt-4 px-8 py-3 rounded-xl font-bold">
+              <Button
+                variant="primary"
+                onClick={handleClose}
+                className="mt-4 px-8 py-3 rounded-xl font-bold"
+              >
                 Done
               </Button>
             </div>
@@ -137,7 +150,8 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
                     What isn't working as expected?
                   </label>
                   <p className="text-text-muted text-xs leading-relaxed">
-                    Please use as many descriptors as possible to expedite a fix. What were you doing when you found the bug? How might we replicate it?
+                    Please use as many descriptors as possible to expedite a fix. What were you
+                    doing when you found the bug? How might we replicate it?
                   </p>
                   <textarea
                     value={description}
@@ -150,13 +164,17 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
                 {/* Screenshot Upload */}
                 <div className="space-y-3">
                   <label className="text-text-main font-semibold block text-sm">
-                    Upload screenshots <span className="text-text-muted font-normal">(optional)</span>
+                    Upload screenshots{' '}
+                    <span className="text-text-muted font-normal">(optional)</span>
                   </label>
                   <div
                     onClick={() => screenshotInputRef.current?.click()}
                     className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary transition-all group"
                   >
-                    <Upload size={24} className="text-text-muted group-hover:text-primary transition-colors" />
+                    <Upload
+                      size={24}
+                      className="text-text-muted group-hover:text-primary transition-colors"
+                    />
                     <p className="text-text-muted text-sm">
                       Drop files here to upload (or <span className="text-primary">click</span>)
                     </p>
@@ -172,12 +190,19 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
                   {screenshots.length > 0 && (
                     <div className="space-y-2">
                       {screenshots.map((file, i) => (
-                        <div key={i} className="flex items-center justify-between bg-bg-dark border border-border rounded-lg px-3 py-2">
+                        <div
+                          key={i}
+                          className="flex items-center justify-between bg-bg-dark border border-border rounded-lg px-3 py-2"
+                        >
                           <div className="flex items-center gap-2 min-w-0">
                             <FileIcon size={14} className="text-text-muted flex-shrink-0" />
                             <span className="text-text-main text-xs truncate">{file.name}</span>
                           </div>
-                          <button type="button" onClick={() => removeScreenshot(i)} className="text-text-muted hover:text-error transition-colors ml-2">
+                          <button
+                            type="button"
+                            onClick={() => removeScreenshot(i)}
+                            className="text-text-muted hover:text-error transition-colors ml-2"
+                          >
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -224,7 +249,13 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
                 )}
 
                 {/* Submit */}
-                <Button variant="primary" type="submit" fullWidth isLoading={isSubmitting} className="py-3 rounded-xl font-semibold mt-4">
+                <Button
+                  variant="primary"
+                  type="submit"
+                  fullWidth
+                  isLoading={isSubmitting}
+                  className="py-3 rounded-xl font-semibold mt-4"
+                >
                   {isUploadingFiles ? (
                     <span className="flex items-center gap-2">
                       <Loader2 size={16} className="animate-spin" /> Uploading screenshots...

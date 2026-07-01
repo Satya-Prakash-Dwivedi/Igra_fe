@@ -1,98 +1,98 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  MessageSquare, 
-  Send, 
-  Paperclip, 
-  User as UserIcon, 
-  ShieldCheck, 
+import React, { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  MessageSquare,
+  Send,
+  Paperclip,
+  User as UserIcon,
+  ShieldCheck,
   Info,
-  Loader2
-} from 'lucide-react';
-import messageService from '../services/messageService';
-import type { Message } from '../services/messageService';
-import { createLogger, serializeError } from '../services/logger';
-import { cn } from '../components/Button';
-import Button from '../components/Button';
-import { useAuth } from '../hooks/useAuth';
-import socketService from '../services/socketService';
-import { resolveApiUrl } from '../utils/urlUtils';
+  Loader2,
+} from 'lucide-react'
+import messageService from '../services/messageService'
+import type { Message } from '../services/messageService'
+import { createLogger, serializeError } from '../services/logger'
+import { cn } from '../components/Button'
+import Button from '../components/Button'
+import { useAuth } from '../hooks/useAuth'
+import socketService from '../services/socketService'
+import { resolveApiUrl } from '../utils/urlUtils'
 
-const logger = createLogger('Messages');
+const logger = createLogger('Messages')
 
 const Messages: React.FC = () => {
-  const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [content, setContent] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth()
+  const [messages, setMessages] = useState<Message[]>([])
+  const [loading, setLoading] = useState(true)
+  const [content, setContent] = useState('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const userId = user?._id || user?.id;
+    const userId = user?._id || user?.id
     if (userId) {
-      fetchMessages();
-      
-      const socket = socketService.getSocket();
-      
+      fetchMessages()
+
+      const socket = socketService.getSocket()
+
       const setupSocket = () => {
-        socketService.joinDM(userId!);
-      };
+        socketService.joinDM(userId!)
+      }
 
       const handleNewDM = (msg: Message) => {
-        setMessages(prev => {
-          if (prev.find(m => m._id === msg._id)) return prev;
-          return [...prev, msg];
-        });
-        setTimeout(() => scrollToBottom(), 100);
-      };
+        setMessages((prev) => {
+          if (prev.find((m) => m._id === msg._id)) return prev
+          return [...prev, msg]
+        })
+        setTimeout(() => scrollToBottom(), 100)
+      }
 
-      socket.on('connect', setupSocket);
-      socket.on('new-dm', handleNewDM);
-      
+      socket.on('connect', setupSocket)
+      socket.on('new-dm', handleNewDM)
+
       // Initial join
       if (socket.connected) {
-        setupSocket();
+        setupSocket()
       }
 
       return () => {
-        socket.off('connect', setupSocket);
-        socket.off('new-dm', handleNewDM);
-        socketService.leaveDM(userId!);
-      };
+        socket.off('connect', setupSocket)
+        socket.off('new-dm', handleNewDM)
+        socketService.leaveDM(userId!)
+      }
     }
-  }, [user?._id, user?.id]);
+  }, [user?._id, user?.id])
 
   const fetchMessages = async () => {
     try {
-      setLoading(true);
-      const data = await messageService.getDirectMessages();
-      setMessages(data.messages);
-      setTimeout(() => scrollToBottom(), 100);
+      setLoading(true)
+      const data = await messageService.getDirectMessages()
+      setMessages(data.messages)
+      setTimeout(() => scrollToBottom(), 100)
     } catch (err) {
-      logger.error('messages.load_failed', { error: serializeError(err) });
+      logger.error('messages.load_failed', { error: serializeError(err) })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!content.trim()) return;
+    e.preventDefault()
+    if (!content.trim()) return
 
-    const tempContent = content;
-    setContent('');
+    const tempContent = content
+    setContent('')
 
     try {
-      await messageService.sendDirectMessage({ content: tempContent });
+      await messageService.sendDirectMessage({ content: tempContent })
     } catch (err) {
-      setContent(tempContent);
-      logger.error('messages.send_failed', { error: serializeError(err) });
+      setContent(tempContent)
+      logger.error('messages.send_failed', { error: serializeError(err) })
     }
-  };
+  }
 
   return (
     <div className="w-full max-w-5xl mx-auto h-[calc(100dvh-120px)] md:h-[calc(100vh-120px)] flex flex-col p-2 sm:p-6 animate-in fade-in duration-500 relative">
@@ -107,16 +107,21 @@ const Messages: React.FC = () => {
             Direct chat with Igra Studios editors
           </p>
         </div>
-        
+
         <div className="hidden md:flex items-center gap-3 bg-bg-card/40 border border-white/5 px-4 py-2 rounded-xl backdrop-blur-xl">
-           <div className="flex -space-x-1.5">
-              {[1,2,3].map(i => (
-                <div key={i} className="w-6 h-6 rounded-full border-2 border-bg-dark bg-bg-card flex items-center justify-center overflow-hidden">
-                   <UserIcon size={12} className="text-text-dim/40" />
-                </div>
-              ))}
-           </div>
-           <span className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Editors online</span>
+          <div className="flex -space-x-1.5">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="w-6 h-6 rounded-full border-2 border-bg-dark bg-bg-card flex items-center justify-center overflow-hidden"
+              >
+                <UserIcon size={12} className="text-text-dim/40" />
+              </div>
+            ))}
+          </div>
+          <span className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+            Editors online
+          </span>
         </div>
       </div>
 
@@ -126,7 +131,9 @@ const Messages: React.FC = () => {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 size={32} className="animate-spin text-primary/40" />
-              <p className="text-[10px] font-bold uppercase tracking-widest text-text-dim/40">Loading messages...</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-text-dim/40">
+                Loading messages...
+              </p>
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-40">
@@ -138,38 +145,62 @@ const Messages: React.FC = () => {
             </div>
           ) : (
             messages.map((msg) => {
-              if (!msg) return null;
-              const isMe = msg.senderRole === 'client';
-              const senderAvatar = msg.senderId && typeof msg.senderId === 'object' ? msg.senderId.avatar : null;
-              const senderName = msg.senderId && typeof msg.senderId === 'object' ? msg.senderId.name : (isMe ? 'You' : 'Editor');
-              
+              if (!msg) return null
+              const isMe = msg.senderRole === 'client'
+              const senderAvatar =
+                msg.senderId && typeof msg.senderId === 'object' ? msg.senderId.avatar : null
+              const senderName =
+                msg.senderId && typeof msg.senderId === 'object'
+                  ? msg.senderId.name
+                  : isMe
+                    ? 'You'
+                    : 'Editor'
+
               return (
-                <div key={msg._id} className={cn("flex items-start gap-2 sm:gap-4 max-w-[90%] sm:max-w-[85%] animate-in duration-300", isMe ? "ml-auto flex-row-reverse" : "slide-in-from-left-2")}>
+                <div
+                  key={msg._id}
+                  className={cn(
+                    'flex items-start gap-2 sm:gap-4 max-w-[90%] sm:max-w-[85%] animate-in duration-300',
+                    isMe ? 'ml-auto flex-row-reverse' : 'slide-in-from-left-2'
+                  )}
+                >
                   <div className="w-10 h-10 rounded-xl border border-white/5 flex items-center justify-center bg-bg-dark text-white font-bold text-xs flex-shrink-0 overflow-hidden shadow-lg">
                     {senderAvatar ? (
-                      <img src={resolveApiUrl(senderAvatar)} className="w-full h-full object-cover" />
+                      <img
+                        src={resolveApiUrl(senderAvatar)}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : isMe ? (
+                      <UserIcon size={18} className="text-primary" />
                     ) : (
-                      isMe ? <UserIcon size={18} className="text-primary" /> : <ShieldCheck size={18} className="text-success" />
+                      <ShieldCheck size={18} className="text-success" />
                     )}
                   </div>
-                  <div className={cn("space-y-1.5", isMe ? "text-right" : "text-left")}>
-                    <div className={cn("flex items-center gap-2", isMe && "flex-row-reverse")}>
+                  <div className={cn('space-y-1.5', isMe ? 'text-right' : 'text-left')}>
+                    <div className={cn('flex items-center gap-2', isMe && 'flex-row-reverse')}>
                       <span className="text-white text-[10px] font-bold">{senderName}</span>
                       <span className="text-text-dim/40 text-[9px] font-bold uppercase tracking-wider">
-                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        {msg.createdAt
+                          ? new Date(msg.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : ''}
                       </span>
                     </div>
-                    <div className={cn(
-                      "px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium leading-relaxed shadow-xl",
-                      isMe 
-                        ? "bg-primary text-white rounded-2xl rounded-tr-none" 
-                        : "bg-bg-dark border border-white/5 text-text-dim rounded-2xl rounded-tl-none"
-                    )}>
+                    <div
+                      className={cn(
+                        'px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium leading-relaxed shadow-xl',
+                        isMe
+                          ? 'bg-primary text-white rounded-2xl rounded-tr-none'
+                          : 'bg-bg-dark border border-white/5 text-text-dim rounded-2xl rounded-tl-none'
+                      )}
+                    >
                       {msg.content}
                     </div>
                   </div>
                 </div>
-              );
+              )
             })
           )}
           <div ref={messagesEndRef} />
@@ -177,18 +208,25 @@ const Messages: React.FC = () => {
 
         {/* Input Bar */}
         <div className="p-4 bg-black/40 border-t border-white/5">
-          <form onSubmit={handleSend} className="flex items-center gap-2 sm:gap-3 bg-bg-dark/60 border border-white/5 rounded-xl px-2 sm:px-4 py-1.5 sm:py-2 focus-within:border-primary/40 transition-all shadow-inner">
-            <button type="button" className="text-text-dim/40 hover:text-white transition-colors p-1 sm:p-2" title="Attach file">
+          <form
+            onSubmit={handleSend}
+            className="flex items-center gap-2 sm:gap-3 bg-bg-dark/60 border border-white/5 rounded-xl px-2 sm:px-4 py-1.5 sm:py-2 focus-within:border-primary/40 transition-all shadow-inner"
+          >
+            <button
+              type="button"
+              className="text-text-dim/40 hover:text-white transition-colors p-1 sm:p-2"
+              title="Attach file"
+            >
               <Paperclip size={18} />
             </button>
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Type your message..."
               value={content}
-              onChange={e => setContent(e.target.value)}
+              onChange={(e) => setContent(e.target.value)}
               className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-text-dim/20 py-2 text-sm w-full min-w-0"
             />
-            <Button 
+            <Button
               type="submit"
               disabled={!content.trim()}
               className="h-10 w-10 p-0 flex items-center justify-center rounded-lg flex-shrink-0"
@@ -197,20 +235,25 @@ const Messages: React.FC = () => {
             </Button>
           </form>
           <div className="mt-2 flex items-center justify-center gap-2 text-text-dim/20">
-             <ShieldCheck size={10} />
-             <span className="text-[9px] font-bold uppercase tracking-widest">End-to-end encrypted</span>
+            <ShieldCheck size={10} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">
+              End-to-end encrypted
+            </span>
           </div>
         </div>
       </div>
 
       <div className="mt-6 flex flex-col md:flex-row items-center justify-center gap-4 opacity-60 hover:opacity-100 transition-opacity">
         <p className="text-text-dim/60 text-xs">Need technical help?</p>
-        <Link to="/support" className="flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-lg border border-white/5 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
-           Open support ticket
+        <Link
+          to="/support"
+          className="flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-lg border border-white/5 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
+        >
+          Open support ticket
         </Link>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Messages;
+export default Messages
