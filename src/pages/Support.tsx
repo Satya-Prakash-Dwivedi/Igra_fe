@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   LifeBuoy,
-  MessageSquare,
   BookOpen,
   Mail,
   ArrowRight,
@@ -22,20 +21,12 @@ const Support = () => {
 
   const cards = [
     {
-      title: 'Community Chat',
-      subtitle: 'Connect with other creators and our staff on our official Discord server.',
-      icon: <MessageSquare size={24} />,
-      tag: 'Live',
-      active: true,
-      onClick: () => window.open('https://discord.gg/igrastudios', '_blank'),
-    },
-    {
       title: 'Email Support',
       subtitle: 'For complex issues, reach out to our team directly via email.',
       icon: <Mail size={24} />,
       tag: '24h Response',
       active: true,
-      onClick: () => (window.location.href = 'mailto:support@igrastudios.com'),
+      onClick: () => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=Prithviraj@igratech.com', '_blank'),
     },
     {
       title: 'API Status',
@@ -66,30 +57,19 @@ const Support = () => {
           </p>
         </div>
 
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex -space-x-2">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="w-8 h-8 rounded-full border-2 border-bg-dark bg-bg-card overflow-hidden grayscale hover:grayscale-0 transition-all"
-              >
-                <img
-                  src={`https://i.pravatar.cc/100?u=support${i}`}
-                  alt="Support"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-          <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Specialists online
-          </p>
+        <div className="flex items-center">
+          <Button
+            onClick={() => setIsTicketModalOpen(true)}
+            className="h-12 px-6 rounded-xl font-bold"
+          >
+            <Plus size={20} className="mr-2" />
+            Create Ticket
+          </Button>
         </div>
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-6 relative z-10">
         {cards.map((card, idx) => (
           <div
             key={idx}
@@ -170,25 +150,7 @@ const Support = () => {
         </div>
       </div>
 
-      {/* Ticket Action */}
-      <div className="flex flex-col items-center gap-8 border-t border-white/5 pt-16 relative z-10">
-        <div className="text-center space-y-2">
-          <LifeBuoy size={40} className="mx-auto text-primary/20 mb-4" />
-          <h2 className="text-2xl font-bold text-white">Still need help?</h2>
-          <p className="text-text-dim/40 text-sm max-w-sm mx-auto">
-            If our guides aren't enough, please create a support ticket and we'll get back to you
-            shortly.
-          </p>
-        </div>
 
-        <Button
-          onClick={() => setIsTicketModalOpen(true)}
-          className="h-14 px-10 rounded-xl font-bold"
-        >
-          <Plus size={20} className="mr-2" />
-          Create Support Ticket
-        </Button>
-      </div>
 
       <SupportTicketModal isOpen={isTicketModalOpen} onClose={() => setIsTicketModalOpen(false)} />
     </div>

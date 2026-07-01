@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Package,
+  LifeBuoy,
 } from 'lucide-react'
 import { cn } from '../Button'
 import { useAuth } from '../../hooks/useAuth'
@@ -227,6 +228,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                   to="/profile"
                   icon={<UserCircle size={18} />}
                   label="Profile"
+                  collapsed={isCollapsed}
+                />
+                <NavItem
+                  to="/support"
+                  icon={<LifeBuoy size={18} />}
+                  label="Support"
                   collapsed={isCollapsed}
                 />
                 <NavItem
