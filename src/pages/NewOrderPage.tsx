@@ -35,7 +35,8 @@ const THUMBNAIL_STYLES = [
 ]
 
 const SERVICE_CATALOG = [
-  { kind: 'VIDEO_EDIT', label: 'Video editing', icon: PlaySquare, desc: 'Professional post-production with premium tiered packages', minCredits: 70 },
+  { kind: 'VIDEO_EDIT', label: 'Talking head/Vlog', icon: PlaySquare, desc: 'Professional post-production with premium tiered packages', minCredits: 70 },
+  { kind: 'GAMING_STREAMS', label: 'Gaming/Streams', icon: PlaySquare, desc: 'Professional post-production for gaming content', minCredits: 60 },
   { kind: 'THUMBNAIL', label: 'Thumbnail design', icon: Image, desc: 'High-impact visuals for maximum click-through', minCredits: 10 },
   { kind: 'INTRO', label: 'Custom intro', icon: PlayCircle, desc: 'Cinematic brand identifiers for your content', minCredits: 20 },
   { kind: 'CHANNEL_BANNER', label: 'Channel banner', icon: Layout, desc: 'Cohesive brand identity for your profile', minCredits: 15 },
@@ -62,16 +63,18 @@ function estimateCredits(item: DraftItem): number {
   const cat = SERVICE_CATALOG.find(s => s.kind === item.kind)
   let base = cat?.minCredits || 0
 
-  if (item.kind === 'VIDEO_EDIT') {
+  if (item.kind === 'VIDEO_EDIT' || item.kind === 'GAMING_STREAMS') {
     const tier = params.packageTier || 'BASIC'
-    if (tier === 'BASIC') {
-      base = 70
-    } else if (tier === 'STANDARD') {
-      base = 105
-    } else if (tier === 'PREMIUM') {
-      base = 130
+    if (item.kind === 'VIDEO_EDIT') {
+      if (tier === 'BASIC') base = 70
+      else if (tier === 'STANDARD') base = 105
+      else if (tier === 'PREMIUM') base = 130
+      else base = 70
     } else {
-      base = 70
+      if (tier === 'BASIC') base = 60
+      else if (tier === 'STANDARD') base = 80
+      else if (tier === 'PREMIUM') base = 100
+      else base = 60
     }
 
     if (params.deliverySpeed === 'EXPRESS') {
@@ -278,7 +281,7 @@ export default function NewOrderPage() {
 
   const handleAddPackage = (kind: string) => {
     const initialParams: any = {}
-    if (kind === 'VIDEO_EDIT') {
+    if (kind === 'VIDEO_EDIT' || kind === 'GAMING_STREAMS') {
       initialParams.packageTier = 'BASIC'
       initialParams.deliverySpeed = 'STANDARD'
       initialParams.videoFormat = 'Horizontal (16:9)'
@@ -548,7 +551,7 @@ export default function NewOrderPage() {
                       <div className="flex justify-between items-baseline">
                         <h3 className="font-bold text-lg text-white">{pkg.label}</h3>
                         <span className="text-[10px] font-black text-primary uppercase tracking-wider bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-md shadow-sm">
-                          {pkg.kind === 'VIDEO_EDIT' ? 'From 70' : pkg.minCredits} Cr
+                          {pkg.kind === 'VIDEO_EDIT' ? 'From 70' : (pkg.kind === 'GAMING_STREAMS' ? 'From 60' : pkg.minCredits)} Cr
                         </span>
                       </div>
                       <p className="text-xs text-text-dim leading-relaxed line-clamp-2">{pkg.desc}</p>
@@ -562,7 +565,7 @@ export default function NewOrderPage() {
                           count > 0 ? "bg-primary text-white" : "bg-white/5 text-white hover:bg-white/10"
                         )}
                       >
-                        <Plus size={14} /> Add Service
+                        <Plus size={14} /> {pkg.kind === 'VIDEO_EDIT' || pkg.kind === 'GAMING_STREAMS' ? 'Select Package' : 'Add Service'}
                       </button>
                       {count > 0 && (
                         <button
@@ -611,7 +614,7 @@ export default function NewOrderPage() {
                       </button>
                     </div>
 
-                    {item.kind === 'VIDEO_EDIT' ? (
+                    {item.kind === 'VIDEO_EDIT' || item.kind === 'GAMING_STREAMS' ? (
                       <div className="space-y-10 px-8 py-10">
                         {/* Package Tier Selection */}
                         <div className="space-y-6">
@@ -622,16 +625,16 @@ export default function NewOrderPage() {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {[
                               { 
-                                id: 'BASIC', label: 'BASIC PACKAGE', credits: 70, 
-                                features: ['6-day delivery', 'Unlimited Revisions', 'Up to 30 minutes of footage provided', 'Up to 5 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
+                                id: 'BASIC', label: 'BASIC PACKAGE', credits: item.kind === 'GAMING_STREAMS' ? 60 : 70, 
+                                features: ['6-day delivery', 'Unlimited Revisions', item.kind === 'GAMING_STREAMS' ? '2 hours of raw footage' : 'Up to 30 minutes of footage provided', item.kind === 'GAMING_STREAMS' ? 'Runtime: 7 mins' : 'Up to 5 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
                               },
                               { 
-                                id: 'STANDARD', label: 'STANDARD PACKAGE', credits: 105, 
-                                features: ['7-day delivery', 'Unlimited Revisions', 'Up to 60 minutes of footage provided', 'Up to 10 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
+                                id: 'STANDARD', label: 'STANDARD PACKAGE', credits: item.kind === 'GAMING_STREAMS' ? 80 : 105, 
+                                features: ['7-day delivery', 'Unlimited Revisions', item.kind === 'GAMING_STREAMS' ? '4 hours of raw footage' : 'Up to 60 minutes of footage provided', item.kind === 'GAMING_STREAMS' ? 'Runtime: 12 mins' : 'Up to 10 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
                               },
                               { 
-                                id: 'PREMIUM', label: 'PREMIUM PACKAGE', credits: 130, 
-                                features: ['7-day delivery', 'Unlimited Revisions', 'Up to 120 minutes of footage provided', 'Up to 15 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
+                                id: 'PREMIUM', label: 'PREMIUM PACKAGE', credits: item.kind === 'GAMING_STREAMS' ? 100 : 130, 
+                                features: ['7-day delivery', 'Unlimited Revisions', item.kind === 'GAMING_STREAMS' ? '6 hours of raw footage' : 'Up to 120 minutes of footage provided', item.kind === 'GAMING_STREAMS' ? 'Runtime: 17 mins' : 'Up to 15 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
                               },
                             ].map((tier) => (
                               <button
@@ -651,7 +654,7 @@ export default function NewOrderPage() {
                               >
                                 <div className="space-y-3 w-full">
                                   <span className="text-xs font-bold uppercase tracking-widest">{tier.label}</span>
-                                  <ul className="text-[10px] opacity-70 leading-relaxed space-y-1 text-left list-disc pl-3">
+                                  <ul className="text-xs text-white leading-relaxed space-y-1.5 text-left list-disc pl-4">
                                     {tier.features.map((f, i) => (
                                       <li key={i}>{f}</li>
                                     ))}

@@ -412,7 +412,7 @@ export default function OrderDetail() {
                       <Package size={20} />
                     </div>
                     <div className="space-y-1">
-                      <h3 className="font-bold text-white uppercase tracking-tight">{item.kind.replace(/_/g, ' ')}</h3>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-tight">{item.kind === 'VIDEO_EDIT' ? 'Talking head/Vlog' : item.kind === 'GAMING_STREAMS' ? 'Gaming/Streams' : item.kind.replace(/_/g, ' ')}</h3>
                       <p className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">{item.creditsQuoted} Credits</p>
                     </div>
                   </div>
@@ -646,6 +646,14 @@ export default function OrderDetail() {
                         <div>
                           <span className="text-[8px] text-success/60 font-bold uppercase tracking-widest block mb-1">Status</span>
                           <p className="text-xs text-white leading-relaxed">The production team has uploaded and delivered the revised assets.</p>
+                        </div>
+                      </div>
+                    )}
+                    {event.type === 'STATUS_CHANGED' && event.data && (
+                      <div className="mt-2 p-4 bg-black/20 rounded-xl border border-white/5 space-y-3 max-w-2xl">
+                        <div>
+                          <span className="text-[8px] text-text-dim/40 font-bold uppercase tracking-widest block mb-1">New Status</span>
+                          <p className="text-xs text-white leading-relaxed font-bold">{event.data.status?.replace(/_/g, ' ')}</p>
                         </div>
                       </div>
                     )}

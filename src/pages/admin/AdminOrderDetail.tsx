@@ -340,7 +340,7 @@ const ItemCard: React.FC<{
           </div>
           <div>
             <h3 className="text-base font-bold text-white tracking-tight  mb-1">
-              {item.kind.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+              {item.kind === 'VIDEO_EDIT' ? 'Talking head/Vlog' : item.kind === 'GAMING_STREAMS' ? 'Gaming/Streams' : item.kind.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
             </h3>
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-xs font-bold uppercase tracking-wide text-primary/60">ID-{item._id.slice(-4)}</span>
