@@ -11,8 +11,8 @@
   --color-primary-hover: #E53A2A;
   --color-primary-glow: rgba(var(--color-primary-rgb), 0.15);
   
-  --color-text-main: #f1f5f9;
-  --color-text-muted: #cbd5e1;
+  --color-text-main: #ffffff;
+  --color-text-muted: #e2e8f0;
   --color-text-dim: #94a3b8;
   
   --color-border: #273142;
@@ -40,8 +40,8 @@
   --primary: #FE4331;
   --primary-rgb: 254, 67, 49;
   --primary-hover: #E53A2A;
-  --text-main: #f1f5f9;
-  --text-muted: #cbd5e1;
+  --text-main: #ffffff;
+  --text-muted: #e2e8f0;
   --text-dim: #94a3b8;
   --border: #273142;
   --border-glass: rgba(255, 255, 255, 0.08);

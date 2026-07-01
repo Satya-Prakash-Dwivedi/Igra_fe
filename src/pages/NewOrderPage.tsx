@@ -453,7 +453,7 @@ export default function NewOrderPage() {
           </button>
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-white tracking-tight">New Order</h1>
-            <p className="text-text-dim/60 text-xs font-bold uppercase tracking-widest">
+            <p className="text-text-dim text-xs font-bold uppercase tracking-widest">
               Step {stepIndex + 1} of 4: {STEPS[stepIndex].label}
             </p>
           </div>
@@ -488,7 +488,7 @@ export default function NewOrderPage() {
           <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 p-8 md:p-12 space-y-8 shadow-xl">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white">Give your project a title</h2>
-              <p className="text-text-dim/60 text-sm">This helps you and our editors identify your project easily.</p>
+              <p className="text-text-dim text-sm">This helps you and our editors identify your project easily.</p>
             </div>
             <input
               type="text"
@@ -518,7 +518,7 @@ export default function NewOrderPage() {
           <div className="space-y-8">
             <div className="space-y-1">
               <h2 className="text-2xl font-bold text-white">Select Services</h2>
-              <p className="text-text-dim/60 text-sm">Choose what you need for this project.</p>
+              <p className="text-text-dim text-sm">Choose what you need for this project.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -551,7 +551,7 @@ export default function NewOrderPage() {
                           {pkg.kind === 'VIDEO_EDIT' ? 'From 70' : pkg.minCredits} Cr
                         </span>
                       </div>
-                      <p className="text-xs text-text-dim/60 leading-relaxed line-clamp-2">{pkg.desc}</p>
+                      <p className="text-xs text-text-dim leading-relaxed line-clamp-2">{pkg.desc}</p>
                     </div>
 
                     <div className="flex gap-3 mt-auto">
@@ -588,7 +588,7 @@ export default function NewOrderPage() {
           <div className="space-y-8">
             <div className="space-y-1">
               <h2 className="text-2xl font-bold text-white">Configure Services</h2>
-              <p className="text-text-dim/60 text-sm">Provide specific details for each service.</p>
+              <p className="text-text-dim text-sm">Provide specific details for each service.</p>
             </div>
 
             <div className="space-y-6">
@@ -646,7 +646,7 @@ export default function NewOrderPage() {
                                   "text-left p-6 rounded-2xl border transition-all flex flex-col justify-between h-full gap-4",
                                   item.params.packageTier === tier.id || (!item.params.packageTier && tier.id === 'BASIC')
                                     ? "bg-primary/10 border-primary text-white shadow-lg shadow-primary/5"
-                                    : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20"
+                                    : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20"
                                 )}
                               >
                                 <div className="space-y-3 w-full">
@@ -683,7 +683,7 @@ export default function NewOrderPage() {
                                   "text-left p-6 rounded-2xl border transition-all flex justify-between items-center",
                                   item.params.deliverySpeed === speed.id || (!item.params.deliverySpeed && speed.id === 'STANDARD')
                                     ? "bg-primary/10 border-primary text-white shadow-lg shadow-primary/5"
-                                    : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20"
+                                    : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20"
                                 )}
                               >
                                 <div>
@@ -712,7 +712,7 @@ export default function NewOrderPage() {
                                     "px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap",
                                     (item.params.videoFormat || 'Horizontal (16:9)') === opt
                                       ? "bg-primary/20 border-primary text-white shadow-lg shadow-primary/10"
-                                      : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20 hover:text-white"
+                                      : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20 hover:text-white"
                                   )}
                                 >
                                   {opt}
@@ -740,7 +740,7 @@ export default function NewOrderPage() {
                                     "px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap",
                                     (item.params.style || 'Clean & Professional') === opt
                                       ? "bg-primary/20 border-primary text-white shadow-lg shadow-primary/10"
-                                      : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20 hover:text-white"
+                                      : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20 hover:text-white"
                                   )}
                                 >
                                   {opt}
@@ -759,7 +759,7 @@ export default function NewOrderPage() {
                                     "px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap",
                                     (item.params.pace || 'Medium') === opt
                                       ? "bg-primary/20 border-primary text-white shadow-lg shadow-primary/10"
-                                      : "bg-white/[0.02] border-white/5 text-text-dim/60 hover:border-white/20 hover:text-white"
+                                      : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20 hover:text-white"
                                   )}
                                 >
                                   {opt}
@@ -953,7 +953,7 @@ export default function NewOrderPage() {
           <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 p-8 md:p-12 space-y-10 shadow-xl">
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-bold text-white">Review & Pay</h2>
-              <p className="text-text-dim/60 text-sm">Confirm your order details and submit.</p>
+              <p className="text-text-dim text-sm">Confirm your order details and submit.</p>
             </div>
 
             <div className="bg-black/20 rounded-xl border border-white/5 p-6 space-y-4">
@@ -967,7 +967,7 @@ export default function NewOrderPage() {
                 </div>
               ))}
               <div className="pt-4 flex justify-between items-center border-t border-white/10">
-                <span className="text-xs font-bold text-text-dim/60 uppercase">Total Amount</span>
+                <span className="text-xs font-bold text-text-dim uppercase">Total Amount</span>
                 <div className="text-3xl font-bold text-primary">
                   {confirmedTotal} <span className="text-xs font-bold text-text-dim/40">Credits</span>
                 </div>
