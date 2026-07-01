@@ -1,5 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Radio, Plus, User, Youtube, Trash2, X, Loader2, Upload, AlertCircle, ExternalLink, Sliders, Palette, Wind } from 'lucide-react'
+import {
+  Radio,
+  Plus,
+  User,
+  Youtube,
+  Trash2,
+  X,
+  Loader2,
+  Upload,
+  AlertCircle,
+  ExternalLink,
+  Sliders,
+  Palette,
+  Wind,
+} from 'lucide-react'
 import Button, { cn } from '../components/Button'
 import channelService from '../services/channelService'
 import type { Channel, ChannelFormData, ChannelPace, ChannelTone } from '../services/channelService'
@@ -28,7 +42,7 @@ const TONES: { label: ChannelTone; icon: string }[] = [
   { label: 'Informational', icon: '📺' },
 ]
 
-const DEFAULT_COLORS: [string, string, string] = ['#FE4331', '#141414', '#ffffff'];
+const DEFAULT_COLORS: [string, string, string] = ['#FE4331', '#141414', '#ffffff']
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -57,39 +71,45 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ channel, onEdit }) => (
         </div>
       ) : (
         <div className="w-20 h-20 rounded-2xl bg-bg-dark border border-white/10 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:border-primary/20 transition-all">
-          <Youtube size={32} className="text-text-muted/20 group-hover:text-primary transition-colors duration-500" />
+          <Youtube
+            size={32}
+            className="text-text-muted/20 group-hover:text-primary transition-colors duration-500"
+          />
         </div>
       )}
-      
+
       <div className="flex-1 min-w-0 flex flex-col h-full">
         <div className="flex justify-between items-start gap-2 mb-1">
           <h3 className="text-white font-bold text-xl truncate group-hover:text-primary transition-colors duration-300">
             {channel.name}
           </h3>
-          <ExternalLink size={16} className="text-text-muted/20 group-hover:text-primary transition-all duration-300 flex-shrink-0" />
+          <ExternalLink
+            size={16}
+            className="text-text-muted/20 group-hover:text-primary transition-all duration-300 flex-shrink-0"
+          />
         </div>
-        
+
         <p className="text-text-muted text-xs truncate font-medium mb-5 opacity-60 group-hover:opacity-100 transition-opacity">
           {channel.channelUrl}
         </p>
-        
+
         <div className="flex flex-wrap items-center gap-2 mt-auto">
-           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
-              <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-1.5">
-                 <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                 Pace: {channel.pace}
-              </span>
-           </div>
-           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
-              <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-1.5">
-                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                 Tone: {channel.tone}
-              </span>
-           </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
+            <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              Pace: {channel.pace}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
+            <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              Tone: {channel.tone}
+            </span>
+          </div>
         </div>
       </div>
     </div>
-    
+
     {/* Brand Colors Ribbon - More prominent and stylized */}
     <div className="mt-8 relative">
       <div className="h-1.5 w-full flex rounded-full overflow-hidden shadow-inner border border-white/5">
@@ -115,7 +135,9 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
   const [name, setName] = useState(initial?.name || '')
   const [channelUrl, setChannelUrl] = useState(initial?.channelUrl || '')
   const [logo, setLogo] = useState(initial?.logo || '')
-  const [brandColors, setBrandColors] = useState<[string, string, string]>(initial?.brandColors || DEFAULT_COLORS)
+  const [brandColors, setBrandColors] = useState<[string, string, string]>(
+    initial?.brandColors || DEFAULT_COLORS
+  )
   const [pace, setPace] = useState<ChannelPace>(initial?.pace || 'Normal')
   const [tone, setTone] = useState<ChannelTone>(initial?.tone || 'Professional')
   const [description, setDescription] = useState(initial?.description || '')
@@ -124,13 +146,13 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
   const [isDeleting, setIsDeleting] = useState(false)
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  
+
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
     if (!name.trim()) newErrors.name = 'Channel name is required.'
-    
+
     const urlPattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/
     if (!channelUrl.trim()) {
       newErrors.channelUrl = 'Channel link is required.'
@@ -222,17 +244,22 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-10 animate-in fade-in duration-500">
       <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-8 md:p-12 shadow-2xl relative z-10">
-        
         {/* Header */}
         <div className="flex items-center justify-between mb-10 pb-10 border-b border-white/5">
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">
               {isEditing ? 'Edit Identity' : 'Establish New Identity'}
             </h1>
-            <p className="text-text-muted text-sm">Define your channel's aesthetic and operational protocol.</p>
+            <p className="text-text-muted text-sm">
+              Define your channel's aesthetic and operational protocol.
+            </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" className="h-10 px-6 rounded-xl border-white/10 hover:bg-white/5" onClick={onBack}>
+            <Button
+              variant="outline"
+              className="h-10 px-6 rounded-xl border-white/10 hover:bg-white/5"
+              onClick={onBack}
+            >
               Cancel
             </Button>
             {isEditing && (
@@ -251,11 +278,13 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
         {/* Live Preview Section */}
         <div className="mb-12 bg-white/[0.01] p-8 rounded-[2.5rem] border border-white/5 shadow-inner">
           <div className="flex items-center gap-2 mb-6">
-             <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
-             <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-text-muted">Live Identity Preview</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-text-muted">
+              Live Identity Preview
+            </span>
           </div>
           <div className="max-w-md mx-auto md:mx-0">
-            <ChannelCard 
+            <ChannelCard
               channel={{
                 _id: 'preview',
                 userId: 'preview-user',
@@ -267,9 +296,9 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
                 tone: tone,
                 description: description,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              }} 
-              onEdit={() => {}} 
+                updatedAt: new Date().toISOString(),
+              }}
+              onEdit={() => {}}
             />
           </div>
         </div>
@@ -277,16 +306,12 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
         <form className="space-y-10" onSubmit={handleSubmit}>
           {/* Logo & Basic Info */}
           <div className="flex flex-col md:flex-row gap-8">
-            <div 
+            <div
               onClick={() => logoInputRef.current?.click()}
               className="w-24 h-24 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group overflow-hidden relative"
             >
               {logo ? (
-                <img 
-                  src={resolveApiUrl(logo)} 
-                  alt="Logo" 
-                  className="w-full h-full object-cover" 
-                />
+                <img src={resolveApiUrl(logo)} alt="Logo" className="w-full h-full object-cover" />
               ) : (
                 <User size={32} className="text-text-dim/20" />
               )}
@@ -295,12 +320,20 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
                   <Loader2 className="animate-spin text-primary" size={24} />
                 </div>
               )}
-              <input type="file" ref={logoInputRef} className="hidden" onChange={handleLogoChange} accept="image/*" />
+              <input
+                type="file"
+                ref={logoInputRef}
+                className="hidden"
+                onChange={handleLogoChange}
+                accept="image/*"
+              />
             </div>
 
             <div className="flex-1 space-y-5">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1">Channel Name</label>
+                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1">
+                  Channel Name
+                </label>
                 <input
                   type="text"
                   value={name}
@@ -308,10 +341,14 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
                   className="w-full bg-white/[0.02] border border-white/5 rounded-2xl px-5 py-4 text-white focus:ring-4 focus:ring-primary/10 focus:border-primary/40 outline-none transition-all placeholder:text-text-muted/20 font-medium"
                   placeholder="e.g. My Awesome Tech Channel"
                 />
-                {errors.name && <p className="text-error text-[10px] font-bold ml-1">{errors.name}</p>}
+                {errors.name && (
+                  <p className="text-error text-[10px] font-bold ml-1">{errors.name}</p>
+                )}
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1">Channel Link / URL</label>
+                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1">
+                  Channel Link / URL
+                </label>
                 <input
                   type="text"
                   value={channelUrl}
@@ -319,7 +356,9 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
                   className="w-full bg-white/[0.02] border border-white/5 rounded-2xl px-5 py-4 text-white focus:ring-4 focus:ring-primary/10 focus:border-primary/40 outline-none transition-all placeholder:text-text-muted/20 font-medium"
                   placeholder="https://youtube.com/@yourchannel"
                 />
-                {errors.channelUrl && <p className="text-error text-[10px] font-bold ml-1">{errors.channelUrl}</p>}
+                {errors.channelUrl && (
+                  <p className="text-error text-[10px] font-bold ml-1">{errors.channelUrl}</p>
+                )}
               </div>
             </div>
           </div>
@@ -341,9 +380,14 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
                         className="w-14 h-14 rounded-2xl bg-transparent border-none cursor-pointer relative z-10"
                       />
                       <div className="absolute inset-0 rounded-2xl border-4 border-white/10 group-hover/color:border-white/20 transition-all" />
-                      <div className="absolute inset-0 rounded-2xl shadow-xl" style={{ backgroundColor: color, opacity: 0.2 }} />
+                      <div
+                        className="absolute inset-0 rounded-2xl shadow-xl"
+                        style={{ backgroundColor: color, opacity: 0.2 }}
+                      />
                     </div>
-                    <span className="text-[9px] font-mono text-text-muted/40 uppercase tracking-tighter">{color}</span>
+                    <span className="text-[9px] font-mono text-text-muted/40 uppercase tracking-tighter">
+                      {color}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -360,10 +404,10 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
                     type="button"
                     onClick={() => setPace(p.label)}
                     className={cn(
-                      "flex-1 py-3 text-[10px] font-bold rounded-xl transition-all uppercase tracking-widest",
-                      pace === p.label 
-                        ? "bg-primary text-white shadow-2xl shadow-primary/20 scale-105" 
-                        : "text-text-muted/40 hover:text-white hover:bg-white/5"
+                      'flex-1 py-3 text-[10px] font-bold rounded-xl transition-all uppercase tracking-widest',
+                      pace === p.label
+                        ? 'bg-primary text-white shadow-2xl shadow-primary/20 scale-105'
+                        : 'text-text-muted/40 hover:text-white hover:bg-white/5'
                     )}
                   >
                     <span className="block text-base mb-1">{p.icon}</span>
@@ -385,10 +429,10 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
                   type="button"
                   onClick={() => setTone(t.label)}
                   className={cn(
-                    "py-5 text-[9px] font-bold rounded-2xl border transition-all flex flex-col items-center gap-2 uppercase tracking-widest",
-                    tone === t.label 
-                      ? "bg-primary/10 border-primary/40 text-primary shadow-2xl shadow-primary/5" 
-                      : "bg-white/[0.02] border-white/5 text-text-muted/40 hover:border-white/20 hover:text-white"
+                    'py-5 text-[9px] font-bold rounded-2xl border transition-all flex flex-col items-center gap-2 uppercase tracking-widest',
+                    tone === t.label
+                      ? 'bg-primary/10 border-primary/40 text-primary shadow-2xl shadow-primary/5'
+                      : 'bg-white/[0.02] border-white/5 text-text-muted/40 hover:border-white/20 hover:text-white'
                   )}
                 >
                   <span className="text-2xl mb-1">{t.icon}</span>
@@ -399,7 +443,9 @@ const ChannelForm: React.FC<ChannelFormProps> = ({ initial, onBack, onSaved, onD
           </div>
 
           <div className="space-y-4">
-            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1">Special Instructions / Description</label>
+            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1">
+              Special Instructions / Description
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -496,10 +542,18 @@ const Channels: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
         <div>
-           <h1 className="text-3xl font-bold text-white tracking-tight">Your <span className="text-primary">Channels</span></h1>
-           <p className="text-text-dim/60 text-base">Manage your connected social media identities.</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Your <span className="text-primary">Channels</span>
+          </h1>
+          <p className="text-text-dim/60 text-base">
+            Manage your connected social media identities.
+          </p>
         </div>
-        <Button variant="primary" className="h-12 px-8 rounded-xl flex items-center gap-2" onClick={handleNewChannel}>
+        <Button
+          variant="primary"
+          className="h-12 px-8 rounded-xl flex items-center gap-2"
+          onClick={handleNewChannel}
+        >
           <Plus size={18} />
           Add Channel
         </Button>
@@ -509,7 +563,9 @@ const Channels: React.FC = () => {
       {isLoading && (
         <div className="flex flex-col items-center justify-center min-h-[300px] gap-4 opacity-40">
           <div className="w-10 h-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Loading channels...</p>
+          <p className="text-xs font-bold uppercase tracking-widest animate-pulse">
+            Loading channels...
+          </p>
         </div>
       )}
 
@@ -529,7 +585,8 @@ const Channels: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-white mb-3">No channels found</h2>
           <p className="text-text-dim/40 text-base max-w-sm mb-8">
-            Connect your social media channels to establish branding and style preferences for your orders.
+            Connect your social media channels to establish branding and style preferences for your
+            orders.
           </p>
           <Button variant="primary" className="h-12 px-10 rounded-xl" onClick={handleNewChannel}>
             Add First Channel
@@ -541,8 +598,12 @@ const Channels: React.FC = () => {
       {!isLoading && !fetchError && channels.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
           {channels.map((channel, i) => (
-            <div key={channel._id} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
-               <ChannelCard channel={channel} onEdit={handleEdit} />
+            <div
+              key={channel._id}
+              className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+              style={{ animationDelay: `${i * 100}ms` }}
+            >
+              <ChannelCard channel={channel} onEdit={handleEdit} />
             </div>
           ))}
         </div>

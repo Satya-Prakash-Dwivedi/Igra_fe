@@ -70,26 +70,34 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
     <nav className="h-20 bg-bg-dark/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 transition-[box-shadow] duration-200 transform-gpu">
       {/* Background Cinematic Glows */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-full bg-primary opacity-[0.03] blur-[100px] pointer-events-none" />
-      
+
       {/* Left: Title & Mobile Menu */}
       <div className="flex items-center gap-6 relative z-10">
-        <button onClick={onMenuClick} className="md:hidden text-text-dim hover:text-white transition-colors duration-200">
+        <button
+          onClick={onMenuClick}
+          className="md:hidden text-text-dim hover:text-white transition-colors duration-200"
+        >
           <Menu size={20} />
         </button>
         <div className="flex flex-col">
-           <p className="text-[10px] font-bold text-text-dim uppercase tracking-widest leading-tight">Navigation</p>
-           <h2 className="text-white font-black text-xl tracking-tight uppercase italic">{getTitle()}</h2>
+          <p className="text-[10px] font-bold text-text-dim uppercase tracking-widest leading-tight">
+            Navigation
+          </p>
+          <h2 className="text-white font-black text-xl tracking-tight uppercase italic">
+            {getTitle()}
+          </h2>
         </div>
       </div>
-
 
       {/* Right: Actions */}
       <div className="flex items-center gap-6 relative z-10">
         <NotificationBell variant="navbar" />
 
         <div className="hidden lg:flex flex-col items-end text-right">
-           <p className="text-white font-bold text-xs tracking-tight">{user?.name || 'User'}</p>
-           <p className="text-[8px] font-bold tracking-widest text-primary uppercase opacity-60">Authorized</p>
+          <p className="text-white font-bold text-xs tracking-tight">{user?.name || 'User'}</p>
+          <p className="text-[8px] font-bold tracking-widest text-primary uppercase opacity-60">
+            Authorized
+          </p>
         </div>
 
         <div className="relative">
@@ -98,10 +106,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
             className="w-10 h-10 rounded-xl bg-white text-black border-2 border-bg-dark flex items-center justify-center text-xs font-black hover:scale-105 active:scale-95 transition-transform duration-200 overflow-hidden shadow-lg italic transform-gpu"
           >
             {user?.avatar ? (
-              <img 
-                src={resolveApiUrl(user.avatar)} 
-                alt="Profile" 
-                className="w-full h-full object-cover" 
+              <img
+                src={resolveApiUrl(user.avatar)}
+                alt="Profile"
+                className="w-full h-full object-cover"
               />
             ) : (
               getInitials()
@@ -116,9 +124,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
                   <p className="text-xs font-bold text-white truncate tracking-tight uppercase">
                     {user?.name || 'User'}
                   </p>
-                  <p className="text-[9px] font-bold text-text-dim truncate tracking-widest uppercase">{user?.email || ''}</p>
+                  <p className="text-[9px] font-bold text-text-dim truncate tracking-widest uppercase">
+                    {user?.email || ''}
+                  </p>
                 </div>
-                
+
                 <div className="px-2 space-y-1">
                   <button
                     onClick={() => {

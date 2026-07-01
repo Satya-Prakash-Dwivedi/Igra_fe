@@ -1,5 +1,13 @@
 import React, { useState, useRef } from 'react'
-import { X, Upload, AlertCircle, CheckCircle2, Loader2, File as FileIcon, Trash2 } from 'lucide-react'
+import {
+  X,
+  Upload,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  File as FileIcon,
+  Trash2,
+} from 'lucide-react'
 import Button, { cn } from '../Button'
 import * as orderApi from '../../services/orderService'
 import * as uploadApi from '../../services/uploadService'
@@ -15,7 +23,13 @@ interface RevisionModalProps {
   onSuccess: () => void
 }
 
-const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId, itemId, onSuccess }) => {
+const RevisionModal: React.FC<RevisionModalProps> = ({
+  isOpen,
+  onClose,
+  orderId,
+  itemId,
+  onSuccess,
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [notes, setNotes] = useState('')
@@ -90,7 +104,11 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
     } catch (err: any) {
       logger.error('revision_modal.submit_failed', { error: serializeError(err) })
       setIsUploadingFiles(false)
-      setError(err?.response?.data?.error || err.message || 'Failed to submit revision request. Please try again.')
+      setError(
+        err?.response?.data?.error ||
+          err.message ||
+          'Failed to submit revision request. Please try again.'
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -110,7 +128,9 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
         <div className="flex items-center justify-between px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-border shrink-0">
           <div>
             <h2 className="text-text-main font-bold text-xl leading-tight">Request Revision</h2>
-            <p className="text-text-muted text-sm mt-1">Specify changes and provide reference files for the studio.</p>
+            <p className="text-text-muted text-sm mt-1">
+              Specify changes and provide reference files for the studio.
+            </p>
           </div>
           <button
             onClick={handleClose}
@@ -129,14 +149,22 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
             </div>
             <h3 className="text-text-main font-bold text-xl">Revision Requested!</h3>
             <p className="text-text-muted text-sm max-w-xs leading-relaxed">
-              Your revision instructions and reference assets have been transmitted to the production team.
+              Your revision instructions and reference assets have been transmitted to the
+              production team.
             </p>
-            <Button variant="primary" onClick={handleClose} className="mt-4 px-8 py-3 rounded-xl font-bold">
+            <Button
+              variant="primary"
+              onClick={handleClose}
+              className="mt-4 px-8 py-3 rounded-xl font-bold"
+            >
               Done
             </Button>
           </div>
         ) : (
-          <form className="p-4 sm:p-8 space-y-6 overflow-y-auto custom-scrollbar" onSubmit={handleSubmit}>
+          <form
+            className="p-4 sm:p-8 space-y-6 overflow-y-auto custom-scrollbar"
+            onSubmit={handleSubmit}
+          >
             {/* Notes */}
             <div className="space-y-2">
               <label className="text-text-muted text-xs font-semibold uppercase tracking-wider block">
@@ -155,7 +183,8 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
             {/* Attachments */}
             <div className="space-y-3">
               <label className="text-text-muted text-xs font-semibold uppercase tracking-wider block">
-                Attach reference files/videos/documents <span className="lowercase opacity-60">(optional)</span>
+                Attach reference files/videos/documents{' '}
+                <span className="lowercase opacity-60">(optional)</span>
               </label>
 
               {/* Drop zone */}
@@ -164,13 +193,17 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
                 onDragOver={(e) => e.preventDefault()}
                 onClick={() => !isSubmitting && fileInputRef.current?.click()}
                 className={cn(
-                  "border border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/60 transition-all group",
-                  isSubmitting && "opacity-50 cursor-not-allowed pointer-events-none"
+                  'border border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/60 transition-all group',
+                  isSubmitting && 'opacity-50 cursor-not-allowed pointer-events-none'
                 )}
               >
-                <Upload size={22} className="text-text-muted group-hover:text-primary transition-colors" />
+                <Upload
+                  size={22}
+                  className="text-text-muted group-hover:text-primary transition-colors"
+                />
                 <p className="text-text-muted text-xs">
-                  Drop files here or <span className="text-primary font-medium">click to browse</span>
+                  Drop files here or{' '}
+                  <span className="text-primary font-medium">click to browse</span>
                 </p>
               </div>
               <input
@@ -188,7 +221,10 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
                   {attachedFiles.map((file, i) => {
                     const progress = uploadProgress[file.name] || 0
                     return (
-                      <div key={i} className="flex flex-col bg-bg-dark border border-border rounded-lg p-3 gap-2">
+                      <div
+                        key={i}
+                        className="flex flex-col bg-bg-dark border border-border rounded-lg p-3 gap-2"
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0">
                             <FileIcon size={14} className="text-text-muted flex-shrink-0" />
@@ -198,14 +234,21 @@ const RevisionModal: React.FC<RevisionModalProps> = ({ isOpen, onClose, orderId,
                             </span>
                           </div>
                           {!isSubmitting && (
-                            <button type="button" onClick={() => removeFile(i)} className="text-text-muted hover:text-error transition-colors ml-2">
+                            <button
+                              type="button"
+                              onClick={() => removeFile(i)}
+                              className="text-text-muted hover:text-error transition-colors ml-2"
+                            >
                               <Trash2 size={14} />
                             </button>
                           )}
                         </div>
                         {isUploadingFiles && progress > 0 && (
                           <div className="w-full bg-border h-1 rounded-full overflow-hidden">
-                            <div className="bg-primary h-full transition-all duration-300" style={{ width: `${progress}%` }} />
+                            <div
+                              className="bg-primary h-full transition-all duration-300"
+                              style={{ width: `${progress}%` }}
+                            />
                           </div>
                         )}
                       </div>

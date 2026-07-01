@@ -19,7 +19,7 @@ import {
   Maximize2,
   Download,
   File as FileIcon,
-  Check
+  Check,
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
 import { createLogger, serializeError } from '../services/logger'
@@ -31,21 +31,37 @@ import RevisionModal from '../components/modals/RevisionModal'
 
 const logger = createLogger('OrderDetail')
 
-const STATUS_MAP: Record<string, { label: string, color: string }> = {
+const STATUS_MAP: Record<string, { label: string; color: string }> = {
   DRAFT: { label: 'Draft', color: 'bg-white/5 text-text-dim border-white/5' },
   PENDING_INPUT: { label: 'Queued', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
   BLOCKED: { label: 'Blocked', color: 'bg-error/10 text-error border-error/20' },
   READY: { label: 'Ready', color: 'bg-primary/10 text-primary border-primary/20' },
   UNDER_REVIEW: { label: 'Under review', color: 'bg-sky-400/10 text-sky-400 border-sky-400/20' },
-  IN_PROGRESS: { label: 'In production', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
-  DELIVERED: { label: 'Delivered', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-  APPROVED: { label: 'Approved', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-  COMPLETED: { label: 'Completed', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-  AWAITING_APPROVAL: { label: 'Awaiting approval', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
-  PENDING_PAYMENT: { label: 'Pending payment', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
+  IN_PROGRESS: {
+    label: 'In production',
+    color: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  },
+  DELIVERED: {
+    label: 'Delivered',
+    color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+  },
+  APPROVED: {
+    label: 'Approved',
+    color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+  },
+  COMPLETED: {
+    label: 'Completed',
+    color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+  },
+  AWAITING_APPROVAL: {
+    label: 'Awaiting approval',
+    color: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  },
+  PENDING_PAYMENT: {
+    label: 'Pending payment',
+    color: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  },
 }
-
-
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>()
@@ -61,16 +77,16 @@ export default function OrderDetail() {
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [uploadingItem, setUploadingItem] = useState<string | null>(null)
   const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    onConfirm: () => void;
-    variant?: 'primary' | 'error' | 'success';
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+    variant?: 'primary' | 'error' | 'success'
   }>({
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => { },
+    onConfirm: () => {},
   })
   const [isRevisionModalOpen, setIsRevisionModalOpen] = useState(false)
   const [revisionItemId, setRevisionItemId] = useState<string | null>(null)
@@ -89,7 +105,7 @@ export default function OrderDetail() {
 
       const handleNewMessage = (msg: Message) => {
         setMessages((prev) => {
-          if (prev.find(m => m._id === msg._id)) return prev
+          if (prev.find((m) => m._id === msg._id)) return prev
           return [...prev, msg]
         })
       }
@@ -211,7 +227,8 @@ export default function OrderDetail() {
     setConfirmModal({
       isOpen: true,
       title: 'Complete Review',
-      message: 'Are you done with the review? The production team will be notified to finalize and archive the order.',
+      message:
+        'Are you done with the review? The production team will be notified to finalize and archive the order.',
       variant: 'primary',
       onConfirm: async () => {
         try {
@@ -222,7 +239,7 @@ export default function OrderDetail() {
         } catch (err: any) {
           toast.error(err?.response?.data?.error || err.message)
         }
-      }
+      },
     })
   }
 
@@ -230,7 +247,8 @@ export default function OrderDetail() {
     setConfirmModal({
       isOpen: true,
       title: 'Cancel Order',
-      message: 'Are you sure you want to cancel this order? Credits will be refunded to your wallet.',
+      message:
+        'Are you sure you want to cancel this order? Credits will be refunded to your wallet.',
       variant: 'error',
       onConfirm: async () => {
         try {
@@ -241,7 +259,7 @@ export default function OrderDetail() {
         } catch (err: any) {
           toast.error(err?.response?.data?.error || err.message)
         }
-      }
+      },
     })
   }
 
@@ -275,7 +293,7 @@ export default function OrderDetail() {
         toast.error('This file is no longer available on the server.')
         return
       }
-      
+
       // If the error has no response, it's likely a CORS error from an S3 redirect.
       // In this case, we fallback to a direct browser download.
       const urlWithQuery = url.includes('?') ? `${url}&download=true` : `${url}?download=true`
@@ -293,7 +311,9 @@ export default function OrderDetail() {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4 animate-in fade-in duration-700">
         <Loader2 size={32} className="animate-spin text-primary" />
-        <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Loading order details...</p>
+        <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+          Loading order details...
+        </p>
       </div>
     )
   }
@@ -302,7 +322,10 @@ export default function OrderDetail() {
 
   const { order, items, events } = detail
   const canCancel = ['DRAFT', 'UNDER_REVIEW', 'IN_PROGRESS'].includes(order.status)
-  const statusInfo = STATUS_MAP[order.status] || { label: order.status, color: 'bg-white/5 text-text-dim border-white/5' }
+  const statusInfo = STATUS_MAP[order.status] || {
+    label: order.status,
+    color: 'bg-white/5 text-text-dim border-white/5',
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-20 px-6 animate-in fade-in duration-700 relative">
@@ -322,16 +345,19 @@ export default function OrderDetail() {
               <h1 className="text-2xl font-bold text-white tracking-tight">
                 {order.title || `Order #${order.orderNumber.slice(-6)}`}
               </h1>
-              <div className={cn(
-                "px-3 py-1 rounded-full text-[9px] font-bold border flex items-center gap-2",
-                statusInfo.color
-              )}>
+              <div
+                className={cn(
+                  'px-3 py-1 rounded-full text-[9px] font-bold border flex items-center gap-2',
+                  statusInfo.color
+                )}
+              >
                 <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
                 <span className="uppercase tracking-wider">{statusInfo.label}</span>
               </div>
             </div>
             <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
-              Order #{order.orderNumber} • {items.length} services • {order.totalCreditsQuoted} Credits
+              Order #{order.orderNumber} • {items.length} services • {order.totalCreditsQuoted}{' '}
+              Credits
             </p>
           </div>
         </div>
@@ -387,8 +413,10 @@ export default function OrderDetail() {
             key={key}
             onClick={() => setActiveTab(key)}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all",
-              activeTab === key ? "bg-white text-black shadow-lg" : "text-text-dim/40 hover:text-white hover:bg-white/5"
+              'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all',
+              activeTab === key
+                ? 'bg-white text-black shadow-lg'
+                : 'text-text-dim/40 hover:text-white hover:bg-white/5'
             )}
           >
             <Icon size={14} />
@@ -402,7 +430,10 @@ export default function OrderDetail() {
         {activeTab === 'items' && (
           <div className="space-y-6">
             {items.map((item: any) => (
-              <div key={item._id} className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+              <div
+                key={item._id}
+                className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden shadow-xl"
+              >
                 <div
                   className="p-6 flex items-center justify-between cursor-pointer"
                   onClick={() => setExpandedItem(expandedItem === item._id ? null : item._id)}
@@ -412,19 +443,35 @@ export default function OrderDetail() {
                       <Package size={20} />
                     </div>
                     <div className="space-y-1">
-                      <h3 className="text-sm font-bold text-white uppercase tracking-tight">{item.kind === 'VIDEO_EDIT' ? 'Talking head/Vlog' : item.kind === 'GAMING_STREAMS' ? 'Gaming/Streams' : item.kind.replace(/_/g, ' ')}</h3>
-                      <p className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">{item.creditsQuoted} Credits</p>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-tight">
+                        {item.kind === 'VIDEO_EDIT'
+                          ? 'Talking head/Vlog'
+                          : item.kind === 'GAMING_STREAMS'
+                            ? 'Gaming/Streams'
+                            : item.kind.replace(/_/g, ' ')}
+                      </h3>
+                      <p className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">
+                        {item.creditsQuoted} Credits
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-6">
-                    <div className={cn(
-                      "px-3 py-1 rounded-full text-[9px] font-bold border uppercase tracking-widest",
-                      STATUS_MAP[item.status]?.color || "bg-white/5 text-text-dim border-white/5"
-                    )}>
+                    <div
+                      className={cn(
+                        'px-3 py-1 rounded-full text-[9px] font-bold border uppercase tracking-widest',
+                        STATUS_MAP[item.status]?.color || 'bg-white/5 text-text-dim border-white/5'
+                      )}
+                    >
                       {STATUS_MAP[item.status]?.label || item.status}
                     </div>
-                    <ChevronDown size={16} className={cn("text-text-dim/40 transition-transform", expandedItem === item._id && "rotate-180")} />
+                    <ChevronDown
+                      size={16}
+                      className={cn(
+                        'text-text-dim/40 transition-transform',
+                        expandedItem === item._id && 'rotate-180'
+                      )}
+                    />
                   </div>
                 </div>
 
@@ -433,24 +480,40 @@ export default function OrderDetail() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pt-6">
                       <div className="space-y-8">
                         <div>
-                          <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest mb-4">Configuration</h4>
+                          <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest mb-4">
+                            Configuration
+                          </h4>
                           <div className="grid grid-cols-2 gap-3">
-                            {Object.entries(item.params).map(([key, val]) => (
-                              key !== 'showLinkInput' && (
-                                <div key={key} className="p-3 bg-black/20 rounded-xl border border-white/5">
-                                  <p className="text-[8px] text-text-dim/40 font-bold uppercase mb-1">{key}</p>
-                                  <p className="text-sm text-white font-medium truncate">{String(val)}</p>
-                                </div>
-                              )
-                            ))}
+                            {Object.entries(item.params).map(
+                              ([key, val]) =>
+                                key !== 'showLinkInput' && (
+                                  <div
+                                    key={key}
+                                    className="p-3 bg-black/20 rounded-xl border border-white/5"
+                                  >
+                                    <p className="text-[8px] text-text-dim/40 font-bold uppercase mb-1">
+                                      {key}
+                                    </p>
+                                    <p className="text-sm text-white font-medium truncate">
+                                      {String(val)}
+                                    </p>
+                                  </div>
+                                )
+                            )}
                           </div>
                         </div>
 
                         <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl">
-                          <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">Pricing</h4>
+                          <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">
+                            Pricing
+                          </h4>
                           <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-bold text-text-dim/40 uppercase">Total Credits</span>
-                            <span className="text-2xl font-bold text-primary">{item.pricingSnapshot.totalCredits}</span>
+                            <span className="text-[9px] font-bold text-text-dim/40 uppercase">
+                              Total Credits
+                            </span>
+                            <span className="text-2xl font-bold text-primary">
+                              {item.pricingSnapshot.totalCredits}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -458,31 +521,54 @@ export default function OrderDetail() {
                       <div className="space-y-6">
                         {/* Deliverables Section */}
                         <div className="space-y-3">
-                          <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest">Deliverables</h4>
-                          {((item.assets ?? []).filter((a: any) => a.role === 'OUTPUT').length > 0 || (item.deliveryLinks?.length || 0) > 0) ? (
+                          <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest">
+                            Deliverables
+                          </h4>
+                          {(item.assets ?? []).filter((a: any) => a.role === 'OUTPUT').length > 0 ||
+                          (item.deliveryLinks?.length || 0) > 0 ? (
                             <div className="grid grid-cols-2 gap-4">
-                              {(item.assets ?? []).filter((a: any) => a.role === 'OUTPUT').map((asset: any) => (
-                                <div key={asset._id} className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
-                                  <div className="flex items-center justify-between">
-                                    {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-primary/40" />}
-                                    <span className="text-[8px] font-bold text-primary uppercase tracking-widest">Studio Output</span>
-                                  </div>
-                                  <p className="text-[10px] text-white font-bold truncate">{asset.originalName}</p>
-                                  <button
-                                    onClick={() => handleDownload(asset.url, asset.originalName)}
-                                    className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                              {(item.assets ?? [])
+                                .filter((a: any) => a.role === 'OUTPUT')
+                                .map((asset: any) => (
+                                  <div
+                                    key={asset._id}
+                                    className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2"
                                   >
-                                    <Download size={10} /> Download
-                                  </button>
-                                </div>
-                              ))}
+                                    <div className="flex items-center justify-between">
+                                      {asset.mimeType?.includes('image') ? (
+                                        <Maximize2 size={14} className="text-primary/40" />
+                                      ) : (
+                                        <FileIcon size={14} className="text-primary/40" />
+                                      )}
+                                      <span className="text-[8px] font-bold text-primary uppercase tracking-widest">
+                                        Studio Output
+                                      </span>
+                                    </div>
+                                    <p className="text-[10px] text-white font-bold truncate">
+                                      {asset.originalName}
+                                    </p>
+                                    <button
+                                      onClick={() => handleDownload(asset.url, asset.originalName)}
+                                      className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                                    >
+                                      <Download size={10} /> Download
+                                    </button>
+                                  </div>
+                                ))}
                               {item.deliveryLinks?.map((link: string, idx: number) => (
-                                <div key={idx} className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
+                                <div
+                                  key={idx}
+                                  className="group relative bg-primary/5 border border-primary/10 rounded-xl overflow-hidden p-3 flex flex-col gap-2"
+                                >
                                   <div className="flex items-center justify-between">
                                     <ExternalLink size={14} className="text-primary/40" />
-                                    <span className="text-[8px] font-bold text-primary uppercase tracking-widest">External Link</span>
+                                    <span className="text-[8px] font-bold text-primary uppercase tracking-widest">
+                                      External Link
+                                    </span>
                                   </div>
-                                  <p className="text-[10px] text-white font-bold truncate">{link}</p>
+                                  <p className="text-[10px] text-white font-bold truncate">
+                                    {link}
+                                  </p>
                                   <a
                                     href={link}
                                     target="_blank"
@@ -495,30 +581,51 @@ export default function OrderDetail() {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-[10px] text-text-dim/20 italic">No deliverables yet.</p>
+                            <p className="text-[10px] text-text-dim/20 italic">
+                              No deliverables yet.
+                            </p>
                           )}
                         </div>
 
                         {/* Client Uploads Section */}
                         <div className="space-y-3">
-                          <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Your Uploads</h4>
-                          {(item.assets ?? []).filter((a: any) => a.role !== 'OUTPUT').length > 0 ? (
+                          <h4 className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+                            Your Uploads
+                          </h4>
+                          {(item.assets ?? []).filter((a: any) => a.role !== 'OUTPUT').length >
+                          0 ? (
                             <div className="grid grid-cols-2 gap-4">
-                              {(item.assets ?? []).filter((a: any) => a.role !== 'OUTPUT').map((asset: any) => (
-                                <div key={asset._id} className="group relative bg-black/20 border border-white/5 rounded-xl overflow-hidden p-3 flex flex-col gap-2">
-                                  <div className="flex items-center justify-between">
-                                    {asset.mimeType?.includes('image') ? <Maximize2 size={14} className="text-primary/40" /> : <FileIcon size={14} className="text-text-dim/40" />}
-                                    <button onClick={() => handleRemoveAsset(item._id, asset._id)} className="text-text-dim/20 hover:text-error transition-colors"><Trash2 size={14} /></button>
-                                  </div>
-                                  <p className="text-[10px] text-white font-bold truncate">{asset.originalName}</p>
-                                  <button
-                                    onClick={() => handleDownload(asset.url, asset.originalName)}
-                                    className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                              {(item.assets ?? [])
+                                .filter((a: any) => a.role !== 'OUTPUT')
+                                .map((asset: any) => (
+                                  <div
+                                    key={asset._id}
+                                    className="group relative bg-black/20 border border-white/5 rounded-xl overflow-hidden p-3 flex flex-col gap-2"
                                   >
-                                    <Download size={10} /> Download
-                                  </button>
-                                </div>
-                              ))}
+                                    <div className="flex items-center justify-between">
+                                      {asset.mimeType?.includes('image') ? (
+                                        <Maximize2 size={14} className="text-primary/40" />
+                                      ) : (
+                                        <FileIcon size={14} className="text-text-dim/40" />
+                                      )}
+                                      <button
+                                        onClick={() => handleRemoveAsset(item._id, asset._id)}
+                                        className="text-text-dim/20 hover:text-error transition-colors"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                    <p className="text-[10px] text-white font-bold truncate">
+                                      {asset.originalName}
+                                    </p>
+                                    <button
+                                      onClick={() => handleDownload(asset.url, asset.originalName)}
+                                      className="text-[8px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1 text-left"
+                                    >
+                                      <Download size={10} /> Download
+                                    </button>
+                                  </div>
+                                ))}
                             </div>
                           ) : (
                             <p className="text-[10px] text-text-dim/20 italic">No uploads.</p>
@@ -527,11 +634,21 @@ export default function OrderDetail() {
                       </div>
 
                       <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/5 rounded-xl py-10 hover:border-primary/40 cursor-pointer transition-all">
-                        <input type="file" multiple className="hidden" onChange={(e) => handleFileUpload(item._id, e.target.files)} disabled={uploadingItem === item._id} />
-                        {uploadingItem === item._id ? <Loader2 size={24} className="animate-spin text-primary" /> : (
+                        <input
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(item._id, e.target.files)}
+                          disabled={uploadingItem === item._id}
+                        />
+                        {uploadingItem === item._id ? (
+                          <Loader2 size={24} className="animate-spin text-primary" />
+                        ) : (
                           <>
                             <UploadCloud size={24} className="text-text-dim/40" />
-                            <span className="text-[10px] font-bold text-text-dim/40 uppercase">Upload Files</span>
+                            <span className="text-[10px] font-bold text-text-dim/40 uppercase">
+                              Upload Files
+                            </span>
                           </>
                         )}
                       </label>
@@ -539,8 +656,19 @@ export default function OrderDetail() {
 
                     {item.status === 'DELIVERED' && (
                       <div className="mt-8 flex gap-3 border-t border-white/5 pt-6">
-                        <Button variant="outline" onClick={() => handleRequestRevision(item._id)} className="flex-1 h-10 rounded-lg text-[10px]">Request Revision</Button>
-                        <Button onClick={() => handleApproveItem(item._id)} className="flex-1 h-10 rounded-lg text-[10px]">Approve Service</Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleRequestRevision(item._id)}
+                          className="flex-1 h-10 rounded-lg text-[10px]"
+                        >
+                          Request Revision
+                        </Button>
+                        <Button
+                          onClick={() => handleApproveItem(item._id)}
+                          className="flex-1 h-10 rounded-lg text-[10px]"
+                        >
+                          Approve Service
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -560,20 +688,32 @@ export default function OrderDetail() {
                 </div>
               ) : (
                 messages.map((msg) => {
-                  if (!msg) return null;
-                  const senderId = msg.senderId?._id || msg.senderId;
-                  const currentUserId = auth?.user?._id || (auth?.user as any)?.id;
-                  const isMine = senderId === currentUserId;
+                  if (!msg) return null
+                  const senderId = msg.senderId?._id || msg.senderId
+                  const currentUserId = auth?.user?._id || (auth?.user as any)?.id
+                  const isMine = senderId === currentUserId
                   return (
-                    <div key={msg._id} className={cn("flex flex-col", isMine ? "items-end" : "items-start")}>
-                      <div className={cn(
-                        "px-4 py-2.5 max-w-[80%] text-sm font-medium rounded-2xl shadow-lg",
-                        isMine ? "bg-primary text-white rounded-tr-none" : "bg-bg-dark border border-white/5 text-text-dim rounded-tl-none"
-                      )}>
+                    <div
+                      key={msg._id}
+                      className={cn('flex flex-col', isMine ? 'items-end' : 'items-start')}
+                    >
+                      <div
+                        className={cn(
+                          'px-4 py-2.5 max-w-[80%] text-sm font-medium rounded-2xl shadow-lg',
+                          isMine
+                            ? 'bg-primary text-white rounded-tr-none'
+                            : 'bg-bg-dark border border-white/5 text-text-dim rounded-tl-none'
+                        )}
+                      >
                         {msg.content}
                       </div>
                       <span className="text-[8px] font-bold text-text-dim/20 uppercase mt-1 px-1">
-                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        {msg.createdAt
+                          ? new Date(msg.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : ''}
                       </span>
                     </div>
                   )
@@ -591,7 +731,11 @@ export default function OrderDetail() {
                   placeholder="Type a message..."
                   className="flex-1 bg-bg-dark/40 border border-white/5 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-primary/40 transition-all"
                 />
-                <Button type="submit" disabled={!newMessage.trim() || sending} className="w-10 h-10 p-0 rounded-xl flex items-center justify-center">
+                <Button
+                  type="submit"
+                  disabled={!newMessage.trim() || sending}
+                  className="w-10 h-10 p-0 rounded-xl flex items-center justify-center"
+                >
                   <Send size={16} />
                 </Button>
               </form>
@@ -606,7 +750,9 @@ export default function OrderDetail() {
                 <div key={event._id} className="relative">
                   <div className="absolute -left-[41px] top-1 w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(225,29,72,0.5)]" />
                   <div className="space-y-2">
-                    <p className="text-xs font-bold text-white uppercase tracking-tight">{event.type.replace(/_/g, ' ')}</p>
+                    <p className="text-xs font-bold text-white uppercase tracking-tight">
+                      {event.type.replace(/_/g, ' ')}
+                    </p>
                     <p className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">
                       {new Date(event.createdAt).toLocaleString()}
                     </p>
@@ -614,19 +760,33 @@ export default function OrderDetail() {
                       <div className="mt-2 p-4 bg-black/20 rounded-xl border border-white/5 space-y-3 max-w-2xl">
                         {event.data.notes && (
                           <div>
-                            <span className="text-[8px] text-text-dim/40 font-bold uppercase tracking-widest block mb-1">Notes</span>
-                            <p className="text-xs text-text-dim leading-relaxed">{event.data.notes}</p>
+                            <span className="text-[8px] text-text-dim/40 font-bold uppercase tracking-widest block mb-1">
+                              Notes
+                            </span>
+                            <p className="text-xs text-text-dim leading-relaxed">
+                              {event.data.notes}
+                            </p>
                           </div>
                         )}
                         {event.data.assets && event.data.assets.length > 0 && (
                           <div>
-                            <span className="text-[8px] text-text-dim/40 font-bold uppercase tracking-widest block mb-1.5">Attached Files</span>
+                            <span className="text-[8px] text-text-dim/40 font-bold uppercase tracking-widest block mb-1.5">
+                              Attached Files
+                            </span>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {event.data.assets.map((asset: any) => (
-                                <div key={asset._id} className="flex items-center justify-between bg-black/40 border border-white/5 rounded-lg p-2 text-xs">
+                                <div
+                                  key={asset._id}
+                                  className="flex items-center justify-between bg-black/40 border border-white/5 rounded-lg p-2 text-xs"
+                                >
                                   <div className="flex items-center gap-2 min-w-0">
-                                    <FileIcon size={12} className="text-text-dim/40 flex-shrink-0" />
-                                    <span className="text-white truncate font-medium">{asset.originalName}</span>
+                                    <FileIcon
+                                      size={12}
+                                      className="text-text-dim/40 flex-shrink-0"
+                                    />
+                                    <span className="text-white truncate font-medium">
+                                      {asset.originalName}
+                                    </span>
                                   </div>
                                   <button
                                     onClick={() => handleDownload(asset.url, asset.originalName)}
@@ -644,16 +804,24 @@ export default function OrderDetail() {
                     {event.type === 'REVISION_DELIVERED' && (
                       <div className="mt-2 p-4 bg-success/5 rounded-xl border border-success/20 space-y-3 max-w-2xl">
                         <div>
-                          <span className="text-[8px] text-success/60 font-bold uppercase tracking-widest block mb-1">Status</span>
-                          <p className="text-xs text-white leading-relaxed">The production team has uploaded and delivered the revised assets.</p>
+                          <span className="text-[8px] text-success/60 font-bold uppercase tracking-widest block mb-1">
+                            Status
+                          </span>
+                          <p className="text-xs text-white leading-relaxed">
+                            The production team has uploaded and delivered the revised assets.
+                          </p>
                         </div>
                       </div>
                     )}
                     {event.type === 'STATUS_CHANGED' && event.data && (
                       <div className="mt-2 p-4 bg-black/20 rounded-xl border border-white/5 space-y-3 max-w-2xl">
                         <div>
-                          <span className="text-[8px] text-text-dim/40 font-bold uppercase tracking-widest block mb-1">New Status</span>
-                          <p className="text-xs text-white leading-relaxed font-bold">{event.data.status?.replace(/_/g, ' ')}</p>
+                          <span className="text-[8px] text-text-dim/40 font-bold uppercase tracking-widest block mb-1">
+                            New Status
+                          </span>
+                          <p className="text-xs text-white leading-relaxed font-bold">
+                            {event.data.status?.replace(/_/g, ' ')}
+                          </p>
                         </div>
                       </div>
                     )}

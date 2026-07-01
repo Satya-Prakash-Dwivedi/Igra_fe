@@ -91,9 +91,14 @@ export async function addItem(
   kind: string,
   params: Record<string, any>,
   dependsOnItemIds?: string[],
-  assetIds?: string[],
+  assetIds?: string[]
 ) {
-  const res = await api.post(`/orders/${orderId}/items`, { kind, params, dependsOnItemIds, assetIds })
+  const res = await api.post(`/orders/${orderId}/items`, {
+    kind,
+    params,
+    dependsOnItemIds,
+    assetIds,
+  })
   return res.data.data as OrderItem
 }
 
@@ -127,7 +132,12 @@ export async function approveItem(orderId: string, itemId: string) {
   return res.data.data as OrderItem
 }
 
-export async function requestRevision(orderId: string, itemId: string, notes?: string, assetIds?: string[]) {
+export async function requestRevision(
+  orderId: string,
+  itemId: string,
+  notes?: string,
+  assetIds?: string[]
+) {
   const res = await api.post(`/orders/${orderId}/items/${itemId}/revision`, { notes, assetIds })
   return res.data.data as OrderItem
 }

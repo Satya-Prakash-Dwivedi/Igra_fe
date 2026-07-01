@@ -15,7 +15,7 @@ import {
   Zap,
   Coins,
   X,
-  ShieldCheck
+  ShieldCheck,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { createLogger, serializeError } from '../services/logger'
@@ -44,7 +44,12 @@ export default function Credits() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'packs' | 'history' | 'invoices'>('packs')
   const [customAmount, setCustomAmount] = useState<string>('5')
-  const [selectedPack, setSelectedPack] = useState<{ id: string; amount?: number; name: string; priceCents: number } | null>(null)
+  const [selectedPack, setSelectedPack] = useState<{
+    id: string
+    amount?: number
+    name: string
+    priceCents: number
+  } | null>(null)
 
   useEffect(() => {
     loadData()
@@ -114,7 +119,7 @@ export default function Credits() {
     let priceCents = amount ? Math.round(amount * 100) : 0
 
     if (packId !== 'custom') {
-      const pack = packs.find(p => p.id === packId)
+      const pack = packs.find((p) => p.id === packId)
       if (pack) {
         packName = pack.name
         priceCents = pack.priceCents
@@ -128,24 +133,30 @@ export default function Credits() {
     if (!selectedPack) return
     setPurchasing(provider)
     try {
-      let targetCurrency: string | undefined = undefined;
-      
+      let targetCurrency: string | undefined = undefined
+
       // If Razorpay, detect if user is in India to show UPI/NetBanking
       if (provider === 'razorpay') {
-        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        if (timeZone.includes('Kolkata') || timeZone.includes('Calcutta') || timeZone.includes('Asia/Colombo') || timeZone.includes('Asia/Dhaka')) {
-            targetCurrency = 'INR';
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+        if (
+          timeZone.includes('Kolkata') ||
+          timeZone.includes('Calcutta') ||
+          timeZone.includes('Asia/Colombo') ||
+          timeZone.includes('Asia/Dhaka')
+        ) {
+          targetCurrency = 'INR'
         } else {
-            targetCurrency = 'USD';
+          targetCurrency = 'USD'
         }
       }
 
-      const { payment, approveLink, razorpayOrderId, keyId, amount, currency } = await billingApi.createPurchase(
-        selectedPack.id,
-        selectedPack.amount,
-        provider,
-        targetCurrency
-      )
+      const { payment, approveLink, razorpayOrderId, keyId, amount, currency } =
+        await billingApi.createPurchase(
+          selectedPack.id,
+          selectedPack.amount,
+          provider,
+          targetCurrency
+        )
 
       if (provider === 'paypal' && approveLink) {
         window.location.href = approveLink
@@ -220,20 +231,28 @@ export default function Credits() {
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Your <span className="text-primary">Wallet</span>
           </h1>
-          <p className="text-text-dim/60 text-base">Manage your credits and view transaction history.</p>
+          <p className="text-text-dim/60 text-base">
+            Manage your credits and view transaction history.
+          </p>
         </div>
-        
+
         <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl px-4 sm:px-8 py-4 flex flex-row items-center justify-between gap-4 shadow-xl w-full md:w-auto text-left">
-           <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg">
-              <Zap size={24} fill="currentColor" />
-           </div>
-           <div>
-              <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Available Credits</p>
-              <div className="flex items-baseline gap-2">
-                 <p className="text-3xl font-bold text-white">{wallet?.balance?.toLocaleString() || '0'}</p>
-                 <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Cr</span>
-              </div>
-           </div>
+          <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg">
+            <Zap size={24} fill="currentColor" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+              Available Credits
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-3xl font-bold text-white">
+                {wallet?.balance?.toLocaleString() || '0'}
+              </p>
+              <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">
+                Cr
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -250,13 +269,19 @@ export default function Credits() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                "flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap flex-shrink-0",
+                'flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap flex-shrink-0',
                 activeTab === tab.id
-                  ? "bg-white text-black shadow-lg"
-                  : "bg-transparent text-text-dim/40 hover:text-white hover:bg-white/5"
+                  ? 'bg-white text-black shadow-lg'
+                  : 'bg-transparent text-text-dim/40 hover:text-white hover:bg-white/5'
               )}
             >
-              <Icon size={14} className={cn("transition-colors", activeTab === tab.id ? "text-primary" : "text-text-dim/40")} />
+              <Icon
+                size={14}
+                className={cn(
+                  'transition-colors',
+                  activeTab === tab.id ? 'text-primary' : 'text-text-dim/40'
+                )}
+              />
               {tab.label}
             </button>
           )
@@ -267,16 +292,18 @@ export default function Credits() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 gap-6 opacity-40">
             <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-            <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Loading wallet data...</p>
+            <p className="text-xs font-bold uppercase tracking-widest animate-pulse">
+              Loading wallet data...
+            </p>
           </div>
         ) : activeTab === 'packs' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
             {packs.map((pack, i) => (
-              <div 
-                key={pack.id} 
+              <div
+                key={pack.id}
                 className={cn(
-                  "bg-bg-card/40 backdrop-blur-xl border rounded-2xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 shadow-xl group/pack relative",
-                  pack.popular ? "border-primary/40 ring-1 ring-primary/20" : "border-white/5"
+                  'bg-bg-card/40 backdrop-blur-xl border rounded-2xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 shadow-xl group/pack relative',
+                  pack.popular ? 'border-primary/40 ring-1 ring-primary/20' : 'border-white/5'
                 )}
                 style={{ animationDelay: `${i * 100}ms` }}
               >
@@ -285,7 +312,7 @@ export default function Credits() {
                     Most Popular
                   </div>
                 )}
-                
+
                 <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center mb-8 group-hover/pack:bg-primary group-hover/pack:text-white transition-all duration-300 border border-white/5 shadow-inner">
                   {pack.id === 'starter' && <Zap size={28} />}
                   {pack.id === 'professional' && <Sparkles size={28} />}
@@ -293,26 +320,36 @@ export default function Credits() {
                 </div>
 
                 <div className="space-y-1 mb-8">
-                   <h3 className="text-2xl font-bold text-white group-hover/pack:text-primary transition-colors">{pack.name}</h3>
-                   <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">{pack.description}</p>
+                  <h3 className="text-2xl font-bold text-white group-hover/pack:text-primary transition-colors">
+                    {pack.name}
+                  </h3>
+                  <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+                    {pack.description}
+                  </p>
                 </div>
-                
+
                 <div className="mb-10">
                   <div className="text-5xl font-bold text-white tracking-tight mb-2">
                     {pack.credits.toLocaleString()}
                   </div>
-                  <div className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Credits included</div>
+                  <div className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">
+                    Credits included
+                  </div>
                 </div>
 
                 <div className="mt-auto pt-8 border-t border-white/5 flex flex-col items-center gap-8">
-                   <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold text-white">${(pack.priceCents / 100).toFixed(0)}</span>
-                      <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">{pack.pricePerCredit}/cr</span>
-                   </div>
-                   
-                   <Button
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold text-white">
+                      ${(pack.priceCents / 100).toFixed(0)}
+                    </span>
+                    <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">
+                      {pack.pricePerCredit}/cr
+                    </span>
+                  </div>
+
+                  <Button
                     fullWidth
-                    variant={pack.popular ? "primary" : "outline"}
+                    variant={pack.popular ? 'primary' : 'outline'}
                     onClick={() => handlePurchaseClick(pack.id)}
                     disabled={purchasing !== null}
                     className="h-12 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg"
@@ -324,9 +361,9 @@ export default function Credits() {
             ))}
 
             {/* Custom Pack Card */}
-            <div 
+            <div
               className={cn(
-                "bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 shadow-xl group/pack relative"
+                'bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 shadow-xl group/pack relative'
               )}
               style={{ animationDelay: `${packs.length * 100}ms` }}
             >
@@ -335,14 +372,20 @@ export default function Credits() {
               </div>
 
               <div className="space-y-1 mb-8">
-                 <h3 className="text-2xl font-bold text-white group-hover/pack:text-primary transition-colors">Custom Pack</h3>
-                 <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Buy exactly what you need</p>
+                <h3 className="text-2xl font-bold text-white group-hover/pack:text-primary transition-colors">
+                  Custom Pack
+                </h3>
+                <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+                  Buy exactly what you need
+                </p>
               </div>
-              
+
               <div className="mb-10 space-y-4">
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-white/20">$</span>
-                  <input 
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-white/20">
+                    $
+                  </span>
+                  <input
                     type="number"
                     min="5"
                     value={customAmount}
@@ -355,17 +398,23 @@ export default function Credits() {
                   <div className="text-3xl font-bold text-white tracking-tight">
                     {Math.floor(parseFloat(customAmount) || 0).toLocaleString()}
                   </div>
-                  <div className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Credits included</div>
+                  <div className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">
+                    Credits included
+                  </div>
                 </div>
               </div>
 
               <div className="mt-auto pt-8 border-t border-white/5 flex flex-col items-center gap-8">
-                 <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-white">${parseFloat(customAmount || '0').toFixed(0)}</span>
-                    <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">Rate: $1 / Credit</span>
-                 </div>
-                 
-                 <Button
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-white">
+                    ${parseFloat(customAmount || '0').toFixed(0)}
+                  </span>
+                  <span className="text-[10px] font-bold text-text-dim/20 uppercase tracking-widest">
+                    Rate: $1 / Credit
+                  </span>
+                </div>
+
+                <Button
                   fullWidth
                   variant="outline"
                   onClick={() => handlePurchaseClick('custom')}
@@ -382,36 +431,53 @@ export default function Credits() {
             {ledger.length === 0 ? (
               <div className="py-20 text-center opacity-20 flex flex-col items-center gap-6">
                 <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
-                   <TrendingUp size={40} />
+                  <TrendingUp size={40} />
                 </div>
-                <p className="text-[10px] font-bold uppercase tracking-widest">No transaction history</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest">
+                  No transaction history
+                </p>
               </div>
             ) : (
               <div className="divide-y divide-white/5">
                 {ledger.map((entry) => {
-                  const info = REASON_LABELS[entry.reason] || { label: entry.reason, color: 'text-text-dim' }
+                  const info = REASON_LABELS[entry.reason] || {
+                    label: entry.reason,
+                    color: 'text-text-dim',
+                  }
                   const isPositive = entry.delta > 0
                   return (
-                    <div key={entry._id} className="flex flex-row items-center justify-between p-4 sm:p-6 hover:bg-white/[0.03] transition-all duration-300 group/entry">
+                    <div
+                      key={entry._id}
+                      className="flex flex-row items-center justify-between p-4 sm:p-6 hover:bg-white/[0.03] transition-all duration-300 group/entry"
+                    >
                       <div className="flex items-center gap-4 sm:gap-6">
-                        <div className={cn(
-                          "w-12 h-12 rounded-xl flex items-center justify-center border transition-all duration-300 group-hover/entry:scale-105",
-                          isPositive ? "bg-success/10 border-success/20 text-success" : "bg-error/10 border-error/20 text-error"
-                        )}>
+                        <div
+                          className={cn(
+                            'w-12 h-12 rounded-xl flex items-center justify-center border transition-all duration-300 group-hover/entry:scale-105',
+                            isPositive
+                              ? 'bg-success/10 border-success/20 text-success'
+                              : 'bg-error/10 border-error/20 text-error'
+                          )}
+                        >
                           {isPositive ? <ArrowUpRight size={24} /> : <ArrowDownRight size={24} />}
                         </div>
                         <div className="space-y-0.5 sm:space-y-1">
-                          <div className="text-lg font-bold text-white group-hover/entry:text-primary transition-colors">{info.label}</div>
+                          <div className="text-lg font-bold text-white group-hover/entry:text-primary transition-colors">
+                            {info.label}
+                          </div>
                           <div className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
                             {new Date(entry.createdAt).toLocaleString()}
                           </div>
                         </div>
                       </div>
                       <div className="text-right mt-0 space-y-0.5 sm:space-y-1">
-                        <div className={cn("text-3xl font-bold tracking-tight", info.color)}>
-                          {isPositive ? '+' : ''}{entry.delta}
+                        <div className={cn('text-3xl font-bold tracking-tight', info.color)}>
+                          {isPositive ? '+' : ''}
+                          {entry.delta}
                         </div>
-                        <div className="text-[9px] font-bold text-text-dim/10 uppercase tracking-widest">Balance: {entry.balanceAfter} cr</div>
+                        <div className="text-[9px] font-bold text-text-dim/10 uppercase tracking-widest">
+                          Balance: {entry.balanceAfter} cr
+                        </div>
                       </div>
                     </div>
                   )
@@ -424,34 +490,38 @@ export default function Credits() {
             {invoices.length === 0 ? (
               <div className="py-20 text-center opacity-20 flex flex-col items-center gap-6">
                 <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
-                   <Receipt size={40} />
+                  <Receipt size={40} />
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-widest">No invoices found</p>
               </div>
             ) : (
               <div className="divide-y divide-white/5">
                 {invoices.map((inv) => (
-                  <div 
-                    key={inv._id} 
+                  <div
+                    key={inv._id}
                     onClick={() => navigate(`/invoices/${inv._id}`)}
                     className="flex flex-row items-center justify-between p-4 sm:p-6 hover:bg-white/[0.03] transition-all duration-300 group/inv cursor-pointer"
                   >
                     <div className="flex items-center gap-4 sm:gap-6">
-                       <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-text-dim/20 border border-white/5 group-hover/inv:text-primary group-hover/inv:border-primary/20 group-hover/inv:bg-primary/5 transition-all duration-300 shadow-lg">
-                          <Receipt size={24} />
-                       </div>
-                       <div className="space-y-0.5 sm:space-y-1">
-                          <div className="text-lg font-bold text-white group-hover/inv:text-primary transition-colors">{inv.invoiceNumber}</div>
-                          <div className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
-                             {new Date(inv.createdAt).toLocaleDateString()}
-                          </div>
-                       </div>
+                      <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-text-dim/20 border border-white/5 group-hover/inv:text-primary group-hover/inv:border-primary/20 group-hover/inv:bg-primary/5 transition-all duration-300 shadow-lg">
+                        <Receipt size={24} />
+                      </div>
+                      <div className="space-y-0.5 sm:space-y-1">
+                        <div className="text-lg font-bold text-white group-hover/inv:text-primary transition-colors">
+                          {inv.invoiceNumber}
+                        </div>
+                        <div className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">
+                          {new Date(inv.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
                     </div>
                     <div className="text-right mt-0 space-y-0.5 sm:space-y-1">
-                       <div className="text-3xl font-bold text-white tracking-tight">
-                          ${(inv.totalCents / 100).toFixed(2)}
-                       </div>
-                       <div className="text-[9px] font-bold text-text-dim/20 uppercase tracking-widest">{inv.currency}</div>
+                      <div className="text-3xl font-bold text-white tracking-tight">
+                        ${(inv.totalCents / 100).toFixed(2)}
+                      </div>
+                      <div className="text-[9px] font-bold text-text-dim/20 uppercase tracking-widest">
+                        {inv.currency}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -465,7 +535,9 @@ export default function Credits() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
             <div className="bg-bg-card border border-white/10 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
               <button
-                onClick={() => { if (!purchasing) setSelectedPack(null) }}
+                onClick={() => {
+                  if (!purchasing) setSelectedPack(null)
+                }}
                 className="absolute top-6 right-6 text-text-dim hover:text-white transition-colors"
               >
                 <X size={20} />
@@ -477,8 +549,12 @@ export default function Credits() {
                 </div>
                 <h3 className="text-2xl font-bold text-white">Choose Gateway</h3>
                 <p className="text-xs text-text-dim/80">
-                  You are purchasing the <span className="text-white font-bold">{selectedPack.name} Pack</span> for{' '}
-                  <span className="text-primary font-bold">${(selectedPack.priceCents / 100).toFixed(2)} USD</span>.
+                  You are purchasing the{' '}
+                  <span className="text-white font-bold">{selectedPack.name} Pack</span> for{' '}
+                  <span className="text-primary font-bold">
+                    ${(selectedPack.priceCents / 100).toFixed(2)} USD
+                  </span>
+                  .
                 </p>
               </div>
 
@@ -493,8 +569,12 @@ export default function Credits() {
                       <CreditCard size={20} />
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">PayPal</div>
-                      <div className="text-[10px] text-text-dim/60 font-semibold">Pay via PayPal Account or Cards</div>
+                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">
+                        PayPal
+                      </div>
+                      <div className="text-[10px] text-text-dim/60 font-semibold">
+                        Pay via PayPal Account or Cards
+                      </div>
                     </div>
                   </div>
                   <div className="text-xs font-bold uppercase tracking-wider text-text-dim/40 group-hover:text-white transition-colors">
@@ -512,8 +592,12 @@ export default function Credits() {
                       <Zap size={20} />
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">Razorpay</div>
-                      <div className="text-[10px] text-text-dim/60 font-semibold">Cards, UPI, NetBanking, Wallets</div>
+                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">
+                        Razorpay
+                      </div>
+                      <div className="text-[10px] text-text-dim/60 font-semibold">
+                        Cards, UPI, NetBanking, Wallets
+                      </div>
                     </div>
                   </div>
                   <div className="text-xs font-bold uppercase tracking-wider text-text-dim/40 group-hover:text-white transition-colors">

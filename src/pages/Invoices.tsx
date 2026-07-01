@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
-import { 
-  Receipt, 
-  Calendar, 
-  Hash, 
-  FileText, 
-  CreditCard, 
-  FileDown, 
+import {
+  Receipt,
+  Calendar,
+  Hash,
+  FileText,
+  CreditCard,
+  FileDown,
   ExternalLink,
   ChevronLeft,
   ChevronRight,
   Search,
-  Filter
+  Filter,
 } from 'lucide-react'
 import * as billingApi from '../services/billingService'
 import type { Invoice } from '../services/billingService'
@@ -46,14 +46,14 @@ export default function Invoices() {
   }, [page])
 
   const handleDownload = (e: React.MouseEvent, inv: Invoice) => {
-    e.stopPropagation();
-    generateInvoicePDF(inv, 'download');
-  };
+    e.stopPropagation()
+    generateInvoicePDF(inv, 'download')
+  }
 
   const handleView = (e: React.MouseEvent, inv: Invoice) => {
-    e.stopPropagation();
-    generateInvoicePDF(inv, 'view');
-  };
+    e.stopPropagation()
+    generateInvoicePDF(inv, 'view')
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700 px-6 relative">
@@ -62,33 +62,39 @@ export default function Invoices() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-10 relative z-10">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Invoices
-          </h1>
-          <p className="text-sm text-text-dim/60">
-            {total} transactions found in your records
-          </p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Invoices</h1>
+          <p className="text-sm text-text-dim/60">{total} transactions found in your records</p>
         </div>
-        
+
         <div className="flex bg-bg-card/40 border border-white/5 p-1 rounded-xl backdrop-blur-xl">
-           <button className="px-4 py-1.5 rounded-lg text-xs font-bold bg-primary text-white shadow-lg shadow-primary/20 transition-all">All</button>
-           <button className="px-4 py-1.5 rounded-lg text-xs font-bold text-text-dim/40 hover:text-white transition-all">Pending</button>
-           <button className="px-4 py-1.5 rounded-lg text-xs font-bold text-text-dim/40 hover:text-white transition-all">Paid</button>
+          <button className="px-4 py-1.5 rounded-lg text-xs font-bold bg-primary text-white shadow-lg shadow-primary/20 transition-all">
+            All
+          </button>
+          <button className="px-4 py-1.5 rounded-lg text-xs font-bold text-text-dim/40 hover:text-white transition-all">
+            Pending
+          </button>
+          <button className="px-4 py-1.5 rounded-lg text-xs font-bold text-text-dim/40 hover:text-white transition-all">
+            Paid
+          </button>
         </div>
       </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-40 gap-6">
           <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-[10px] font-bold uppercase tracking-widest text-text-dim/40 animate-pulse">Loading invoices...</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-text-dim/40 animate-pulse">
+            Loading invoices...
+          </p>
         </div>
       ) : invoices.length === 0 ? (
         <div className="bg-bg-card/40 backdrop-blur-xl border border-dashed border-white/10 rounded-2xl p-16 text-center shadow-2xl relative z-10">
           <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center mx-auto mb-6 border border-white/5 shadow-inner">
-             <Receipt size={28} className="text-text-dim/20" />
+            <Receipt size={28} className="text-text-dim/20" />
           </div>
           <h2 className="text-xl font-bold text-white mb-2">No invoices found</h2>
-          <p className="text-text-dim/40 max-w-sm mx-auto text-sm">Your payment history will appear here once you've made a purchase.</p>
+          <p className="text-text-dim/40 max-w-sm mx-auto text-sm">
+            Your payment history will appear here once you've made a purchase.
+          </p>
         </div>
       ) : (
         <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden shadow-xl relative z-10">
@@ -108,19 +114,25 @@ export default function Invoices() {
                   <th className="px-6 py-4 text-[10px] font-bold text-text-dim/40 uppercase tracking-widest text-right">
                     Amount
                   </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-text-dim/40 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-text-dim/40 uppercase tracking-widest text-right">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {invoices.map((inv) => (
-                  <tr 
-                    key={inv._id} 
+                  <tr
+                    key={inv._id}
                     onClick={() => navigate(`/invoices/${inv._id}`)}
                     className="hover:bg-white/[0.02] transition-all duration-300 group cursor-pointer"
                   >
                     <td className="px-6 py-5">
                       <span className="text-sm font-bold text-white">
-                        {new Date(inv.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {new Date(inv.createdAt).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </span>
                     </td>
                     <td className="px-6 py-5">
@@ -134,8 +146,10 @@ export default function Invoices() {
                           {inv.lineItems[0]?.description || 'Credit purchase'}
                         </span>
                         <div className="flex items-center gap-1.5">
-                           <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                           <span className="text-[10px] font-bold text-success uppercase tracking-widest">Paid</span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                          <span className="text-[10px] font-bold text-success uppercase tracking-widest">
+                            Paid
+                          </span>
                         </div>
                       </div>
                     </td>
@@ -144,21 +158,23 @@ export default function Invoices() {
                         <span className="text-lg font-bold text-white">
                           ${(inv.totalCents / 100).toFixed(2)}
                         </span>
-                        <span className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">{inv.currency}</span>
+                        <span className="text-[9px] font-bold text-text-dim/40 uppercase tracking-widest">
+                          {inv.currency}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-2">
-                        <button 
+                        <button
                           onClick={(e) => handleDownload(e, inv)}
-                          className="p-2 rounded-lg bg-white/5 text-text-dim/40 hover:text-white hover:bg-primary transition-all shadow-inner" 
+                          className="p-2 rounded-lg bg-white/5 text-text-dim/40 hover:text-white hover:bg-primary transition-all shadow-inner"
                           title="Download"
                         >
                           <FileDown size={16} />
                         </button>
-                        <button 
+                        <button
                           onClick={(e) => handleView(e, inv)}
-                          className="p-2 rounded-lg bg-white/5 text-text-dim/40 hover:text-white hover:bg-white/10 transition-all shadow-inner" 
+                          className="p-2 rounded-lg bg-white/5 text-text-dim/40 hover:text-white hover:bg-white/10 transition-all shadow-inner"
                           title="View"
                         >
                           <ExternalLink size={16} />
@@ -184,14 +200,15 @@ export default function Invoices() {
           >
             <ChevronLeft size={20} />
           </Button>
-          
+
           <div className="text-center min-w-[100px] space-y-1">
-             <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Page</p>
-             <div className="text-sm font-bold text-white">
-                {page} <span className="text-text-dim/20 mx-2">/</span> {Math.max(1, Math.ceil(total / 20))}
-             </div>
+            <p className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest">Page</p>
+            <div className="text-sm font-bold text-white">
+              {page} <span className="text-text-dim/20 mx-2">/</span>{' '}
+              {Math.max(1, Math.ceil(total / 20))}
+            </div>
           </div>
-          
+
           <Button
             variant="outline"
             disabled={page * 20 >= total}

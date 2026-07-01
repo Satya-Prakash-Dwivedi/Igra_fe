@@ -55,10 +55,13 @@ const messageService = {
     return data.data
   },
 
-  async replyDirectMessage(userId: string, payload: { content: string; attachmentAssetIds?: string[] }) {
+  async replyDirectMessage(
+    userId: string,
+    payload: { content: string; attachmentAssetIds?: string[] }
+  ) {
     const { data } = await api.post(`/admin/messages/direct/${userId}`, payload)
     return data.data
-  }
+  },
 }
 
 export default messageService

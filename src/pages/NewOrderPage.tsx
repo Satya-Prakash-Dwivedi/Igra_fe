@@ -4,10 +4,33 @@ import * as orderApi from '../services/orderService'
 import * as creditApi from '../services/creditService'
 import * as uploadApi from '../services/uploadService'
 import {
-  ArrowLeft, ArrowRight, PlaySquare, Image, PlayCircle, StopCircle, Mic,
-  FileText, Search, Layout, PenTool, LayoutGrid, Phone, Eye, MessageSquare,
-  Plus, X, Info, Link as LinkIcon,
-  Monitor, Smartphone, Square, HelpCircle, Turtle, Zap, Flame, Rocket
+  ArrowLeft,
+  ArrowRight,
+  PlaySquare,
+  Image,
+  PlayCircle,
+  StopCircle,
+  Mic,
+  FileText,
+  Search,
+  Layout,
+  PenTool,
+  LayoutGrid,
+  Phone,
+  Eye,
+  MessageSquare,
+  Plus,
+  X,
+  Info,
+  Link as LinkIcon,
+  Monitor,
+  Smartphone,
+  Square,
+  HelpCircle,
+  Turtle,
+  Zap,
+  Flame,
+  Rocket,
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
 
@@ -35,12 +58,48 @@ const THUMBNAIL_STYLES = [
 ]
 
 const SERVICE_CATALOG = [
-  { kind: 'VIDEO_EDIT', label: 'Talking head/Vlog', icon: PlaySquare, desc: 'Professional post-production with premium tiered packages', minCredits: 70 },
-  { kind: 'GAMING_STREAMS', label: 'Gaming/Streams', icon: PlaySquare, desc: 'Professional post-production for gaming content', minCredits: 60 },
-  { kind: 'THUMBNAIL', label: 'Thumbnail design', icon: Image, desc: 'High-impact visuals for maximum click-through', minCredits: 10 },
-  { kind: 'INTRO', label: 'Custom intro', icon: PlayCircle, desc: 'Cinematic brand identifiers for your content', minCredits: 20 },
-  { kind: 'CHANNEL_BANNER', label: 'Channel banner', icon: Layout, desc: 'Cohesive brand identity for your profile', minCredits: 15 },
-  { kind: 'CONSULTATION', label: 'Consultation call', icon: Phone, desc: 'Direct strategy session with our specialists', minCredits: 40 },
+  {
+    kind: 'VIDEO_EDIT',
+    label: 'Talking head/Vlog',
+    icon: PlaySquare,
+    desc: 'Professional post-production with premium tiered packages',
+    minCredits: 70,
+  },
+  {
+    kind: 'GAMING_STREAMS',
+    label: 'Gaming/Streams',
+    icon: PlaySquare,
+    desc: 'Professional post-production for gaming content',
+    minCredits: 60,
+  },
+  {
+    kind: 'THUMBNAIL',
+    label: 'Thumbnail design',
+    icon: Image,
+    desc: 'High-impact visuals for maximum click-through',
+    minCredits: 10,
+  },
+  {
+    kind: 'INTRO',
+    label: 'Custom intro',
+    icon: PlayCircle,
+    desc: 'Cinematic brand identifiers for your content',
+    minCredits: 20,
+  },
+  {
+    kind: 'CHANNEL_BANNER',
+    label: 'Channel banner',
+    icon: Layout,
+    desc: 'Cohesive brand identity for your profile',
+    minCredits: 15,
+  },
+  {
+    kind: 'CONSULTATION',
+    label: 'Consultation call',
+    icon: Phone,
+    desc: 'Direct strategy session with our specialists',
+    minCredits: 40,
+  },
 ]
 
 type DraftItem = {
@@ -60,7 +119,7 @@ const STEPS = [
 
 function estimateCredits(item: DraftItem): number {
   const params = item.params || {}
-  const cat = SERVICE_CATALOG.find(s => s.kind === item.kind)
+  const cat = SERVICE_CATALOG.find((s) => s.kind === item.kind)
   let base = cat?.minCredits || 0
 
   if (item.kind === 'VIDEO_EDIT' || item.kind === 'GAMING_STREAMS') {
@@ -106,13 +165,14 @@ export default function NewOrderPage() {
     const queryOrderId = queryParams.get('orderId')
     if (queryOrderId) {
       setLoading(true)
-      orderApi.getOrderDetail(queryOrderId)
+      orderApi
+        .getOrderDetail(queryOrderId)
         .then((detail) => {
           if (detail && detail.order) {
             setOrderId(detail.order._id)
             setTitle(detail.order.title || '')
-            
-            const validKinds = SERVICE_CATALOG.map(s => s.kind)
+
+            const validKinds = SERVICE_CATALOG.map((s) => s.kind)
             const reconstructed = detail.items
               .filter((item: any) => validKinds.includes(item.kind))
               .map((item: any) => ({
@@ -120,7 +180,7 @@ export default function NewOrderPage() {
                 kind: item.kind,
                 params: item.params || {},
                 files: [],
-                assets: item.assets || []
+                assets: item.assets || [],
               }))
             setDraftItems(reconstructed)
             if (reconstructed.length > 0) {
@@ -131,8 +191,8 @@ export default function NewOrderPage() {
           }
         })
         .catch((err) => {
-          console.error("Failed to load draft order:", err)
-          setError("Failed to load draft order. Please try again.")
+          console.error('Failed to load draft order:', err)
+          setError('Failed to load draft order. Please try again.')
         })
         .finally(() => {
           setLoading(false)
@@ -141,7 +201,7 @@ export default function NewOrderPage() {
   }, [])
 
   const getItemCountByKind = (kind: string) => {
-    return draftItems.filter(i => i.kind === kind).length
+    return draftItems.filter((i) => i.kind === kind).length
   }
 
   const handleNext = async () => {
@@ -214,7 +274,7 @@ export default function NewOrderPage() {
       setLoading(true)
       try {
         const existing = await orderApi.getOrderDetail(orderId)
-        
+
         let cumulativeCredits = 0
         const newlyAdded = []
 
@@ -252,7 +312,7 @@ export default function NewOrderPage() {
         setError(`Failed to save configuration: ${errorMsg}`)
         // If we hit a 429, we should definitely stop
         if (err?.response?.status === 429) {
-           setError('Rate limit exceeded. Please wait a few moments before trying again.')
+          setError('Rate limit exceeded. Please wait a few moments before trying again.')
         }
       } finally {
         setLoading(false)
@@ -299,41 +359,57 @@ export default function NewOrderPage() {
       initialParams.notes = ''
     }
 
-    setDraftItems([...draftItems, {
-      tempId: Math.random().toString(36).substr(2, 9),
-      kind,
-      params: initialParams,
-      files: []
-    }])
+    setDraftItems([
+      ...draftItems,
+      {
+        tempId: Math.random().toString(36).substr(2, 9),
+        kind,
+        params: initialParams,
+        files: [],
+      },
+    ])
   }
 
   const handleRemovePackage = (tempId: string) => {
-    setDraftItems(draftItems.filter(i => i.tempId !== tempId))
+    setDraftItems(draftItems.filter((i) => i.tempId !== tempId))
   }
 
   const updateDraftParam = (tempId: string, key: string, value: any) => {
-    setDraftItems(draftItems.map(item => {
-      if (item.tempId === tempId) {
-        return { ...item, params: { ...item.params, [key]: value } }
-      }
-      return item
-    }))
+    setDraftItems(
+      draftItems.map((item) => {
+        if (item.tempId === tempId) {
+          return { ...item, params: { ...item.params, [key]: value } }
+        }
+        return item
+      })
+    )
   }
 
   const renderAssetsAndInstructions = (item: DraftItem) => (
     <>
       {/* Assets & Resources */}
       <div className="space-y-6 pt-10 border-t border-white/5">
-        <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Assets & Resources</label>
+        <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+          Assets & Resources
+        </label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Upload Section */}
           <label className="flex-1 flex flex-col items-center justify-center p-12 bg-white/[0.01] border-2 border-dashed border-white/5 rounded-3xl hover:border-primary/40 cursor-pointer transition-all group">
-            <input type="file" multiple className="hidden" onChange={(e) => {
-              if (e.target.files) {
-                const newFiles = Array.from(e.target.files)
-                setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di))
-              }
-            }} />
+            <input
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files) {
+                  const newFiles = Array.from(e.target.files)
+                  setDraftItems(
+                    draftItems.map((di) =>
+                      di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di
+                    )
+                  )
+                }
+              }}
+            />
             <div className="w-14 h-14 rounded-full bg-primary/5 flex items-center justify-center mb-5 group-hover:bg-primary/10 transition-all border border-primary/10">
               <Plus size={24} className="text-primary" />
             </div>
@@ -350,13 +426,19 @@ export default function NewOrderPage() {
                 </div>
                 <div>
                   <span className="text-sm font-bold text-white block">External Links</span>
-                  <span className="text-[10px] text-text-dim/40 font-medium">Drive, Dropbox, etc.</span>
+                  <span className="text-[10px] text-text-dim/40 font-medium">
+                    Drive, Dropbox, etc.
+                  </span>
                 </div>
               </div>
 
               <div className="space-y-3 overflow-y-auto max-h-[200px] pr-2 custom-scrollbar">
                 {(item.params.externalLinks || ['']).map((link: string, lIdx: number) => (
-                  <div key={lIdx} className="flex gap-2 animate-in slide-in-from-right-2" style={{ animationDelay: `${lIdx * 50}ms` }}>
+                  <div
+                    key={lIdx}
+                    className="flex gap-2 animate-in slide-in-from-right-2"
+                    style={{ animationDelay: `${lIdx * 50}ms` }}
+                  >
                     <input
                       type="url"
                       placeholder={`Link #${lIdx + 1}`}
@@ -371,8 +453,14 @@ export default function NewOrderPage() {
                     {(item.params.externalLinks?.length > 1 || link) && (
                       <button
                         onClick={() => {
-                          const newLinks = (item.params.externalLinks || ['']).filter((_: any, i: number) => i !== lIdx)
-                          updateDraftParam(item.tempId, 'externalLinks', newLinks.length ? newLinks : [''])
+                          const newLinks = (item.params.externalLinks || ['']).filter(
+                            (_: any, i: number) => i !== lIdx
+                          )
+                          updateDraftParam(
+                            item.tempId,
+                            'externalLinks',
+                            newLinks.length ? newLinks : ['']
+                          )
                         }}
                         className="w-10 h-10 rounded-xl bg-error/10 text-error flex items-center justify-center hover:bg-error hover:text-white transition-all shrink-0"
                       >
@@ -399,22 +487,51 @@ export default function NewOrderPage() {
         {/* File List */}
         {(item.files.length > 0 || (item.assets && item.assets.length > 0)) && (
           <div className="flex flex-wrap gap-3">
-            {item.assets && item.assets.map((a: any, ai: number) => (
-              <div key={a._id} className="bg-white/5 px-5 py-3 rounded-2xl flex items-center gap-4 text-[11px] font-bold border border-white/5 animate-in zoom-in-95">
-                <FileText size={16} className="text-primary" />
-                <span className="max-w-[180px] truncate">{a.originalName}</span>
-                <button onClick={() => {
-                  setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, assets: di.assets?.filter((_, i) => i !== ai) } : di))
-                }} className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-error hover:text-white transition-all"><X size={14} /></button>
-              </div>
-            ))}
+            {item.assets &&
+              item.assets.map((a: any, ai: number) => (
+                <div
+                  key={a._id}
+                  className="bg-white/5 px-5 py-3 rounded-2xl flex items-center gap-4 text-[11px] font-bold border border-white/5 animate-in zoom-in-95"
+                >
+                  <FileText size={16} className="text-primary" />
+                  <span className="max-w-[180px] truncate">{a.originalName}</span>
+                  <button
+                    onClick={() => {
+                      setDraftItems(
+                        draftItems.map((di) =>
+                          di.tempId === item.tempId
+                            ? { ...di, assets: di.assets?.filter((_, i) => i !== ai) }
+                            : di
+                        )
+                      )
+                    }}
+                    className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-error hover:text-white transition-all"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
             {item.files.map((f, fi) => (
-              <div key={fi} className="bg-white/5 px-5 py-3 rounded-2xl flex items-center gap-4 text-[11px] font-bold border border-white/5 animate-in zoom-in-95">
+              <div
+                key={fi}
+                className="bg-white/5 px-5 py-3 rounded-2xl flex items-center gap-4 text-[11px] font-bold border border-white/5 animate-in zoom-in-95"
+              >
                 <FileText size={16} className="text-primary" />
                 <span className="max-w-[180px] truncate">{f.name}</span>
-                <button onClick={() => {
-                  setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: di.files.filter((_, i) => i !== fi) } : di))
-                }} className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-error hover:text-white transition-all"><X size={14} /></button>
+                <button
+                  onClick={() => {
+                    setDraftItems(
+                      draftItems.map((di) =>
+                        di.tempId === item.tempId
+                          ? { ...di, files: di.files.filter((_, i) => i !== fi) }
+                          : di
+                      )
+                    )
+                  }}
+                  className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-error hover:text-white transition-all"
+                >
+                  <X size={14} />
+                </button>
               </div>
             ))}
           </div>
@@ -423,7 +540,9 @@ export default function NewOrderPage() {
 
       {/* Special Instructions */}
       <div className="space-y-4 pt-10 border-t border-white/5">
-        <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Special Instructions</label>
+        <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+          Special Instructions
+        </label>
         <textarea
           rows={5}
           value={item.params.notes || ''}
@@ -468,8 +587,8 @@ export default function NewOrderPage() {
             <div
               key={i}
               className={cn(
-                "h-1.5 rounded-full transition-all duration-500",
-                stepIndex === i ? "w-8 bg-primary" : "w-3 bg-white/10"
+                'h-1.5 rounded-full transition-all duration-500',
+                stepIndex === i ? 'w-8 bg-primary' : 'w-3 bg-white/10'
               )}
             />
           ))}
@@ -491,7 +610,9 @@ export default function NewOrderPage() {
           <div className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 p-8 md:p-12 space-y-8 shadow-xl">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white">Give your project a title</h2>
-              <p className="text-text-dim text-sm">This helps you and our editors identify your project easily.</p>
+              <p className="text-text-dim text-sm">
+                This helps you and our editors identify your project easily.
+              </p>
             </div>
             <input
               type="text"
@@ -532,12 +653,17 @@ export default function NewOrderPage() {
                   <div
                     key={pkg.kind}
                     className={cn(
-                      "bg-bg-card/40 backdrop-blur-xl border rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:border-primary/20 hover:-translate-y-1 shadow-xl",
-                      count > 0 ? "border-primary/40 ring-1 ring-primary/20" : "border-white/5"
+                      'bg-bg-card/40 backdrop-blur-xl border rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:border-primary/20 hover:-translate-y-1 shadow-xl',
+                      count > 0 ? 'border-primary/40 ring-1 ring-primary/20' : 'border-white/5'
                     )}
                   >
                     <div className="flex justify-between items-start">
-                      <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-all", count > 0 ? "bg-primary text-white" : "bg-white/5 text-text-dim/40")}>
+                      <div
+                        className={cn(
+                          'w-12 h-12 rounded-xl flex items-center justify-center transition-all',
+                          count > 0 ? 'bg-primary text-white' : 'bg-white/5 text-text-dim/40'
+                        )}
+                      >
                         <Icon size={24} />
                       </div>
                       {count > 0 && (
@@ -551,27 +677,39 @@ export default function NewOrderPage() {
                       <div className="flex justify-between items-baseline">
                         <h3 className="font-bold text-lg text-white">{pkg.label}</h3>
                         <span className="text-[10px] font-black text-primary uppercase tracking-wider bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-md shadow-sm">
-                          {pkg.kind === 'VIDEO_EDIT' ? 'From 70' : (pkg.kind === 'GAMING_STREAMS' ? 'From 60' : pkg.minCredits)} Cr
+                          {pkg.kind === 'VIDEO_EDIT'
+                            ? 'From 70'
+                            : pkg.kind === 'GAMING_STREAMS'
+                              ? 'From 60'
+                              : pkg.minCredits}{' '}
+                          Cr
                         </span>
                       </div>
-                      <p className="text-xs text-text-dim leading-relaxed line-clamp-2">{pkg.desc}</p>
+                      <p className="text-xs text-text-dim leading-relaxed line-clamp-2">
+                        {pkg.desc}
+                      </p>
                     </div>
 
                     <div className="flex gap-3 mt-auto">
                       <button
                         onClick={() => handleAddPackage(pkg.kind)}
                         className={cn(
-                          "flex-1 h-10 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all",
-                          count > 0 ? "bg-primary text-white" : "bg-white/5 text-white hover:bg-white/10"
+                          'flex-1 h-10 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all',
+                          count > 0
+                            ? 'bg-primary text-white'
+                            : 'bg-white/5 text-white hover:bg-white/10'
                         )}
                       >
-                        <Plus size={14} /> {pkg.kind === 'VIDEO_EDIT' || pkg.kind === 'GAMING_STREAMS' ? 'Select Package' : 'Add Service'}
+                        <Plus size={14} />{' '}
+                        {pkg.kind === 'VIDEO_EDIT' || pkg.kind === 'GAMING_STREAMS'
+                          ? 'Select Package'
+                          : 'Add Service'}
                       </button>
                       {count > 0 && (
                         <button
                           onClick={() => {
-                            const itemsOfKind = draftItems.filter(i => i.kind === pkg.kind);
-                            handleRemovePackage(itemsOfKind[itemsOfKind.length - 1].tempId);
+                            const itemsOfKind = draftItems.filter((i) => i.kind === pkg.kind)
+                            handleRemovePackage(itemsOfKind[itemsOfKind.length - 1].tempId)
                           }}
                           className="w-10 h-10 rounded-lg bg-error/10 text-error flex items-center justify-center hover:bg-error hover:text-white transition-all"
                         >
@@ -596,9 +734,13 @@ export default function NewOrderPage() {
 
             <div className="space-y-6">
               {draftItems.map((item, idx) => {
-                const cat = SERVICE_CATALOG.find(c => c.kind === item.kind)!
+                const cat = SERVICE_CATALOG.find((c) => c.kind === item.kind)!
                 return (
-                  <div key={item.tempId} className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden shadow-xl animate-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 100}ms` }}>
+                  <div
+                    key={item.tempId}
+                    className="bg-bg-card/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden shadow-xl animate-in slide-in-from-bottom-4"
+                    style={{ animationDelay: `${idx * 100}ms` }}
+                  >
                     <div className="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
@@ -620,21 +762,68 @@ export default function NewOrderPage() {
                         <div className="space-y-6">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-1 h-1 rounded-full bg-primary" />
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Select Package Tier</label>
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">
+                              Select Package Tier
+                            </label>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {[
-                              { 
-                                id: 'BASIC', label: 'BASIC PACKAGE', credits: item.kind === 'GAMING_STREAMS' ? 60 : 70, 
-                                features: ['6-day delivery', 'Unlimited Revisions', item.kind === 'GAMING_STREAMS' ? '2 hours of raw footage' : 'Up to 30 minutes of footage provided', item.kind === 'GAMING_STREAMS' ? 'Runtime: 7 mins' : 'Up to 5 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
+                              {
+                                id: 'BASIC',
+                                label: 'BASIC PACKAGE',
+                                credits: item.kind === 'GAMING_STREAMS' ? 60 : 70,
+                                features: [
+                                  '6-day delivery',
+                                  'Unlimited Revisions',
+                                  item.kind === 'GAMING_STREAMS'
+                                    ? '2 hours of raw footage'
+                                    : 'Up to 30 minutes of footage provided',
+                                  item.kind === 'GAMING_STREAMS'
+                                    ? 'Runtime: 7 mins'
+                                    : 'Up to 5 minutes running time',
+                                  'Color grading',
+                                  'Sound design & mixing',
+                                  'Motion graphics',
+                                  'Subtitles',
+                                ],
                               },
-                              { 
-                                id: 'STANDARD', label: 'STANDARD PACKAGE', credits: item.kind === 'GAMING_STREAMS' ? 80 : 105, 
-                                features: ['7-day delivery', 'Unlimited Revisions', item.kind === 'GAMING_STREAMS' ? '4 hours of raw footage' : 'Up to 60 minutes of footage provided', item.kind === 'GAMING_STREAMS' ? 'Runtime: 12 mins' : 'Up to 10 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
+                              {
+                                id: 'STANDARD',
+                                label: 'STANDARD PACKAGE',
+                                credits: item.kind === 'GAMING_STREAMS' ? 80 : 105,
+                                features: [
+                                  '7-day delivery',
+                                  'Unlimited Revisions',
+                                  item.kind === 'GAMING_STREAMS'
+                                    ? '4 hours of raw footage'
+                                    : 'Up to 60 minutes of footage provided',
+                                  item.kind === 'GAMING_STREAMS'
+                                    ? 'Runtime: 12 mins'
+                                    : 'Up to 10 minutes running time',
+                                  'Color grading',
+                                  'Sound design & mixing',
+                                  'Motion graphics',
+                                  'Subtitles',
+                                ],
                               },
-                              { 
-                                id: 'PREMIUM', label: 'PREMIUM PACKAGE', credits: item.kind === 'GAMING_STREAMS' ? 100 : 130, 
-                                features: ['7-day delivery', 'Unlimited Revisions', item.kind === 'GAMING_STREAMS' ? '6 hours of raw footage' : 'Up to 120 minutes of footage provided', item.kind === 'GAMING_STREAMS' ? 'Runtime: 17 mins' : 'Up to 15 minutes running time', 'Color grading', 'Sound design & mixing', 'Motion graphics', 'Subtitles']
+                              {
+                                id: 'PREMIUM',
+                                label: 'PREMIUM PACKAGE',
+                                credits: item.kind === 'GAMING_STREAMS' ? 100 : 130,
+                                features: [
+                                  '7-day delivery',
+                                  'Unlimited Revisions',
+                                  item.kind === 'GAMING_STREAMS'
+                                    ? '6 hours of raw footage'
+                                    : 'Up to 120 minutes of footage provided',
+                                  item.kind === 'GAMING_STREAMS'
+                                    ? 'Runtime: 17 mins'
+                                    : 'Up to 15 minutes running time',
+                                  'Color grading',
+                                  'Sound design & mixing',
+                                  'Motion graphics',
+                                  'Subtitles',
+                                ],
                               },
                             ].map((tier) => (
                               <button
@@ -646,14 +835,17 @@ export default function NewOrderPage() {
                                   }
                                 }}
                                 className={cn(
-                                  "text-left p-6 rounded-2xl border transition-all flex flex-col justify-between h-full gap-4",
-                                  item.params.packageTier === tier.id || (!item.params.packageTier && tier.id === 'BASIC')
-                                    ? "bg-primary/10 border-primary text-white shadow-lg shadow-primary/5"
-                                    : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20"
+                                  'text-left p-6 rounded-2xl border transition-all flex flex-col justify-between h-full gap-4',
+                                  item.params.packageTier === tier.id ||
+                                    (!item.params.packageTier && tier.id === 'BASIC')
+                                    ? 'bg-primary/10 border-primary text-white shadow-lg shadow-primary/5'
+                                    : 'bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20'
                                 )}
                               >
                                 <div className="space-y-3 w-full">
-                                  <span className="text-xs font-bold uppercase tracking-widest">{tier.label}</span>
+                                  <span className="text-xs font-bold uppercase tracking-widest">
+                                    {tier.label}
+                                  </span>
                                   <ul className="text-xs text-white leading-relaxed space-y-1.5 text-left list-disc pl-4">
                                     {tier.features.map((f, i) => (
                                       <li key={i}>{f}</li>
@@ -672,25 +864,50 @@ export default function NewOrderPage() {
                         <div className="space-y-6">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-1 h-1 rounded-full bg-primary" />
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Delivery Speed</label>
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">
+                              Delivery Speed
+                            </label>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {[
-                              { id: 'STANDARD', label: 'Standard Delivery', time: item.params.packageTier === 'BASIC' ? '6-day delivery' : '7-day delivery', extra: '+0 Credits' },
-                              { id: 'EXPRESS', label: 'Expedite Delivery', time: item.params.packageTier === 'PREMIUM' ? '4-day delivery' : (item.params.packageTier === 'STANDARD' ? '3-day delivery' : '2-day delivery'), extra: `+${(item.params.packageTier === 'PREMIUM' ? 40 : (item.params.packageTier === 'STANDARD' ? 30 : 20))} Credits` },
+                              {
+                                id: 'STANDARD',
+                                label: 'Standard Delivery',
+                                time:
+                                  item.params.packageTier === 'BASIC'
+                                    ? '6-day delivery'
+                                    : '7-day delivery',
+                                extra: '+0 Credits',
+                              },
+                              {
+                                id: 'EXPRESS',
+                                label: 'Expedite Delivery',
+                                time:
+                                  item.params.packageTier === 'PREMIUM'
+                                    ? '4-day delivery'
+                                    : item.params.packageTier === 'STANDARD'
+                                      ? '3-day delivery'
+                                      : '2-day delivery',
+                                extra: `+${item.params.packageTier === 'PREMIUM' ? 40 : item.params.packageTier === 'STANDARD' ? 30 : 20} Credits`,
+                              },
                             ].map((speed) => (
                               <button
                                 key={speed.id}
-                                onClick={() => updateDraftParam(item.tempId, 'deliverySpeed', speed.id)}
+                                onClick={() =>
+                                  updateDraftParam(item.tempId, 'deliverySpeed', speed.id)
+                                }
                                 className={cn(
-                                  "text-left p-6 rounded-2xl border transition-all flex justify-between items-center",
-                                  item.params.deliverySpeed === speed.id || (!item.params.deliverySpeed && speed.id === 'STANDARD')
-                                    ? "bg-primary/10 border-primary text-white shadow-lg shadow-primary/5"
-                                    : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20"
+                                  'text-left p-6 rounded-2xl border transition-all flex justify-between items-center',
+                                  item.params.deliverySpeed === speed.id ||
+                                    (!item.params.deliverySpeed && speed.id === 'STANDARD')
+                                    ? 'bg-primary/10 border-primary text-white shadow-lg shadow-primary/5'
+                                    : 'bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20'
                                 )}
                               >
                                 <div>
-                                  <span className="text-xs font-bold uppercase tracking-widest">{speed.label}</span>
+                                  <span className="text-xs font-bold uppercase tracking-widest">
+                                    {speed.label}
+                                  </span>
                                   <p className="text-[10px] opacity-60 mt-1">{speed.time}</p>
                                 </div>
                                 <div className="text-base font-bold text-primary">
@@ -701,49 +918,69 @@ export default function NewOrderPage() {
                           </div>
                         </div>
 
-
                         {/* Extra Configuration */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Video Format</label>
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">
+                              Video Format
+                            </label>
                             <div className="flex flex-wrap gap-3">
-                              {['Horizontal (16:9)', 'Vertical (9:16)', 'Square (1:1)'].map((opt) => (
-                                <button
-                                  key={opt}
-                                  onClick={() => updateDraftParam(item.tempId, 'videoFormat', opt)}
-                                  className={cn(
-                                    "px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap",
-                                    (item.params.videoFormat || 'Horizontal (16:9)') === opt
-                                      ? "bg-primary/20 border-primary text-white shadow-lg shadow-primary/10"
-                                      : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20 hover:text-white"
-                                  )}
-                                >
-                                  {opt}
-                                </button>
-                              ))}
+                              {['Horizontal (16:9)', 'Vertical (9:16)', 'Square (1:1)'].map(
+                                (opt) => (
+                                  <button
+                                    key={opt}
+                                    onClick={() =>
+                                      updateDraftParam(item.tempId, 'videoFormat', opt)
+                                    }
+                                    className={cn(
+                                      'px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap',
+                                      (item.params.videoFormat || 'Horizontal (16:9)') === opt
+                                        ? 'bg-primary/20 border-primary text-white shadow-lg shadow-primary/10'
+                                        : 'bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20 hover:text-white'
+                                    )}
+                                  >
+                                    {opt}
+                                  </button>
+                                )
+                              )}
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Expected Length (Minutes)</label>
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">
+                              Expected Length (Minutes)
+                            </label>
                             <input
                               type="number"
                               value={item.params.videoLength || 5}
-                              onChange={(e) => updateDraftParam(item.tempId, 'videoLength', parseInt(e.target.value))}
+                              onChange={(e) =>
+                                updateDraftParam(
+                                  item.tempId,
+                                  'videoLength',
+                                  parseInt(e.target.value)
+                                )
+                              }
                               className="w-full bg-black/20 border border-white/5 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-primary/40"
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Editing Style</label>
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">
+                              Editing Style
+                            </label>
                             <div className="flex flex-wrap gap-3">
-                              {['Clean & Professional', 'Fast-Paced & Energetic', 'Cinematic & Story-Driven', 'Documentary Style'].map((opt) => (
+                              {[
+                                'Clean & Professional',
+                                'Fast-Paced & Energetic',
+                                'Cinematic & Story-Driven',
+                                'Documentary Style',
+                              ].map((opt) => (
                                 <button
                                   key={opt}
                                   onClick={() => updateDraftParam(item.tempId, 'style', opt)}
                                   className={cn(
-                                    "px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap",
+                                    'px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap',
                                     (item.params.style || 'Clean & Professional') === opt
-                                      ? "bg-primary/20 border-primary text-white shadow-lg shadow-primary/10"
-                                      : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20 hover:text-white"
+                                      ? 'bg-primary/20 border-primary text-white shadow-lg shadow-primary/10'
+                                      : 'bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20 hover:text-white'
                                   )}
                                 >
                                   {opt}
@@ -752,17 +989,19 @@ export default function NewOrderPage() {
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">Pacing</label>
+                            <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-[0.2em] block">
+                              Pacing
+                            </label>
                             <div className="flex flex-wrap gap-3">
                               {['Slow & Relaxed', 'Medium', 'Fast & Dynamic'].map((opt) => (
                                 <button
                                   key={opt}
                                   onClick={() => updateDraftParam(item.tempId, 'pace', opt)}
                                   className={cn(
-                                    "px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap",
+                                    'px-4 py-3 rounded-xl border text-xs font-medium transition-all flex-1 text-center whitespace-nowrap',
                                     (item.params.pace || 'Medium') === opt
-                                      ? "bg-primary/20 border-primary text-white shadow-lg shadow-primary/10"
-                                      : "bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20 hover:text-white"
+                                      ? 'bg-primary/20 border-primary text-white shadow-lg shadow-primary/10'
+                                      : 'bg-white/[0.02] border-white/5 text-text-muted hover:border-white/20 hover:text-white'
                                   )}
                                 >
                                   {opt}
@@ -778,15 +1017,19 @@ export default function NewOrderPage() {
                       <div className="space-y-10 px-8 py-10">
                         {/* Design Style */}
                         <div className="space-y-6">
-                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Design Style</label>
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+                            Design Style
+                          </label>
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                             {THUMBNAIL_STYLES.map((s) => (
                               <button
                                 key={s.id}
                                 onClick={() => updateDraftParam(item.tempId, 'style', s.id)}
                                 className={cn(
-                                  "group relative flex flex-col items-center gap-4 bg-bg-card/40 border rounded-2xl p-3 transition-all duration-300 hover:border-primary/40",
-                                  item.params.style === s.id ? "border-primary ring-1 ring-primary/20 shadow-lg shadow-primary/5" : "border-white/5"
+                                  'group relative flex flex-col items-center gap-4 bg-bg-card/40 border rounded-2xl p-3 transition-all duration-300 hover:border-primary/40',
+                                  item.params.style === s.id
+                                    ? 'border-primary ring-1 ring-primary/20 shadow-lg shadow-primary/5'
+                                    : 'border-white/5'
                                 )}
                               >
                                 <div className="aspect-[16/10] w-full overflow-hidden rounded-xl bg-black/40">
@@ -794,15 +1037,21 @@ export default function NewOrderPage() {
                                     src={s.img}
                                     alt={s.label}
                                     className={cn(
-                                      "w-full h-full object-cover transition-all duration-500",
-                                      item.params.style === s.id ? "scale-105" : "opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-105"
+                                      'w-full h-full object-cover transition-all duration-500',
+                                      item.params.style === s.id
+                                        ? 'scale-105'
+                                        : 'opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-105'
                                     )}
                                   />
                                 </div>
-                                <span className={cn(
-                                  "text-[9px] font-black uppercase tracking-widest transition-colors",
-                                  item.params.style === s.id ? "text-primary" : "text-text-dim/40 group-hover:text-white"
-                                )}>
+                                <span
+                                  className={cn(
+                                    'text-[9px] font-black uppercase tracking-widest transition-colors',
+                                    item.params.style === s.id
+                                      ? 'text-primary'
+                                      : 'text-text-dim/40 group-hover:text-white'
+                                  )}
+                                >
                                   {s.label}
                                 </span>
                               </button>
@@ -815,11 +1064,19 @@ export default function NewOrderPage() {
                     ) : item.kind === 'VOICEOVER' ? (
                       <div className="space-y-10 px-8 py-10">
                         <div className="space-y-4">
-                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Script Length (Minutes)</label>
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+                            Script Length (Minutes)
+                          </label>
                           <input
                             type="number"
                             value={item.params.scriptLength || 5}
-                            onChange={(e) => updateDraftParam(item.tempId, 'scriptLength', parseInt(e.target.value))}
+                            onChange={(e) =>
+                              updateDraftParam(
+                                item.tempId,
+                                'scriptLength',
+                                parseInt(e.target.value)
+                              )
+                            }
                             className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 text-lg"
                           />
                         </div>
@@ -828,11 +1085,15 @@ export default function NewOrderPage() {
                     ) : item.kind === 'SCRIPT' ? (
                       <div className="space-y-10 px-8 py-10">
                         <div className="space-y-4">
-                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Estimated Word Count</label>
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+                            Estimated Word Count
+                          </label>
                           <input
                             type="number"
                             value={item.params.wordCount || 500}
-                            onChange={(e) => updateDraftParam(item.tempId, 'wordCount', parseInt(e.target.value))}
+                            onChange={(e) =>
+                              updateDraftParam(item.tempId, 'wordCount', parseInt(e.target.value))
+                            }
                             className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 text-lg"
                           />
                         </div>
@@ -841,12 +1102,16 @@ export default function NewOrderPage() {
                     ) : item.kind === 'SEO' ? (
                       <div className="space-y-10 px-8 py-10">
                         <div className="space-y-4">
-                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Video URL</label>
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+                            Video URL
+                          </label>
                           <input
                             type="url"
                             placeholder="https://youtube.com/watch?v=example"
                             value={item.params.videoUrl || ''}
-                            onChange={(e) => updateDraftParam(item.tempId, 'videoUrl', e.target.value)}
+                            onChange={(e) =>
+                              updateDraftParam(item.tempId, 'videoUrl', e.target.value)
+                            }
                             className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40"
                           />
                         </div>
@@ -855,14 +1120,20 @@ export default function NewOrderPage() {
                     ) : item.kind === 'CONSULTATION' ? (
                       <div className="space-y-10 px-8 py-10">
                         <div className="space-y-4">
-                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Duration (Minutes)</label>
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+                            Duration (Minutes)
+                          </label>
                           <select
                             value={item.params.duration || 15}
-                            onChange={(e) => updateDraftParam(item.tempId, 'duration', parseInt(e.target.value))}
+                            onChange={(e) =>
+                              updateDraftParam(item.tempId, 'duration', parseInt(e.target.value))
+                            }
                             className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 appearance-none cursor-pointer"
                           >
-                            {[15, 30, 45, 60].map(m => (
-                              <option key={m} value={m} className="bg-bg-dark text-white">{m} Minutes</option>
+                            {[15, 30, 45, 60].map((m) => (
+                              <option key={m} value={m} className="bg-bg-dark text-white">
+                                {m} Minutes
+                              </option>
                             ))}
                           </select>
                         </div>
@@ -871,11 +1142,19 @@ export default function NewOrderPage() {
                     ) : item.kind === 'FOOTAGE_REVIEW' ? (
                       <div className="space-y-10 px-8 py-10">
                         <div className="space-y-4">
-                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Raw Footage Length (Minutes)</label>
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+                            Raw Footage Length (Minutes)
+                          </label>
                           <input
                             type="number"
                             value={item.params.footageLength || 10}
-                            onChange={(e) => updateDraftParam(item.tempId, 'footageLength', parseInt(e.target.value))}
+                            onChange={(e) =>
+                              updateDraftParam(
+                                item.tempId,
+                                'footageLength',
+                                parseInt(e.target.value)
+                              )
+                            }
                             className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-4 text-white font-bold outline-none focus:border-primary/40 text-lg"
                           />
                         </div>
@@ -884,58 +1163,118 @@ export default function NewOrderPage() {
                     ) : item.kind === 'CUSTOM' ? (
                       <div className="space-y-10 px-8 py-10">
                         <div className="space-y-4">
-                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Description of Request</label>
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+                            Description of Request
+                          </label>
                           <textarea
                             rows={4}
                             placeholder="Custom request description..."
                             value={item.params.description || ''}
-                            onChange={(e) => updateDraftParam(item.tempId, 'description', e.target.value)}
+                            onChange={(e) =>
+                              updateDraftParam(item.tempId, 'description', e.target.value)
+                            }
                             className="w-full bg-black/20 border border-white/5 rounded-2xl px-8 py-6 text-white text-base outline-none focus:border-primary/40 resize-none transition-all focus:ring-2 focus:ring-primary/5 shadow-inner"
                           />
                         </div>
                         {renderAssetsAndInstructions(item)}
                       </div>
-                    ) : (['INTRO', 'OUTRO', 'CHANNEL_BANNER', 'LOGO_DESIGN', 'IMAGE_RETOUCHING'].includes(item.kind)) ? (
+                    ) : [
+                        'INTRO',
+                        'OUTRO',
+                        'CHANNEL_BANNER',
+                        'LOGO_DESIGN',
+                        'IMAGE_RETOUCHING',
+                      ].includes(item.kind) ? (
                       <div className="space-y-10 px-8 py-10">
                         {renderAssetsAndInstructions(item)}
                       </div>
                     ) : (
                       <div className="p-8 space-y-8">
-                        <p className="text-text-dim/40 text-xs italic">Configuration options for {cat.label} are being loaded...</p>
+                        <p className="text-text-dim/40 text-xs italic">
+                          Configuration options for {cat.label} are being loaded...
+                        </p>
 
                         {/* Fallback Asset Section */}
                         <div className="space-y-4 pt-4 border-t border-white/5">
-                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">Upload Files</label>
+                          <label className="text-[10px] font-bold text-text-dim/40 uppercase tracking-widest block">
+                            Upload Files
+                          </label>
                           <div className="flex flex-col md:flex-row gap-4">
                             <label className="flex-1 flex flex-col items-center justify-center p-8 bg-white/[0.01] border-2 border-dashed border-white/5 rounded-xl hover:border-primary/40 cursor-pointer transition-all group">
-                              <input type="file" multiple className="hidden" onChange={(e) => {
-                                if (e.target.files) {
-                                  const newFiles = Array.from(e.target.files)
-                                  setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: [...di.files, ...newFiles] } : di))
-                                }
-                              }} />
-                              <Plus size={24} className="text-primary/40 group-hover:text-primary transition-colors mb-2" />
+                              <input
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => {
+                                  if (e.target.files) {
+                                    const newFiles = Array.from(e.target.files)
+                                    setDraftItems(
+                                      draftItems.map((di) =>
+                                        di.tempId === item.tempId
+                                          ? { ...di, files: [...di.files, ...newFiles] }
+                                          : di
+                                      )
+                                    )
+                                  }
+                                }}
+                              />
+                              <Plus
+                                size={24}
+                                className="text-primary/40 group-hover:text-primary transition-colors mb-2"
+                              />
                               <span className="text-sm font-bold text-white">Add Files</span>
                             </label>
                           </div>
                           {(item.files.length > 0 || (item.assets && item.assets.length > 0)) && (
                             <div className="flex flex-wrap gap-2">
-                              {item.assets && item.assets.map((a: any, ai: number) => (
-                                <div key={a._id} className="bg-white/5 px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold">
-                                  <FileText size={12} className="text-text-dim/40" />
-                                  {a.originalName}
-                                  <button onClick={() => {
-                                    setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, assets: di.assets?.filter((_, i) => i !== ai) } : di))
-                                  }} className="hover:text-error"><X size={12} /></button>
-                                </div>
-                              ))}
+                              {item.assets &&
+                                item.assets.map((a: any, ai: number) => (
+                                  <div
+                                    key={a._id}
+                                    className="bg-white/5 px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold"
+                                  >
+                                    <FileText size={12} className="text-text-dim/40" />
+                                    {a.originalName}
+                                    <button
+                                      onClick={() => {
+                                        setDraftItems(
+                                          draftItems.map((di) =>
+                                            di.tempId === item.tempId
+                                              ? {
+                                                  ...di,
+                                                  assets: di.assets?.filter((_, i) => i !== ai),
+                                                }
+                                              : di
+                                          )
+                                        )
+                                      }}
+                                      className="hover:text-error"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  </div>
+                                ))}
                               {item.files.map((f, fi) => (
-                                <div key={fi} className="bg-white/5 px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold">
+                                <div
+                                  key={fi}
+                                  className="bg-white/5 px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold"
+                                >
                                   <FileText size={12} className="text-text-dim/40" />
                                   {f.name}
-                                  <button onClick={() => {
-                                    setDraftItems(draftItems.map(di => di.tempId === item.tempId ? { ...di, files: di.files.filter((_, i) => i !== fi) } : di))
-                                  }} className="hover:text-error"><X size={12} /></button>
+                                  <button
+                                    onClick={() => {
+                                      setDraftItems(
+                                        draftItems.map((di) =>
+                                          di.tempId === item.tempId
+                                            ? { ...di, files: di.files.filter((_, i) => i !== fi) }
+                                            : di
+                                        )
+                                      )
+                                    }}
+                                    className="hover:text-error"
+                                  >
+                                    <X size={12} />
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -948,8 +1287,7 @@ export default function NewOrderPage() {
               })}
             </div>
           </div>
-        )
-        }
+        )}
 
         {/* STEP 3: REVIEW & PAY */}
         {stepIndex === 3 && (
@@ -960,34 +1298,56 @@ export default function NewOrderPage() {
             </div>
 
             <div className="bg-black/20 rounded-xl border border-white/5 p-6 space-y-4">
-              {draftItems.map(item => (
-                <div key={item.tempId} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-                  <span className="text-sm font-bold text-white">{SERVICE_CATALOG.find(c => c.kind === item.kind)?.label}</span>
+              {draftItems.map((item) => (
+                <div
+                  key={item.tempId}
+                  className="flex justify-between items-center py-2 border-b border-white/5 last:border-0"
+                >
+                  <span className="text-sm font-bold text-white">
+                    {SERVICE_CATALOG.find((c) => c.kind === item.kind)?.label}
+                  </span>
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-bold text-white">{estimateCredits(item)}</span>
-                    <span className="text-[10px] font-bold text-text-dim/40 uppercase">Credits</span>
+                    <span className="text-[10px] font-bold text-text-dim/40 uppercase">
+                      Credits
+                    </span>
                   </div>
                 </div>
               ))}
               <div className="pt-4 flex justify-between items-center border-t border-white/10">
                 <span className="text-xs font-bold text-text-dim uppercase">Total Amount</span>
                 <div className="text-3xl font-bold text-primary">
-                  {confirmedTotal} <span className="text-xs font-bold text-text-dim/40">Credits</span>
+                  {confirmedTotal}{' '}
+                  <span className="text-xs font-bold text-text-dim/40">Credits</span>
                 </div>
               </div>
             </div>
 
-            <div className={cn(
-              "p-6 rounded-xl flex items-center gap-4 border transition-all",
-              canAfford ? 'bg-success/5 border-success/20 text-success' : 'bg-error/5 border-error/20 text-error'
-            )}>
+            <div
+              className={cn(
+                'p-6 rounded-xl flex items-center gap-4 border transition-all',
+                canAfford
+                  ? 'bg-success/5 border-success/20 text-success'
+                  : 'bg-error/5 border-error/20 text-error'
+              )}
+            >
               <Info size={24} />
               <div className="flex-1">
-                <p className="font-bold text-sm">{canAfford ? 'Your balance is sufficient' : 'Insufficient balance'}</p>
-                <p className="text-[10px] uppercase tracking-widest opacity-60">Wallet: {balance} Cr | Required: {confirmedTotal} Cr</p>
+                <p className="font-bold text-sm">
+                  {canAfford ? 'Your balance is sufficient' : 'Insufficient balance'}
+                </p>
+                <p className="text-[10px] uppercase tracking-widest opacity-60">
+                  Wallet: {balance} Cr | Required: {confirmedTotal} Cr
+                </p>
               </div>
               {!canAfford && (
-                <Button variant="outline" onClick={() => navigate('/credits')} className="h-10 px-6 rounded-lg text-[10px]">Recharge</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/credits')}
+                  className="h-10 px-6 rounded-lg text-[10px]"
+                >
+                  Recharge
+                </Button>
               )}
             </div>
           </div>
@@ -997,9 +1357,12 @@ export default function NewOrderPage() {
         {stepIndex > 0 && (
           <div className="mt-12 flex justify-between items-center bg-bg-card/60 backdrop-blur-3xl border border-white/5 rounded-[2rem] p-8 shadow-2xl sticky bottom-6 group">
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Total Estimate</p>
+              <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">
+                Total Estimate
+              </p>
               <p className="text-3xl font-bold text-white tracking-tight italic">
-                {stepIndex === 3 ? confirmedTotal : totalEstimatedCredits} <span className="text-sm font-bold text-text-dim/40 not-italic">Credits</span>
+                {stepIndex === 3 ? confirmedTotal : totalEstimatedCredits}{' '}
+                <span className="text-sm font-bold text-text-dim/40 not-italic">Credits</span>
               </p>
             </div>
 
@@ -1011,7 +1374,10 @@ export default function NewOrderPage() {
               className="h-14 px-12 rounded-2xl font-bold text-sm shadow-2xl shadow-primary/20"
             >
               {stepIndex === 3 ? 'Initiate Production' : 'Continue'}
-              <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight
+                size={18}
+                className="ml-2 group-hover:translate-x-1 transition-transform"
+              />
             </Button>
           </div>
         )}
