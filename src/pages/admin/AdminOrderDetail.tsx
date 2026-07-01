@@ -410,7 +410,9 @@ const ItemCard: React.FC<{
               </span>
               <span className="w-1 h-1 rounded-full bg-white/10" />
               <span className="text-xs font-bold uppercase tracking-wide text-text-dim/40">
-                Revision {item.usedRevisions} of {item.allowedRevisions}
+                {item.allowedRevisions > 0 
+                  ? `Revision ${item.usedRevisions} (Unlimited)`
+                  : `No Revisions`}
               </span>
             </div>
           </div>
