@@ -31,7 +31,7 @@ const UrgentDeadlinesPanel: React.FC<UrgentDeadlinesPanelProps> = ({ orders, cla
   }
 
   return (
-    <div className={cn('bg-bg-card border border-error/20 rounded-xl p-6 shadow-sm flex flex-col', className)}>
+    <div className={cn('bg-bg-card border border-error/20 rounded-xl p-6 shadow-sm flex flex-col min-h-[350px] max-h-[500px] lg:max-h-none lg:h-full', className)}>
       <div className="flex items-center gap-3 mb-4">
         <div className="w-8 h-8 rounded bg-error/10 flex items-center justify-center text-error relative">
           <AlertTriangle size={18} />
@@ -60,30 +60,34 @@ const UrgentDeadlinesPanel: React.FC<UrgentDeadlinesPanelProps> = ({ orders, cla
                   : "bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10"
               )}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-white uppercase tracking-wider">
                     #{order.orderNumber.slice(-3)}
                   </span>
-                  <span className="text-text-muted text-xs mx-1">•</span>
-                  <span className="text-sm font-semibold text-white truncate max-w-[120px]">
+                  <span className="text-text-muted text-xs mx-1 hidden sm:block">•</span>
+                  <span className="text-sm font-semibold text-white truncate max-w-[120px] sm:max-w-[180px]">
                     {order.title || 'Untitled'}
                   </span>
                 </div>
-                <StatusBadge status={order.status} />
+                <div className="self-start sm:self-auto">
+                  <StatusBadge status={order.status} />
+                </div>
               </div>
               
-              <div className="flex items-center justify-between text-xs mt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs mt-2 gap-2 sm:gap-0">
                 <div className="flex items-center gap-1.5 text-text-muted">
                   <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-primary text-[8px] font-bold">
                     {order.assignedTo?.name?.[0] || 'U'}
                   </div>
-                  <span>{order.assignedTo?.name || 'Unassigned'}</span>
+                  <span className="truncate max-w-[100px]">{order.assignedTo?.name || 'Unassigned'}</span>
                 </div>
                 <div className={cn("font-bold flex items-center gap-1", past ? "text-error" : "text-amber-500")}>
-                  <Clock size={12} />
-                  {past ? 'Overdue ' : 'Due '}
-                  {formatDistanceToNow(deadline, { addSuffix: true })}
+                  <Clock size={12} className="shrink-0" />
+                  <span className="truncate">
+                    {past ? 'Overdue ' : 'Due '}
+                    {formatDistanceToNow(deadline, { addSuffix: true })}
+                  </span>
                 </div>
               </div>
             </div>
