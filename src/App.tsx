@@ -138,6 +138,7 @@ function App() {
               <Route path="/admin/staff" element={<AdminStaff />} />
               <Route path="/admin/messages" element={<AdminMessages />} />
               <Route path="/admin/ledger" element={<AdminLedger />} />
+              <Route path="/admin/profile" element={<Profile />} />
             </Route>
 
             {/* Fallback */}
