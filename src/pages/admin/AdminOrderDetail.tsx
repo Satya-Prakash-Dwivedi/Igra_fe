@@ -32,6 +32,7 @@ import {
   ShieldAlert,
   Calendar,
   HelpCircle,
+  Star,
 } from 'lucide-react'
 import socketService from '../../services/socketService'
 import { AuthContext } from '../../context/AuthContext'
@@ -1184,6 +1185,28 @@ const AdminOrderDetail: React.FC = () => {
                 {order.totalCreditsCaptured.toLocaleString()} CR
               </p>
             </div>
+
+            {order.rating && (
+              <div className="mt-4 pt-4 border-t border-white/5 w-full text-left md:text-right">
+                <p className="text-xs font-bold text-white/40 uppercase tracking-wide mb-2">
+                  Client Rating
+                </p>
+                <div className="flex items-center md:justify-end gap-1 mb-2">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <Star
+                      key={star}
+                      size={18}
+                      className={star <= order.rating! ? 'text-amber-500 fill-amber-500' : 'text-white/10'}
+                    />
+                  ))}
+                </div>
+                {order.feedback && (
+                  <p className="text-[10px] text-text-dim/60 italic bg-black/20 p-2 rounded border border-white/5 inline-block text-left max-w-full break-words">
+                    "{order.feedback}"
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

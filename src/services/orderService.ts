@@ -13,9 +13,12 @@ export interface Order {
   totalCreditsCaptured: number
   submittedAt?: string
   completedAt?: string
+  approvedAt?: string
   createdAt: string
   updatedAt: string
-  itemCount?: number
+  rating?: number
+  feedback?: string
+  items?: OrderItem[]
 }
 
 export interface OrderItem {
@@ -177,5 +180,10 @@ export async function completeReview(orderId: string) {
 
 export async function finalizeOrder(orderId: string) {
   const res = await api.post(`/orders/${orderId}/finalize`)
+  return res.data.data as Order
+}
+
+export async function submitOrderReview(orderId: string, rating: number, feedback: string) {
+  const res = await api.post(`/orders/${orderId}/review`, { rating, feedback })
   return res.data.data as Order
 }

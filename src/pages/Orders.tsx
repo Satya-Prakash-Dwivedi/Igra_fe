@@ -22,6 +22,7 @@ import { createLogger, serializeError } from '../services/logger'
 import { cn } from '../components/Button'
 import { toast } from 'sonner'
 import Button from '../components/Button'
+import { calculateDeadline } from '../utils/orderUtils'
 
 const logger = createLogger('Orders')
 
@@ -203,6 +204,37 @@ export default function Orders() {
                     <Calendar size={12} className="text-primary/40" />
                     <span>{new Date(order.createdAt).toLocaleDateString()}</span>
                   </div>
+                  {(() => {
+                    if (!order.items || order.items.length === 0) return null
+                    const deadlines = order.items
+                      .map(item => calculateDeadline(order.approvedAt, order.createdAt, order.status, item.kind, item.params))
+                      .filter(d => d.date !== null)
+                    if (deadlines.length === 0) return null
+                    
+                    deadlines.sort((a, b) => a.date!.getTime() - b.date!.getTime())
+                    const urgent = deadlines[0]
+                    
+                    return (
+                      <>
+                        <div className="w-1 h-1 rounded-full bg-white/5" />
+                        <div
+                          className={cn(
+                            'flex items-center gap-2 px-2 py-0.5 rounded-md',
+                            urgent.status === 'OVERDUE'
+                              ? 'bg-error/10 text-error'
+                              : urgent.status === 'URGENT'
+                                ? 'bg-orange-500/10 text-orange-500'
+                                : urgent.status === 'COMPLETED'
+                                  ? 'bg-success/10 text-success opacity-75'
+                                  : 'bg-primary/10 text-primary'
+                          )}
+                        >
+                          <Clock size={12} />
+                          <span>{urgent.formatted}</span>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
 
@@ -212,7 +244,7 @@ export default function Orders() {
                     Items
                   </p>
                   <p className="text-xl font-bold text-white">
-                    {order.itemCount || 1}{' '}
+                    {order.items ? order.items.length : 1}{' '}
                     <span className="text-[10px] font-normal text-text-dim/40 ml-1 uppercase">
                       Assets
                     </span>

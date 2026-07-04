@@ -9,6 +9,7 @@ import {
   Database,
   Package,
   Eye,
+  Star,
 } from 'lucide-react'
 import adminService from '../../services/adminService'
 import type { AdminOrder, OrderStatus, AdminUser } from '../../services/adminService'
@@ -308,13 +309,20 @@ const AdminOrders: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <span className="text-sm font-medium text-white">
-                            {new Date(order.createdAt).toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </span>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-sm font-medium text-white">
+                              {new Date(order.createdAt).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </span>
+                            {order.rating && (
+                              <div className="flex items-center gap-1 text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                                <Star size={10} className="fill-amber-500" /> {order.rating.toFixed(1)}
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="inline-flex items-center justify-center p-2 rounded-lg text-text-muted hover:bg-white/5 hover:text-white transition-colors">

@@ -20,8 +20,11 @@ import {
   Download,
   File as FileIcon,
   Check,
+  Calendar,
+  Star,
 } from 'lucide-react'
 import Button, { cn } from '../components/Button'
+import { calculateDeadline } from '../utils/orderUtils'
 import { createLogger, serializeError } from '../services/logger'
 import { resolveApiUrl } from '../utils/urlUtils'
 import { toast } from 'sonner'
@@ -91,6 +94,10 @@ export default function OrderDetail() {
   const [isRevisionModalOpen, setIsRevisionModalOpen] = useState(false)
   const [revisionItemId, setRevisionItemId] = useState<string | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
+
+  const [reviewRating, setReviewRating] = useState<number>(0)
+  const [reviewFeedback, setReviewFeedback] = useState('')
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -184,6 +191,20 @@ export default function OrderDetail() {
       logger.error('order.chat_failed', { error: serializeError(err) })
     } finally {
       setSending(false)
+    }
+  }
+
+  async function handleSubmitReview() {
+    if (!id || reviewRating === 0) return
+    setIsSubmittingReview(true)
+    try {
+      await orderApi.submitOrderReview(id, reviewRating, reviewFeedback)
+      toast.success('Review submitted successfully.')
+      await loadOrder()
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err.message)
+    } finally {
+      setIsSubmittingReview(false)
     }
   }
 
@@ -457,6 +478,29 @@ export default function OrderDetail() {
                   </div>
 
                   <div className="flex items-center gap-6">
+                    {(() => {
+                      const deadline = calculateDeadline(order.approvedAt, order.createdAt, order.status, item.kind, item.params)
+                      if (!deadline.date) return null
+                      
+                      return (
+                        <div
+                          className={cn(
+                            'hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[9px] font-bold uppercase tracking-wider',
+                            deadline.status === 'OVERDUE'
+                              ? 'border-error/20 bg-error/10 text-error'
+                              : deadline.status === 'URGENT'
+                                ? 'border-orange-500/20 bg-orange-500/10 text-orange-500'
+                                : deadline.status === 'COMPLETED'
+                                  ? 'border-success/20 bg-success/10 text-success line-through opacity-75'
+                                  : 'border-primary/20 bg-primary/10 text-primary'
+                          )}
+                        >
+                          <Calendar size={12} className={deadline.status === 'COMPLETED' ? 'opacity-50' : ''} />
+                          {deadline.status === 'COMPLETED' && <span className="mr-1">✓</span>}
+                          {deadline.formatted}
+                        </div>
+                      )
+                    })()}
                     <div
                       className={cn(
                         'px-3 py-1 rounded-full text-[9px] font-bold border uppercase tracking-widest',
@@ -675,6 +719,44 @@ export default function OrderDetail() {
                 )}
               </div>
             ))}
+
+            {order.status === 'COMPLETED' && (
+              <div className="bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-xl mt-6">
+                <h3 className="text-lg font-bold text-white mb-2">Order Review</h3>
+                <div className="space-y-4 max-w-lg">
+                  <p className="text-sm text-text-dim">
+                    {order.rating ? 'Your rating for this order:' : 'Please rate your experience with this order.'}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setReviewRating(star)}
+                        className="hover:scale-110 transition-transform"
+                      >
+                        <Star
+                          size={28}
+                          className={(star <= reviewRating || star <= (order.rating || 0)) ? 'text-amber-500 fill-amber-500' : 'text-text-dim/20 hover:text-amber-500/50'}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    value={reviewFeedback || order.feedback || ''}
+                    onChange={(e) => setReviewFeedback(e.target.value)}
+                    placeholder="Leave some optional feedback..."
+                    className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-sm text-white outline-none focus:border-primary/40 min-h-[100px] resize-y custom-scrollbar"
+                  />
+                  <Button
+                    onClick={handleSubmitReview}
+                    disabled={reviewRating === 0 || isSubmittingReview || (reviewRating === order.rating && reviewFeedback === (order.feedback || ''))}
+                    className="h-10 px-6 rounded-xl text-xs"
+                  >
+                    {isSubmittingReview ? <Loader2 size={16} className="animate-spin" /> : (order.rating ? 'Update Review' : 'Submit Review')}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

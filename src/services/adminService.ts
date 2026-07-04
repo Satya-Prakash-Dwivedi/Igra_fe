@@ -40,6 +40,7 @@ export interface DashboardStats {
   pendingReview: number
   inProgress: number
   completed: number
+  averageRating: number
 }
 
 export interface AdminUser {
@@ -64,6 +65,8 @@ export interface AdminOrder {
   createdAt: string
   approvedAt?: string
   items?: AdminOrderItem[]
+  rating?: number
+  feedback?: string
 }
 
 export interface AdminOrderAsset {

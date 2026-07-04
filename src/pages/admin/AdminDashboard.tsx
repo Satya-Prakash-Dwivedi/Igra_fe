@@ -18,6 +18,7 @@ import {
   Hash,
   User as UserIcon,
   LayoutDashboard,
+  Star,
 } from 'lucide-react'
 import adminService from '../../services/adminService'
 import type { DashboardStats, AdminOrder, Message } from '../../services/adminService'
@@ -173,7 +174,7 @@ const AdminDashboard: React.FC = () => {
       {stats && (
         <div className="space-y-8">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             <StatCard
               label="Total Orders"
               value={stats.totalOrders}
@@ -203,6 +204,12 @@ const AdminDashboard: React.FC = () => {
               color="bg-emerald-500/10"
               onClick={() => navigate('/admin/orders?status=COMPLETED')}
               trend="Global"
+            />
+            <StatCard
+              label="Avg. Rating"
+              value={stats.averageRating ? parseFloat(stats.averageRating.toFixed(1)) : 0}
+              icon={<Star size={24} className="text-amber-500 fill-amber-500" />}
+              color="bg-amber-500/10"
             />
           </div>
 
