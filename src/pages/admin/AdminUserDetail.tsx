@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   Package,
@@ -14,6 +14,8 @@ import {
   Activity,
   Mail,
   ShieldCheck,
+  Coins,
+  MessageSquare,
 } from 'lucide-react'
 import adminService from '../../services/adminService'
 import { createLogger, serializeError } from '../../services/logger'
@@ -26,6 +28,7 @@ const logger = createLogger('AdminUserDetail')
 
 const AdminUserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -42,6 +45,7 @@ const AdminUserDetail: React.FC = () => {
     message: '',
     onConfirm: () => {},
   })
+  const [grantModal, setGrantModal] = useState({ isOpen: false, amount: 0, notes: '', isSubmitting: false })
 
   useEffect(() => {
     if (id) fetchUserDetail()
@@ -187,55 +191,23 @@ const AdminUserDetail: React.FC = () => {
               <span>Email User</span>
             </Button>
 
-            {user.role === 'user' ? (
-              <Button
-                variant="outline"
-                className="w-full justify-center"
-                onClick={() => {
-                  setConfirmModal({
-                    isOpen: true,
-                    title: 'Elevate Identity',
-                    message: `Are you sure you want to elevate ${user.name} to Staff status? This will grant them administrative access to studio operations.`,
-                    icon: ShieldCheck,
-                    variant: 'primary',
-                    onConfirm: async () => {
-                      try {
-                        await adminService.assignStaff(user._id)
-                        window.location.reload()
-                      } catch (err) {
-                        alert('Elevation failed')
-                      }
-                    },
-                  })
-                }}
-              >
-                Elevate to Staff
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                className="w-full justify-center border-error/20 text-error hover:bg-error/10"
-                onClick={() => {
-                  setConfirmModal({
-                    isOpen: true,
-                    title: 'Revoke Privilege',
-                    message: `Are you sure you want to revoke Staff status for ${user.name}? They will lose all administrative privileges.`,
-                    icon: ShieldAlert,
-                    variant: 'error',
-                    onConfirm: async () => {
-                      try {
-                        await adminService.removeStaff(user._id)
-                        window.location.reload()
-                      } catch (err) {
-                        alert('Revocation failed')
-                      }
-                    },
-                  })
-                }}
-              >
-                Revoke Staff
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              className="w-full justify-center border-primary/20 text-primary hover:bg-primary/10"
+              onClick={() => setGrantModal({ isOpen: true, amount: 0, notes: '', isSubmitting: false })}
+            >
+              <Coins size={16} />
+              <span>Grant Credits</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full justify-center"
+              onClick={() => navigate(`/admin/messages?user=${user._id}`)}
+            >
+              <MessageSquare size={16} className="mr-2" />
+              <span>Message User</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -244,6 +216,79 @@ const AdminUserDetail: React.FC = () => {
         {...confirmModal}
         onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
       />
+
+      {grantModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-bg-card border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+              <Coins size={20} className="text-primary" />
+              Grant Credits
+            </h2>
+            <p className="text-text-muted text-sm mb-6">
+              Manually add credits to {user.name}'s wallet.
+            </p>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={grantModal.amount || ''}
+                  onChange={e => setGrantModal(prev => ({ ...prev, amount: Number(e.target.value) }))}
+                  className="w-full bg-bg-dark border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-primary transition-colors"
+                  placeholder="e.g. 50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                  Notes / Reason
+                </label>
+                <input
+                  type="text"
+                  value={grantModal.notes}
+                  onChange={e => setGrantModal(prev => ({ ...prev, notes: e.target.value }))}
+                  className="w-full bg-bg-dark border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-primary transition-colors"
+                  placeholder="e.g. Apology for delay, Bonus, etc."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setGrantModal(prev => ({ ...prev, isOpen: false }))}
+                disabled={grantModal.isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={async () => {
+                  if (grantModal.amount <= 0) {
+                    alert('Please enter a valid amount greater than 0');
+                    return;
+                  }
+                  setGrantModal(prev => ({ ...prev, isSubmitting: true }));
+                  try {
+                    await adminService.grantCredits(user._id, grantModal.amount, grantModal.notes);
+                    setGrantModal(prev => ({ ...prev, isOpen: false, isSubmitting: false }));
+                    fetchUserDetail();
+                  } catch (err) {
+                    alert('Failed to grant credits');
+                    setGrantModal(prev => ({ ...prev, isSubmitting: false }));
+                  }
+                }}
+                isLoading={grantModal.isSubmitting}
+              >
+                Confirm Grant
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Order History */}

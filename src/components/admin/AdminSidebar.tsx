@@ -10,6 +10,7 @@ import {
   Users,
   UserCircle,
   MessageSquare,
+  FileText,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../Button'
@@ -24,6 +25,7 @@ const navItems = [
   { to: '/admin/users', icon: <Users size={18} />, label: 'Users' },
   { to: '/admin/staff', icon: <UserCircle size={18} />, label: 'Staff Settings' },
   { to: '/admin/messages', icon: <MessageSquare size={18} />, label: 'Messages' },
+  { to: '/admin/ledger', icon: <FileText size={18} />, label: 'Credit Ledger' },
   { to: '/admin/support/tickets', icon: <Ticket size={18} />, label: 'Support Tickets' },
   { to: '/admin/support/bugs', icon: <Bug size={18} />, label: 'Bug Reports' },
 ]

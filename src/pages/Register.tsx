@@ -40,7 +40,7 @@ const Register: React.FC = () => {
       navigate('/dashboard')
     } catch (err: any) {
       logger.error('register.failed', { error: serializeError(err) })
-      setError(err?.response?.data?.error || 'Registration failed')
+      setError((err?.response?.data?.message || err?.response?.data?.error) || 'Registration failed')
     } finally {
       setIsSubmitting(false)
     }

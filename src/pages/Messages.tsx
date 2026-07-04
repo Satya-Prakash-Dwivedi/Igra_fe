@@ -12,6 +12,7 @@ import {
 import messageService from '../services/messageService'
 import type { Message } from '../services/messageService'
 import { createLogger, serializeError } from '../services/logger'
+import Loader from '../components/Loader'
 import { cn } from '../components/Button'
 import Button from '../components/Button'
 import { useAuth } from '../hooks/useAuth'
@@ -129,11 +130,8 @@ const Messages: React.FC = () => {
       <div className="flex-1 bg-bg-card/40 backdrop-blur-xl border border-white/5 rounded-2xl flex flex-col overflow-hidden shadow-2xl relative z-10">
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 custom-scrollbar">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <Loader2 size={32} className="animate-spin text-primary/40" />
-              <p className="text-[10px] font-bold uppercase tracking-widest text-text-dim/40">
-                Loading messages...
-              </p>
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader />
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-40">

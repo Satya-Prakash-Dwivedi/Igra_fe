@@ -49,7 +49,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
     if (path === '/invoices') return 'Invoices'
     if (path === '/messages') return 'Messages'
     if (path === '/channels') return 'Channels'
-    if (path === '/profile') return 'Profile'
+    if (path === '/profile' || path === '/admin/profile') return 'Profile'
     if (path === '/support') return 'Support'
     if (path === '/report-bug') return 'Report Bug'
     return 'Igra'
@@ -132,7 +132,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
                 <div className="px-2 space-y-1">
                   <button
                     onClick={() => {
-                      navigate('/profile')
+                      const profileRoute = (user?.role === 'admin' || user?.role === 'staff') 
+                        ? '/admin/profile' 
+                        : '/profile'
+                      navigate(profileRoute)
                       setShowUserDropdown(false)
                     }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/[0.03] rounded-lg transition-colors duration-200"

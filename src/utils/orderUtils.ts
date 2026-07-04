@@ -3,7 +3,8 @@ export function calculateDeadline(
   createdAt: string,
   orderStatus: string,
   serviceKind: string,
-  params: any
+  params: any,
+  customDeadline?: string | Date | null
 ): { date: Date | null; formatted: string; status: 'NORMAL' | 'URGENT' | 'OVERDUE' | 'NONE' | 'COMPLETED' } {
   // For existing orders before approvedAt was introduced, fallback to createdAt
   const isPostApproval = ['IN_PROGRESS', 'AWAITING_APPROVAL', 'COMPLETED'].includes(orderStatus)
@@ -31,7 +32,12 @@ export function calculateDeadline(
     }
   }
 
-  const deadlineDate = new Date(startDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000)
+  let deadlineDate = new Date(startDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000)
+  
+  if (customDeadline) {
+    deadlineDate = new Date(customDeadline)
+  }
+
   const now = new Date()
   const diffTime = deadlineDate.getTime() - now.getTime()
   const daysDiff = Math.ceil(diffTime / (1000 * 60 * 60 * 24))

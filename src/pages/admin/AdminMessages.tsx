@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Send,
   Paperclip,
@@ -27,8 +28,11 @@ import { resolveApiUrl } from '../../utils/urlUtils'
 const logger = createLogger('AdminMessages')
 
 const AdminMessages: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const userIdFromQuery = searchParams.get('user')
+
   const [threads, setThreads] = useState<DirectMessageThread[]>([])
-  const [activeUserId, setActiveUserId] = useState<string | null>(null)
+  const [activeUserId, setActiveUserId] = useState<string | null>(userIdFromQuery)
   const [messages, setMessages] = useState<Message[]>([])
 
   const [threadsLoading, setThreadsLoading] = useState(true)

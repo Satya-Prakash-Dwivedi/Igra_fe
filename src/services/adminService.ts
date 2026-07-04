@@ -40,6 +40,15 @@ export interface DashboardStats {
   pendingReview: number
   inProgress: number
   completed: number
+  draft?: number
+  pendingPayment?: number
+  finalizing?: number
+  awaitingApproval?: number
+  cancelled?: number
+  averageRating: number
+  revenueTimeline?: Array<{ date: string; revenue: number }>
+  urgentOrders?: AdminOrder[]
+  staffWorkload?: Array<{ staffId: string; name: string; activeOrders: number }>
 }
 
 export interface AdminUser {
@@ -63,7 +72,10 @@ export interface AdminOrder {
   totalCreditsCaptured: number
   createdAt: string
   approvedAt?: string
+  customDeadline?: string
   items?: AdminOrderItem[]
+  rating?: number
+  feedback?: string
 }
 
 export interface AdminOrderAsset {
@@ -137,6 +149,24 @@ export interface AdminBugReport {
   createdAt: string
 }
 
+export interface AdminCreditLedgerEntry {
+  _id: string
+  walletId: {
+    _id: string
+    userId: AdminUser
+  }
+  delta: number
+  reason: string
+  refType: string
+  refId: string
+  notes?: string
+  idempotencyKey: string
+  hashPrev: string
+  hashSelf: string
+  balanceAfter: number
+  createdAt: string
+}
+
 // ─── Valid Item Transitions ──────────────────────────────────────────────────
 
 export const ITEM_TRANSITIONS: Record<OrderItemStatus, OrderItemStatus[]> = {
@@ -185,6 +215,11 @@ const adminService = {
   async getOrderDetail(id: string): Promise<AdminOrderDetailData> {
     const { data } = await api.get(`/orders/${id}`)
     return data.data as AdminOrderDetailData
+  },
+
+  async updateOrderDeadline(id: string, deadline: Date | null): Promise<AdminOrder> {
+    const { data } = await api.patch(`/admin/orders/${id}/deadline`, { deadline: deadline ? deadline.toISOString() : null })
+    return data.data.order
   },
 
   async reviewOrder(id: string, action: ReviewAction): Promise<AdminOrder> {
@@ -276,6 +311,11 @@ const adminService = {
     return data.data
   },
 
+  async grantCredits(userId: string, amount: number, notes?: string) {
+    const { data } = await api.post(`/admin/users/${userId}/credits`, { amount, notes })
+    return data.data
+  },
+
   async assignStaff(userId: string) {
     const { data } = await api.post(`/admin/staff/${userId}/assign`)
     return data.data.user
@@ -312,6 +352,13 @@ const adminService = {
   async updateBugStatus(id: string, status: SupportStatus): Promise<AdminBugReport> {
     const { data } = await api.patch(`/admin/support/bugs/${id}/status`, { status })
     return data.data.bugReport
+  },
+
+  // Ledger
+  async listLedgerEntries(params: { search?: string; reason?: string; page?: number; limit?: number } = {}): Promise<Paginated<AdminCreditLedgerEntry>> {
+    const { data } = await api.get('/admin/ledger', { params })
+    const d = data.data
+    return { total: d.total, page: d.page, pages: Math.ceil(d.total / d.limit), items: d.entries }
   },
 }
 
