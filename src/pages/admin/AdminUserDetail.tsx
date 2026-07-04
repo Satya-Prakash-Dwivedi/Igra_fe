@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   Package,
@@ -15,6 +15,7 @@ import {
   Mail,
   ShieldCheck,
   Coins,
+  MessageSquare,
 } from 'lucide-react'
 import adminService from '../../services/adminService'
 import { createLogger, serializeError } from '../../services/logger'
@@ -27,6 +28,7 @@ const logger = createLogger('AdminUserDetail')
 
 const AdminUserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -198,55 +200,14 @@ const AdminUserDetail: React.FC = () => {
               <span>Grant Credits</span>
             </Button>
 
-            {user.role === 'user' ? (
-              <Button
-                variant="outline"
-                className="w-full justify-center"
-                onClick={() => {
-                  setConfirmModal({
-                    isOpen: true,
-                    title: 'Elevate Identity',
-                    message: `Are you sure you want to elevate ${user.name} to Staff status? This will grant them administrative access to studio operations.`,
-                    icon: ShieldCheck,
-                    variant: 'primary',
-                    onConfirm: async () => {
-                      try {
-                        await adminService.assignStaff(user._id)
-                        window.location.reload()
-                      } catch (err) {
-                        alert('Elevation failed')
-                      }
-                    },
-                  })
-                }}
-              >
-                Elevate to Staff
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                className="w-full justify-center border-error/20 text-error hover:bg-error/10"
-                onClick={() => {
-                  setConfirmModal({
-                    isOpen: true,
-                    title: 'Revoke Privilege',
-                    message: `Are you sure you want to revoke Staff status for ${user.name}? They will lose all administrative privileges.`,
-                    icon: ShieldAlert,
-                    variant: 'error',
-                    onConfirm: async () => {
-                      try {
-                        await adminService.removeStaff(user._id)
-                        window.location.reload()
-                      } catch (err) {
-                        alert('Revocation failed')
-                      }
-                    },
-                  })
-                }}
-              >
-                Revoke Staff
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              className="w-full justify-center"
+              onClick={() => navigate(`/admin/messages?user=${user._id}`)}
+            >
+              <MessageSquare size={16} className="mr-2" />
+              <span>Message User</span>
+            </Button>
           </div>
         </div>
       </div>
