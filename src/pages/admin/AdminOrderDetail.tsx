@@ -32,6 +32,7 @@ import {
   ShieldAlert,
   Calendar,
   HelpCircle,
+  Star,
 } from 'lucide-react'
 import socketService from '../../services/socketService'
 import { AuthContext } from '../../context/AuthContext'
@@ -41,6 +42,8 @@ import * as uploadApi from '../../services/uploadService'
 import { resolveApiUrl } from '../../utils/urlUtils'
 import ConfirmModal from '../../components/modals/ConfirmModal'
 import { toast } from 'sonner'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import type {
   AdminOrder,
   AdminOrderDetailData,
@@ -191,6 +194,7 @@ const ItemCard: React.FC<{
   approvedAt?: string
   createdAt?: string
   orderStatus?: string
+  customDeadline?: string
   isExpanded: boolean
   onToggle: () => void
   onUpdated: (updated: AdminOrderItem) => void
@@ -209,6 +213,7 @@ const ItemCard: React.FC<{
   onPreview,
   setConfirmModal,
   events = [],
+  customDeadline,
 }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -414,11 +419,11 @@ const ItemCard: React.FC<{
                 ID-{item._id.slice(-4)}
               </span>
               <span className="w-1 h-1 rounded-full bg-white/10" />
-              <span className="text-xs font-bold uppercase tracking-wide text-text-dim/40">
+              <span className="text-xs font-bold uppercase tracking-wide text-white/80">
                 {item.creditsQuoted} credits
               </span>
               <span className="w-1 h-1 rounded-full bg-white/10" />
-              <span className="text-xs font-bold uppercase tracking-wide text-text-dim/40">
+              <span className="text-xs font-bold uppercase tracking-wide text-white/80">
                 {item.allowedRevisions > 0 
                   ? `Revision ${item.usedRevisions} (Unlimited)`
                   : `No Revisions`}
@@ -429,7 +434,7 @@ const ItemCard: React.FC<{
 
         <div className="flex items-center gap-3">
           {(() => {
-            const deadline = calculateDeadline(approvedAt, createdAt || '', orderStatus || '', item.kind, item.params)
+            const deadline = calculateDeadline(approvedAt, createdAt || '', orderStatus || '', item.kind, item.params, customDeadline)
             if (!deadline.date) return null
             
             return (
@@ -1145,9 +1150,41 @@ const AdminOrderDetail: React.FC = () => {
               <div className="flex flex-wrap items-center gap-3 text-text-dim/40">
                 <div className="flex items-center gap-2">
                   <Calendar size={14} className="text-primary/40" />
-                  <p className="text-xs font-bold uppercase tracking-wide">
-                    Commissioned {new Date(order.createdAt).toLocaleDateString()}
+                  <p className="text-xs font-bold uppercase tracking-wide text-white/60">
+                    Ordered {new Date(order.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
+                </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/5" />
+                <div className="flex items-center gap-2 group/deadline relative">
+                  <Calendar size={14} className="text-primary/40" />
+                  <p className="text-xs font-bold uppercase tracking-wide text-white/60">
+                    Deadline:
+                  </p>
+                  <div className="relative">
+                    {order.status === 'COMPLETED' || order.status === 'CANCELLED' ? (
+                      <span className="text-xs text-white uppercase font-bold px-2 py-1">
+                        {order.customDeadline ? new Date(order.customDeadline).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
+                      </span>
+                    ) : (
+                      <DatePicker
+                        selected={order.customDeadline ? new Date(order.customDeadline) : null}
+                        onChange={async (date: Date | null) => {
+                          try {
+                            await adminService.updateOrderDeadline(order._id, date);
+                            toast.success('Deadline updated successfully');
+                            fetchAll();
+                          } catch (err: any) {
+                            toast.error((err?.response?.data?.message || err?.response?.data?.error) || 'Failed to update deadline');
+                          }
+                        }}
+                        className="bg-black/20 border border-white/10 rounded px-2 py-1 text-xs text-white uppercase focus:border-primary outline-none cursor-pointer hover:border-white/20 transition-colors w-[100px]"
+                        placeholderText="Select Date"
+                        dateFormat="yyyy-MM-dd"
+                        isClearable
+                        portalId="root-portal"
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="w-1.5 h-1.5 rounded-full bg-white/5" />
                 <div className="flex items-center gap-2">
@@ -1169,7 +1206,7 @@ const AdminOrderDetail: React.FC = () => {
               {order.totalCreditsQuoted.toLocaleString()}
             </p>
             <div className="space-y-1">
-              <p className="text-xs font-bold text-white/40 uppercase tracking-wide">
+              <p className="text-xs font-bold text-white uppercase tracking-wide">
                 Credits Captured
               </p>
               <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -1184,6 +1221,28 @@ const AdminOrderDetail: React.FC = () => {
                 {order.totalCreditsCaptured.toLocaleString()} CR
               </p>
             </div>
+
+            {order.rating && (
+              <div className="mt-4 pt-4 border-t border-white/5 w-full text-left md:text-right">
+                <p className="text-xs font-bold text-white uppercase tracking-wide mb-2">
+                  Client Rating
+                </p>
+                <div className="flex items-center md:justify-end gap-1 mb-2">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <Star
+                      key={star}
+                      size={18}
+                      className={star <= order.rating! ? 'text-amber-500 fill-amber-500' : 'text-white/30'}
+                    />
+                  ))}
+                </div>
+                {order.feedback && (
+                  <p className="text-[10px] text-white italic bg-black/20 p-2 rounded border border-white/5 inline-block text-left max-w-full break-words">
+                    "{order.feedback}"
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1206,20 +1265,20 @@ const AdminOrderDetail: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-text-dim/20 text-xs uppercase tracking-wide font-bold mb-1">
+              <p className="text-white text-xs uppercase tracking-wide font-bold mb-1">
                 Client authority
               </p>
               <p className="text-white text-base font-bold tracking-tight group-hover/user:text-primary transition-colors">
                 {order.userId?.name ?? 'Unknown Identity'}
               </p>
-              <p className="text-text-dim/40 text-xs font-mono group-hover/user:text-text-dim transition-colors">
+              <p className="text-white/80 text-xs font-mono transition-colors">
                 {order.userId?.email}
               </p>
             </div>
           </Link>
 
           <div className="flex flex-col justify-center p-5 bg-black/20 rounded-lg border border-white/5 shadow-xl relative group/assign">
-            <div className="flex items-center gap-3 mb-4 text-text-dim/20 group-focus-within/assign:text-primary transition-colors">
+            <div className="flex items-center gap-3 mb-4 text-white group-focus-within/assign:text-primary transition-colors">
               <UserIcon size={14} />
               <p className="text-xs uppercase tracking-wide font-bold">Assigned controller</p>
             </div>
@@ -1338,7 +1397,7 @@ const AdminOrderDetail: React.FC = () => {
                     setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
                     fetchAll()
                   } catch (err: any) {
-                    toast.error(err?.response?.data?.error || err.message)
+                    toast.error((err?.response?.data?.message || err?.response?.data?.error) || err.message)
                   } finally {
                     setIsLoading(false)
                   }
@@ -1372,7 +1431,7 @@ const AdminOrderDetail: React.FC = () => {
               'flex items-center gap-4 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wide flex-1 justify-center transition-all duration-500 group relative',
               activeTab === key
                 ? 'bg-white text-black shadow-lg scale-[1.02] rotate-[-1deg]'
-                : 'text-text-dim/20 hover:text-white hover:bg-white/5'
+                : 'text-white/80 hover:text-white hover:bg-white/5'
             )}
           >
             <div className="relative">
@@ -1380,7 +1439,7 @@ const AdminOrderDetail: React.FC = () => {
                 size={18}
                 className={cn(
                   'transition-colors duration-500',
-                  activeTab === key ? 'text-primary' : 'text-text-dim/20 group-hover:text-primary'
+                  activeTab === key ? 'text-primary' : 'text-white group-hover:text-primary'
                 )}
               />
               {key === 'chat' && count > 0 && (
@@ -1406,6 +1465,7 @@ const AdminOrderDetail: React.FC = () => {
                 approvedAt={order?.approvedAt}
                 createdAt={order?.createdAt}
                 orderStatus={order?.status}
+                customDeadline={order.customDeadline}
                 isExpanded={expandedItem === item._id}
                 onToggle={() => setExpandedItem(expandedItem === item._id ? null : item._id)}
                 onUpdated={handleItemUpdated}

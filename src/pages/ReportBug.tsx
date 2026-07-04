@@ -73,7 +73,7 @@ const ReportBug = () => {
       navigate('/dashboard')
     } catch (err: any) {
       logger.error('bug_report.submit_failed', { error: serializeError(err) })
-      setError(err?.response?.data?.error || 'Failed to submit report. Please try again.')
+      setError((err?.response?.data?.message || err?.response?.data?.error) || 'Failed to submit report. Please try again.')
     } finally {
       setIsSubmitting(false)
       setIsUploadingFiles(false)

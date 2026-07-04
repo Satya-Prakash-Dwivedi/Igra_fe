@@ -198,7 +198,7 @@ export default function Credits() {
               toast.success('Credits purchased successfully via Razorpay!')
             } catch (err: any) {
               logger.error('credits.razorpay_capture_failed', { error: serializeError(err) })
-              toast.error(err?.response?.data?.error || 'Verification failed')
+              toast.error((err?.response?.data?.message || err?.response?.data?.error) || 'Verification failed')
             } finally {
               setLoading(false)
             }
@@ -215,7 +215,7 @@ export default function Credits() {
       }
     } catch (err: any) {
       logger.error('credits.checkout_failed', { provider, error: serializeError(err) })
-      toast.error(err?.response?.data?.error || 'Checkout failed')
+      toast.error((err?.response?.data?.message || err?.response?.data?.error) || 'Checkout failed')
       setPurchasing(null)
     }
   }

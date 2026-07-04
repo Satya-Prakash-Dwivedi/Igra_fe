@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import * as orderApi from '../services/orderService'
 import type { Order } from '../services/orderService'
+import Loader from '../components/Loader'
 import {
   Plus,
   Clock,
@@ -22,6 +23,7 @@ import { createLogger, serializeError } from '../services/logger'
 import { cn } from '../components/Button'
 import { toast } from 'sonner'
 import Button from '../components/Button'
+import { calculateDeadline } from '../utils/orderUtils'
 
 const logger = createLogger('Orders')
 
@@ -59,6 +61,7 @@ export default function Orders() {
   async function loadOrders() {
     setLoading(true)
     try {
+      await new Promise((resolve) => setTimeout(resolve, 5000))
       const result = await orderApi.listOrders(statusFilter || undefined, page)
       setOrders(result.orders)
       setTotal(result.total)
@@ -136,11 +139,8 @@ export default function Orders() {
 
       {/* Operational Stream */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 md:py-40 gap-6 opacity-40 relative z-10">
-          <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-xs font-bold uppercase tracking-widest animate-pulse">
-            Loading orders...
-          </p>
+        <div className="flex flex-col items-center justify-center py-20 md:py-40 relative z-10">
+          <Loader />
         </div>
       ) : orders.length === 0 ? (
         <div className="bg-bg-card/20 border border-dashed border-white/10 rounded-2xl p-10 md:p-20 text-center backdrop-blur-xl shadow-xl relative z-10">
@@ -203,6 +203,37 @@ export default function Orders() {
                     <Calendar size={12} className="text-primary/40" />
                     <span>{new Date(order.createdAt).toLocaleDateString()}</span>
                   </div>
+                  {(() => {
+                    if (!order.items || order.items.length === 0) return null
+                    const deadlines = order.items
+                      .map(item => calculateDeadline(order.approvedAt, order.createdAt, order.status, item.kind, item.params, order.customDeadline))
+                      .filter(d => d.date !== null)
+                    if (deadlines.length === 0) return null
+                    
+                    deadlines.sort((a, b) => a.date!.getTime() - b.date!.getTime())
+                    const urgent = deadlines[0]
+                    
+                    return (
+                      <>
+                        <div className="w-1 h-1 rounded-full bg-white/5" />
+                        <div
+                          className={cn(
+                            'flex items-center gap-2 px-2 py-0.5 rounded-md',
+                            urgent.status === 'OVERDUE'
+                              ? 'bg-error/10 text-error'
+                              : urgent.status === 'URGENT'
+                                ? 'bg-orange-500/10 text-orange-500'
+                                : urgent.status === 'COMPLETED'
+                                  ? 'bg-success/10 text-success opacity-75'
+                                  : 'bg-primary/10 text-primary'
+                          )}
+                        >
+                          <Clock size={12} />
+                          <span>{urgent.formatted}</span>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
 
@@ -212,7 +243,7 @@ export default function Orders() {
                     Items
                   </p>
                   <p className="text-xl font-bold text-white">
-                    {order.itemCount || 1}{' '}
+                    {order.items ? order.items.length : 1}{' '}
                     <span className="text-[10px] font-normal text-text-dim/40 ml-1 uppercase">
                       Assets
                     </span>
@@ -240,7 +271,7 @@ export default function Orders() {
                       await orderApi.submitOrder(order._id)
                       loadOrders()
                     } catch (err: any) {
-                      toast.error(err?.response?.data?.error || err.message)
+                      toast.error((err?.response?.data?.message || err?.response?.data?.error) || err.message)
                     }
                   }}
                   className="mt-6 h-10 rounded-xl bg-white text-black hover:bg-primary hover:text-white border-none shadow-lg transition-all duration-300 text-xs font-bold uppercase tracking-wider"
