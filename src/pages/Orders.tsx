@@ -271,7 +271,7 @@ export default function Orders() {
                       await orderApi.submitOrder(order._id)
                       loadOrders()
                     } catch (err: any) {
-                      toast.error(err?.response?.data?.error || err.message)
+                      toast.error((err?.response?.data?.message || err?.response?.data?.error) || err.message)
                     }
                   }}
                   className="mt-6 h-10 rounded-xl bg-white text-black hover:bg-primary hover:text-white border-none shadow-lg transition-all duration-300 text-xs font-bold uppercase tracking-wider"

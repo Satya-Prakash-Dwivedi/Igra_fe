@@ -142,7 +142,7 @@ export default function OrderDetail() {
       const data = await orderApi.getOrderDetail(id!)
       setDetail(data)
     } catch (err: any) {
-      const msg = err?.response?.data?.error || err.message
+      const msg = (err?.response?.data?.message || err?.response?.data?.error) || err.message
       setError(msg)
       logger.error('order.load_failed', { orderId: id, error: serializeError(err) })
     } finally {
@@ -167,7 +167,7 @@ export default function OrderDetail() {
       await loadOrder()
       toast.success('Order submitted successfully.')
     } catch (err: any) {
-      const msg = err?.response?.data?.error || err.message
+      const msg = (err?.response?.data?.message || err?.response?.data?.error) || err.message
       if (msg.toLowerCase().includes('insufficient credits')) {
         if (confirm('Insufficient credits. Top up your wallet?')) {
           navigate('/credits')
@@ -202,7 +202,7 @@ export default function OrderDetail() {
       toast.success('Review submitted successfully.')
       await loadOrder()
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || err.message)
+      toast.error((err?.response?.data?.message || err?.response?.data?.error) || err.message)
     } finally {
       setIsSubmittingReview(false)
     }
@@ -238,7 +238,7 @@ export default function OrderDetail() {
         toast.success('Files uploaded.')
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || err.message)
+      toast.error((err?.response?.data?.message || err?.response?.data?.error) || err.message)
     } finally {
       setUploadingItem(null)
     }
@@ -258,7 +258,7 @@ export default function OrderDetail() {
           loadOrder()
           setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
         } catch (err: any) {
-          toast.error(err?.response?.data?.error || err.message)
+          toast.error((err?.response?.data?.message || err?.response?.data?.error) || err.message)
         }
       },
     })
@@ -278,7 +278,7 @@ export default function OrderDetail() {
           loadOrder()
           setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
         } catch (err: any) {
-          toast.error(err?.response?.data?.error || err.message)
+          toast.error((err?.response?.data?.message || err?.response?.data?.error) || err.message)
         }
       },
     })
@@ -291,7 +291,7 @@ export default function OrderDetail() {
       await loadOrder()
       toast.success('Asset removed.')
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || err.message)
+      toast.error((err?.response?.data?.message || err?.response?.data?.error) || err.message)
     }
   }
 

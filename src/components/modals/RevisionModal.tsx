@@ -105,7 +105,7 @@ const RevisionModal: React.FC<RevisionModalProps> = ({
       logger.error('revision_modal.submit_failed', { error: serializeError(err) })
       setIsUploadingFiles(false)
       setError(
-        err?.response?.data?.error ||
+        (err?.response?.data?.message || err?.response?.data?.error) ||
           err.message ||
           'Failed to submit revision request. Please try again.'
       )

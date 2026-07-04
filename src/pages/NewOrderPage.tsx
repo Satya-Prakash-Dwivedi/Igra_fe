@@ -219,7 +219,7 @@ export default function NewOrderPage() {
           setOrderId(order._id)
           setStepIndex(1)
         } catch (err: any) {
-          setError(err?.response?.data?.error || err.message)
+          setError((err?.response?.data?.message || err?.response?.data?.error) || err.message)
         } finally {
           setLoading(false)
         }
@@ -262,7 +262,7 @@ export default function NewOrderPage() {
           throw err
         }
       } catch (err: any) {
-        setError(err?.response?.data?.error || err?.response?.data?.message || err.message)
+        setError((err?.response?.data?.message || err?.response?.data?.error) || err?.response?.data?.message || err.message)
       } finally {
         setLoading(false)
       }
@@ -308,7 +308,7 @@ export default function NewOrderPage() {
           throw err
         }
       } catch (err: any) {
-        const errorMsg = err?.response?.data?.error || err?.response?.data?.message || err.message
+        const errorMsg = (err?.response?.data?.message || err?.response?.data?.error) || err?.response?.data?.message || err.message
         setError(`Failed to save configuration: ${errorMsg}`)
         // If we hit a 429, we should definitely stop
         if (err?.response?.status === 429) {
@@ -332,7 +332,7 @@ export default function NewOrderPage() {
         await orderApi.submitOrder(orderId)
         navigate(`/orders/${orderId}`)
       } catch (err: any) {
-        setError(err?.response?.data?.error || err.message)
+        setError((err?.response?.data?.message || err?.response?.data?.error) || err.message)
       } finally {
         setLoading(false)
       }

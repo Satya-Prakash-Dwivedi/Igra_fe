@@ -1174,7 +1174,7 @@ const AdminOrderDetail: React.FC = () => {
                             toast.success('Deadline updated successfully');
                             fetchAll();
                           } catch (err: any) {
-                            toast.error(err?.response?.data?.error || 'Failed to update deadline');
+                            toast.error((err?.response?.data?.message || err?.response?.data?.error) || 'Failed to update deadline');
                           }
                         }}
                         className="bg-black/20 border border-white/10 rounded px-2 py-1 text-xs text-white uppercase focus:border-primary outline-none cursor-pointer hover:border-white/20 transition-colors w-[100px]"
@@ -1397,7 +1397,7 @@ const AdminOrderDetail: React.FC = () => {
                     setConfirmModal((prev: any) => ({ ...prev, isOpen: false }))
                     fetchAll()
                   } catch (err: any) {
-                    toast.error(err?.response?.data?.error || err.message)
+                    toast.error((err?.response?.data?.message || err?.response?.data?.error) || err.message)
                   } finally {
                     setIsLoading(false)
                   }
