@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import * as orderApi from '../services/orderService'
 import type { Order } from '../services/orderService'
+import Loader from '../components/Loader'
 import {
   Plus,
   Clock,
@@ -60,6 +61,7 @@ export default function Orders() {
   async function loadOrders() {
     setLoading(true)
     try {
+      await new Promise((resolve) => setTimeout(resolve, 5000))
       const result = await orderApi.listOrders(statusFilter || undefined, page)
       setOrders(result.orders)
       setTotal(result.total)
@@ -137,11 +139,8 @@ export default function Orders() {
 
       {/* Operational Stream */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 md:py-40 gap-6 opacity-40 relative z-10">
-          <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-xs font-bold uppercase tracking-widest animate-pulse">
-            Loading orders...
-          </p>
+        <div className="flex flex-col items-center justify-center py-20 md:py-40 relative z-10">
+          <Loader />
         </div>
       ) : orders.length === 0 ? (
         <div className="bg-bg-card/20 border border-dashed border-white/10 rounded-2xl p-10 md:p-20 text-center backdrop-blur-xl shadow-xl relative z-10">

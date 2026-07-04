@@ -17,7 +17,8 @@ import type { Invoice } from '../services/billingService'
 import { createLogger, serializeError } from '../services/logger'
 import Button from '../components/Button'
 
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import Loader from '../components/Loader'
 import { generateInvoicePDF } from '../utils/invoiceUtils'
 
 const logger = createLogger('Invoices')
@@ -80,11 +81,8 @@ export default function Invoices() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-40 gap-6">
-          <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-[10px] font-bold uppercase tracking-widest text-text-dim/40 animate-pulse">
-            Loading invoices...
-          </p>
+        <div className="flex flex-col items-center justify-center py-40">
+          <Loader />
         </div>
       ) : invoices.length === 0 ? (
         <div className="bg-bg-card/40 backdrop-blur-xl border border-dashed border-white/10 rounded-2xl p-16 text-center shadow-2xl relative z-10">
