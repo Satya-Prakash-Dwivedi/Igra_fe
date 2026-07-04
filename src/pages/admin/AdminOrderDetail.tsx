@@ -415,11 +415,11 @@ const ItemCard: React.FC<{
                 ID-{item._id.slice(-4)}
               </span>
               <span className="w-1 h-1 rounded-full bg-white/10" />
-              <span className="text-xs font-bold uppercase tracking-wide text-text-dim/40">
+              <span className="text-xs font-bold uppercase tracking-wide text-white/80">
                 {item.creditsQuoted} credits
               </span>
               <span className="w-1 h-1 rounded-full bg-white/10" />
-              <span className="text-xs font-bold uppercase tracking-wide text-text-dim/40">
+              <span className="text-xs font-bold uppercase tracking-wide text-white/80">
                 {item.allowedRevisions > 0 
                   ? `Revision ${item.usedRevisions} (Unlimited)`
                   : `No Revisions`}
@@ -1170,7 +1170,7 @@ const AdminOrderDetail: React.FC = () => {
               {order.totalCreditsQuoted.toLocaleString()}
             </p>
             <div className="space-y-1">
-              <p className="text-xs font-bold text-white/40 uppercase tracking-wide">
+              <p className="text-xs font-bold text-white uppercase tracking-wide">
                 Credits Captured
               </p>
               <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -1188,7 +1188,7 @@ const AdminOrderDetail: React.FC = () => {
 
             {order.rating && (
               <div className="mt-4 pt-4 border-t border-white/5 w-full text-left md:text-right">
-                <p className="text-xs font-bold text-white/40 uppercase tracking-wide mb-2">
+                <p className="text-xs font-bold text-white uppercase tracking-wide mb-2">
                   Client Rating
                 </p>
                 <div className="flex items-center md:justify-end gap-1 mb-2">
@@ -1196,12 +1196,12 @@ const AdminOrderDetail: React.FC = () => {
                     <Star
                       key={star}
                       size={18}
-                      className={star <= order.rating! ? 'text-amber-500 fill-amber-500' : 'text-white/10'}
+                      className={star <= order.rating! ? 'text-amber-500 fill-amber-500' : 'text-white/30'}
                     />
                   ))}
                 </div>
                 {order.feedback && (
-                  <p className="text-[10px] text-text-dim/60 italic bg-black/20 p-2 rounded border border-white/5 inline-block text-left max-w-full break-words">
+                  <p className="text-[10px] text-white italic bg-black/20 p-2 rounded border border-white/5 inline-block text-left max-w-full break-words">
                     "{order.feedback}"
                   </p>
                 )}
@@ -1229,20 +1229,20 @@ const AdminOrderDetail: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-text-dim/20 text-xs uppercase tracking-wide font-bold mb-1">
+              <p className="text-white text-xs uppercase tracking-wide font-bold mb-1">
                 Client authority
               </p>
               <p className="text-white text-base font-bold tracking-tight group-hover/user:text-primary transition-colors">
                 {order.userId?.name ?? 'Unknown Identity'}
               </p>
-              <p className="text-text-dim/40 text-xs font-mono group-hover/user:text-text-dim transition-colors">
+              <p className="text-white/80 text-xs font-mono transition-colors">
                 {order.userId?.email}
               </p>
             </div>
           </Link>
 
           <div className="flex flex-col justify-center p-5 bg-black/20 rounded-lg border border-white/5 shadow-xl relative group/assign">
-            <div className="flex items-center gap-3 mb-4 text-text-dim/20 group-focus-within/assign:text-primary transition-colors">
+            <div className="flex items-center gap-3 mb-4 text-white group-focus-within/assign:text-primary transition-colors">
               <UserIcon size={14} />
               <p className="text-xs uppercase tracking-wide font-bold">Assigned controller</p>
             </div>
@@ -1395,7 +1395,7 @@ const AdminOrderDetail: React.FC = () => {
               'flex items-center gap-4 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wide flex-1 justify-center transition-all duration-500 group relative',
               activeTab === key
                 ? 'bg-white text-black shadow-lg scale-[1.02] rotate-[-1deg]'
-                : 'text-text-dim/20 hover:text-white hover:bg-white/5'
+                : 'text-white/80 hover:text-white hover:bg-white/5'
             )}
           >
             <div className="relative">
@@ -1403,7 +1403,7 @@ const AdminOrderDetail: React.FC = () => {
                 size={18}
                 className={cn(
                   'transition-colors duration-500',
-                  activeTab === key ? 'text-primary' : 'text-text-dim/20 group-hover:text-primary'
+                  activeTab === key ? 'text-primary' : 'text-white group-hover:text-primary'
                 )}
               />
               {key === 'chat' && count > 0 && (
