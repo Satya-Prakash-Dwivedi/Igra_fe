@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { format, isPast, differenceInDays } from 'date-fns'
 import {
   Loader2,
   AlertCircle,
@@ -252,6 +253,35 @@ const AdminOrders: React.FC = () => {
                         </td>
                         <td className="px-6 py-4">
                           {(() => {
+                            if (order.customDeadline) {
+                              const cd = new Date(order.customDeadline);
+                              const past = isPast(cd);
+                              const diffDays = differenceInDays(cd, new Date());
+                              let status: 'SAFE' | 'URGENT' | 'OVERDUE' | 'COMPLETED' = 'SAFE';
+                              
+                              if (['COMPLETED', 'CANCELLED'].includes(order.status)) status = 'COMPLETED';
+                              else if (past) status = 'OVERDUE';
+                              else if (diffDays <= 2) status = 'URGENT';
+                              
+                              return (
+                                <div
+                                  className={cn(
+                                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider',
+                                    status === 'OVERDUE'
+                                      ? 'border-error/20 bg-error/10 text-error'
+                                      : status === 'URGENT'
+                                        ? 'border-orange-500/20 bg-orange-500/10 text-orange-500'
+                                        : status === 'COMPLETED'
+                                          ? 'border-success/20 bg-success/10 text-success line-through opacity-75'
+                                          : 'border-primary/20 bg-primary/10 text-primary'
+                                  )}
+                                >
+                                  {status === 'COMPLETED' && <span className="mr-1">✓</span>}
+                                  {format(cd, 'MMM d, yyyy')}
+                                </div>
+                              );
+                            }
+
                             if (!order.items || order.items.length === 0) return <span className="text-xs text-text-muted">—</span>
                             
                             const deadlines = order.items

@@ -1163,7 +1163,7 @@ const AdminOrderDetail: React.FC = () => {
                   <div className="relative">
                     {order.status === 'COMPLETED' || order.status === 'CANCELLED' ? (
                       <span className="text-xs text-white uppercase font-bold px-2 py-1">
-                        {order.customDeadline ? new Date(order.customDeadline).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'NOT SET'}
+                        {order.customDeadline ? new Date(order.customDeadline).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                       </span>
                     ) : (
                       <DatePicker

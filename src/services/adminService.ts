@@ -47,6 +47,8 @@ export interface DashboardStats {
   cancelled?: number
   averageRating: number
   revenueTimeline?: Array<{ date: string; revenue: number }>
+  urgentOrders?: AdminOrder[]
+  staffWorkload?: Array<{ staffId: string; name: string; activeOrders: number }>
 }
 
 export interface AdminUser {

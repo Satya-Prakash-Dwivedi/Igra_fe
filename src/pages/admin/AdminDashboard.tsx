@@ -27,6 +27,8 @@ import Button, { cn } from '../../components/Button'
 import StatusBadge from '../../components/admin/StatusBadge'
 import GradientAreaChart from '../../components/admin/charts/GradientAreaChart'
 import StatusDonutChart from '../../components/admin/charts/StatusDonutChart'
+import StaffWorkloadChart from '../../components/admin/charts/StaffWorkloadChart'
+import UrgentDeadlinesPanel from '../../components/admin/charts/UrgentDeadlinesPanel'
 
 import { resolveApiUrl } from '../../utils/urlUtils'
 
@@ -237,6 +239,21 @@ const AdminDashboard: React.FC = () => {
               </div>
               <StatusDonutChart data={stats} />
             </div>
+          </div>
+
+          {/* Operational Metrics Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-bg-card border border-white/10 rounded-xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <Users size={18} />
+                </div>
+                <h2 className="text-white font-bold text-lg tracking-tight">Staff Workload (Active Orders)</h2>
+              </div>
+              <StaffWorkloadChart data={stats.staffWorkload || []} />
+            </div>
+
+            <UrgentDeadlinesPanel orders={stats.urgentOrders || []} />
           </div>
 
           {/* Detailed Panels */}
