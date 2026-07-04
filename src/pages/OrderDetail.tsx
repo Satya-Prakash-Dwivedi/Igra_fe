@@ -479,7 +479,7 @@ export default function OrderDetail() {
 
                   <div className="flex items-center gap-6">
                     {(() => {
-                      const deadline = calculateDeadline(order.approvedAt, order.createdAt, order.status, item.kind, item.params)
+                      const deadline = calculateDeadline(order.approvedAt, order.createdAt, order.status, item.kind, item.params, order.customDeadline)
                       if (!deadline.date) return null
                       
                       return (

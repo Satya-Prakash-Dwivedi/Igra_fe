@@ -14,6 +14,7 @@ export interface Order {
   submittedAt?: string
   completedAt?: string
   approvedAt?: string
+  customDeadline?: string
   createdAt: string
   updatedAt: string
   rating?: number

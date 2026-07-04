@@ -40,6 +40,7 @@ const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminUserDetail = lazy(() => import('./pages/admin/AdminUserDetail'))
 const AdminStaff = lazy(() => import('./pages/admin/AdminStaff'))
 const AdminMessages = lazy(() => import('./pages/admin/AdminMessages'))
+const AdminLedger = lazy(() => import('./pages/admin/AdminLedger'))
 
 // A simple Loading Spinner
 const LoadingSpinner = () => (
@@ -136,6 +137,7 @@ function App() {
               <Route path="/admin/users/:id" element={<AdminUserDetail />} />
               <Route path="/admin/staff" element={<AdminStaff />} />
               <Route path="/admin/messages" element={<AdminMessages />} />
+              <Route path="/admin/ledger" element={<AdminLedger />} />
             </Route>
 
             {/* Fallback */}

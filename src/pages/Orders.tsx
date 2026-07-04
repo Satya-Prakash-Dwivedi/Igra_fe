@@ -207,7 +207,7 @@ export default function Orders() {
                   {(() => {
                     if (!order.items || order.items.length === 0) return null
                     const deadlines = order.items
-                      .map(item => calculateDeadline(order.approvedAt, order.createdAt, order.status, item.kind, item.params))
+                      .map(item => calculateDeadline(order.approvedAt, order.createdAt, order.status, item.kind, item.params, order.customDeadline))
                       .filter(d => d.date !== null)
                     if (deadlines.length === 0) return null
                     

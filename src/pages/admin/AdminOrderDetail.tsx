@@ -192,6 +192,7 @@ const ItemCard: React.FC<{
   approvedAt?: string
   createdAt?: string
   orderStatus?: string
+  customDeadline?: string
   isExpanded: boolean
   onToggle: () => void
   onUpdated: (updated: AdminOrderItem) => void
@@ -210,6 +211,7 @@ const ItemCard: React.FC<{
   onPreview,
   setConfirmModal,
   events = [],
+  customDeadline,
 }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -430,7 +432,7 @@ const ItemCard: React.FC<{
 
         <div className="flex items-center gap-3">
           {(() => {
-            const deadline = calculateDeadline(approvedAt, createdAt || '', orderStatus || '', item.kind, item.params)
+            const deadline = calculateDeadline(approvedAt, createdAt || '', orderStatus || '', item.kind, item.params, customDeadline)
             if (!deadline.date) return null
             
             return (
@@ -1146,9 +1148,31 @@ const AdminOrderDetail: React.FC = () => {
               <div className="flex flex-wrap items-center gap-3 text-text-dim/40">
                 <div className="flex items-center gap-2">
                   <Calendar size={14} className="text-primary/40" />
-                  <p className="text-xs font-bold uppercase tracking-wide">
+                  <p className="text-xs font-bold uppercase tracking-wide text-white/60">
                     Commissioned {new Date(order.createdAt).toLocaleDateString()}
                   </p>
+                </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/5" />
+                <div className="flex items-center gap-2 group/deadline relative">
+                  <Calendar size={14} className="text-primary/40" />
+                  <p className="text-xs font-bold uppercase tracking-wide text-white/60">
+                    Deadline:
+                  </p>
+                  <input
+                    type="date"
+                    className="bg-black/20 border border-white/10 rounded px-2 py-1 text-xs text-white uppercase focus:border-primary outline-none cursor-pointer hover:border-white/20 transition-colors"
+                    value={order.customDeadline ? new Date(order.customDeadline).toISOString().split('T')[0] : ''}
+                    onChange={async (e) => {
+                      try {
+                        const date = e.target.value ? new Date(e.target.value) : null;
+                        await adminService.updateOrderDeadline(order._id, date);
+                        toast.success('Deadline updated successfully');
+                        fetchAll();
+                      } catch (err: any) {
+                        toast.error(err?.response?.data?.error || 'Failed to update deadline');
+                      }
+                    }}
+                  />
                 </div>
                 <div className="w-1.5 h-1.5 rounded-full bg-white/5" />
                 <div className="flex items-center gap-2">
@@ -1429,6 +1453,7 @@ const AdminOrderDetail: React.FC = () => {
                 approvedAt={order?.approvedAt}
                 createdAt={order?.createdAt}
                 orderStatus={order?.status}
+                customDeadline={order.customDeadline}
                 isExpanded={expandedItem === item._id}
                 onToggle={() => setExpandedItem(expandedItem === item._id ? null : item._id)}
                 onUpdated={handleItemUpdated}
