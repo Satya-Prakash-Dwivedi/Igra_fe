@@ -40,7 +40,13 @@ export interface DashboardStats {
   pendingReview: number
   inProgress: number
   completed: number
+  draft?: number
+  pendingPayment?: number
+  finalizing?: number
+  awaitingApproval?: number
+  cancelled?: number
   averageRating: number
+  revenueTimeline?: Array<{ date: string; revenue: number }>
 }
 
 export interface AdminUser {

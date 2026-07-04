@@ -25,6 +25,8 @@ import type { DashboardStats, AdminOrder, Message } from '../../services/adminSe
 import { createLogger, serializeError } from '../../services/logger'
 import Button, { cn } from '../../components/Button'
 import StatusBadge from '../../components/admin/StatusBadge'
+import GradientAreaChart from '../../components/admin/charts/GradientAreaChart'
+import StatusDonutChart from '../../components/admin/charts/StatusDonutChart'
 
 import { resolveApiUrl } from '../../utils/urlUtils'
 
@@ -211,6 +213,30 @@ const AdminDashboard: React.FC = () => {
               icon={<Star size={24} className="text-amber-500 fill-amber-500" />}
               color="bg-amber-500/10"
             />
+          </div>
+
+
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-bg-card border border-white/10 rounded-xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <TrendingUp size={18} />
+                </div>
+                <h2 className="text-white font-bold text-lg tracking-tight">Revenue (30 Days)</h2>
+              </div>
+              <GradientAreaChart data={stats.revenueTimeline || []} />
+            </div>
+
+            <div className="bg-bg-card border border-white/10 rounded-xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-500">
+                  <BarChart3 size={18} />
+                </div>
+                <h2 className="text-white font-bold text-lg tracking-tight">Order Status</h2>
+              </div>
+              <StatusDonutChart data={stats} />
+            </div>
           </div>
 
           {/* Detailed Panels */}
