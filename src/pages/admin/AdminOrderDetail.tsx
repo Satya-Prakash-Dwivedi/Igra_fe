@@ -42,6 +42,8 @@ import * as uploadApi from '../../services/uploadService'
 import { resolveApiUrl } from '../../utils/urlUtils'
 import ConfirmModal from '../../components/modals/ConfirmModal'
 import { toast } from 'sonner'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import type {
   AdminOrder,
   AdminOrderDetailData,
@@ -1149,7 +1151,7 @@ const AdminOrderDetail: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <Calendar size={14} className="text-primary/40" />
                   <p className="text-xs font-bold uppercase tracking-wide text-white/60">
-                    Commissioned {new Date(order.createdAt).toLocaleDateString()}
+                    Ordered {new Date(order.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
                 <div className="w-1.5 h-1.5 rounded-full bg-white/5" />
@@ -1158,21 +1160,31 @@ const AdminOrderDetail: React.FC = () => {
                   <p className="text-xs font-bold uppercase tracking-wide text-white/60">
                     Deadline:
                   </p>
-                  <input
-                    type="date"
-                    className="bg-black/20 border border-white/10 rounded px-2 py-1 text-xs text-white uppercase focus:border-primary outline-none cursor-pointer hover:border-white/20 transition-colors"
-                    value={order.customDeadline ? new Date(order.customDeadline).toISOString().split('T')[0] : ''}
-                    onChange={async (e) => {
-                      try {
-                        const date = e.target.value ? new Date(e.target.value) : null;
-                        await adminService.updateOrderDeadline(order._id, date);
-                        toast.success('Deadline updated successfully');
-                        fetchAll();
-                      } catch (err: any) {
-                        toast.error(err?.response?.data?.error || 'Failed to update deadline');
-                      }
-                    }}
-                  />
+                  <div className="relative">
+                    {order.status === 'COMPLETED' || order.status === 'CANCELLED' ? (
+                      <span className="text-xs text-white uppercase font-bold px-2 py-1">
+                        {order.customDeadline ? new Date(order.customDeadline).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'NOT SET'}
+                      </span>
+                    ) : (
+                      <DatePicker
+                        selected={order.customDeadline ? new Date(order.customDeadline) : null}
+                        onChange={async (date: Date | null) => {
+                          try {
+                            await adminService.updateOrderDeadline(order._id, date);
+                            toast.success('Deadline updated successfully');
+                            fetchAll();
+                          } catch (err: any) {
+                            toast.error(err?.response?.data?.error || 'Failed to update deadline');
+                          }
+                        }}
+                        className="bg-black/20 border border-white/10 rounded px-2 py-1 text-xs text-white uppercase focus:border-primary outline-none cursor-pointer hover:border-white/20 transition-colors w-[100px]"
+                        placeholderText="Select Date"
+                        dateFormat="yyyy-MM-dd"
+                        isClearable
+                        portalId="root-portal"
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="w-1.5 h-1.5 rounded-full bg-white/5" />
                 <div className="flex items-center gap-2">
